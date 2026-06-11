@@ -11,7 +11,7 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'api.unuraymi.com',
+        hostname: 'api.unu-raymi.com',
         pathname: '/uploads/**',
       },
     ],
