@@ -1,0 +1,141 @@
+// ============================================================
+// Prisma Schema - Unu-Raymi Tour Booking System (SQLite Local)
+// Database: SQLite (for local testing)
+// ============================================================
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ─────────────────────────────────────────────
+// MODEL: Tour
+// ─────────────────────────────────────────────
+model Tour {
+  id                   Int       @id @default(autoincrement())
+  nombre               String
+  slug                 String    @unique
+  descripcion          String
+  itinerario           String?
+  precio_adulto        Decimal
+  precio_nino          Decimal
+  duracion_dias        Int
+  cupos_disponibles    Int
+
+  // Arrays serializados en texto
+  servicios_incluidos  String
+  servicios_excluidos  String
+  que_llevar           String
+  fechas_disponibles   String    @default("[]")
+
+  activo               Boolean   @default(true)
+  destacado            Boolean   @default(false)
+  pais                 String    @default("Perú")
+  categoria            String    @default("Trekking")
+  ciudad               String    @default("Cusco")
+
+  imagenes             Imagen[]
+  reservas             Reserva[]
+  variantes            TourVariante[]
+
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  @@map("tours")
+}
+
+// ─────────────────────────────────────────────
+// MODEL: Imagen
+// ─────────────────────────────────────────────
+model Imagen {
+  id       Int    @id @default(autoincrement())
+  url      String
+  altText  String?
+  orden    Int    @default(0)
+  tourId   Int
+  tour     Tour   @relation(fields: [tourId], references: [id], onDelete: Cascade)
+
+  @@map("imagenes")
+}
+
+// ─────────────────────────────────────────────
+// MODEL: TourVariante
+// ─────────────────────────────────────────────
+model TourVariante {
+  id                   Int       @id @default(autoincrement())
+  tourId               Int
+  tour                 Tour      @relation(fields: [tourId], references: [id], onDelete: Cascade)
+
+  duracion_dias        Int
+  precio_adulto        Decimal
+  precio_nino          Decimal
+  cupos_disponibles    Int
+  itinerario           String?
+  servicios_incluidos  String? // Optional JSON array of inclusions for this specific variant
+  servicios_excluidos  String? // Optional JSON array of exclusions for this specific variant
+  fechas_disponibles   String? // Optional JSON array of dates for this specific variant
+
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  @@map("tour_variantes")
+}
+
+// ─────────────────────────────────────────────
+// MODEL: Reserva
+// ─────────────────────────────────────────────
+model Reserva {
+  id              Int           @id @default(autoincrement())
+  tourId          Int
+  tour            Tour          @relation(fields: [tourId], references: [id])
+
+  fechaViaje      DateTime
+  cantAdultos     Int
+  cantNinos       Int
+  precioTotal     Decimal
+  duracion_dias   Int           @default(1)
+
+  // Representado como String en SQLite
+  estado          String        @default("PENDING")
+
+  // Token criptográfico único
+  tokenSeguridad  String        @unique
+
+  // Titular de la reserva
+  titularNombre   String
+  titularEmail    String
+  titularTelefono String?
+
+  // Pasajeros incluidos en la reserva
+  pasajeros       Pasajero[]
+
+  // Referencia de pago
+  referenciaPago  String?
+  urlPago         String?
+
+  pagadoEn        DateTime?
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@map("reservas")
+}
+
+// ─────────────────────────────────────────────
+// MODEL: Pasajero
+// ─────────────────────────────────────────────
+model Pasajero {
+  id         Int     @id @default(autoincrement())
+  nombre     String
+  apellido   String
+  dni        String?
+  tipo       String // "adulto" | "nino"
+  reservaId  Int
+  reserva    Reserva @relation(fields: [reservaId], references: [id], onDelete: Cascade)
+
+  @@map("pasajeros")
+}

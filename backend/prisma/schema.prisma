@@ -1,0 +1,160 @@
+// ============================================================
+// Prisma Schema - Unu-Raymi Tour Booking System
+// Database: MySQL (Hostinger)
+// ============================================================
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ─────────────────────────────────────────────
+// MODEL: Tour
+// Los arrays de servicios se almacenan como JSON
+// serializado en columnas LongText (MySQL).
+// ─────────────────────────────────────────────
+model Tour {
+  id                   Int       @id @default(autoincrement())
+  nombre               String    @db.VarChar(255)
+  slug                 String    @unique @db.VarChar(255)
+  descripcion          String    @db.LongText
+  itinerario           String?   @db.LongText
+  precio_adulto        Decimal   @db.Decimal(10, 2)
+  precio_nino          Decimal   @db.Decimal(10, 2)
+  duracion_dias        Int
+  cupos_disponibles    Int
+
+  // Arrays categorizados de servicios (JSON serializado)
+  servicios_incluidos  String    @db.LongText  // e.g. ["Transporte", "Guía bilingüe"]
+  servicios_excluidos  String    @db.LongText  // e.g. ["Vuelos internacionales"]
+  que_llevar           String    @db.LongText  // e.g. ["Bloqueador solar", "Pasaporte"]
+  fechas_disponibles   String    @db.LongText  @default("[]") // e.g. ["2026-06-01", "2026-06-15"]
+
+  activo               Boolean   @default(true)
+  destacado            Boolean   @default(false)
+  pais                 String    @default("Perú") @db.VarChar(50)
+  categoria            String    @default("Trekking") @db.VarChar(50)
+  ciudad               String    @default("Cusco") @db.VarChar(50)
+
+  imagenes             Imagen[]
+  reservas             Reserva[]
+  variantes            TourVariante[]
+
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  @@map("tours")
+}
+
+// ─────────────────────────────────────────────
+// MODEL: Imagen
+// Relación 1:N con Tour. Cascade delete.
+// ─────────────────────────────────────────────
+model Imagen {
+  id       Int    @id @default(autoincrement())
+  url      String @db.VarChar(500)
+  altText  String? @db.VarChar(255)
+  orden    Int    @default(0)
+  tourId   Int
+  tour     Tour   @relation(fields: [tourId], references: [id], onDelete: Cascade)
+
+  @@map("imagenes")
+}
+
+// ─────────────────────────────────────────────
+// MODEL: TourVariante
+// Relación N:1 con Tour. Cascade delete.
+// ─────────────────────────────────────────────
+model TourVariante {
+  id                   Int       @id @default(autoincrement())
+  tourId               Int
+  tour                 Tour      @relation(fields: [tourId], references: [id], onDelete: Cascade)
+
+  duracion_dias        Int
+  precio_adulto        Decimal   @db.Decimal(10, 2)
+  precio_nino          Decimal   @db.Decimal(10, 2)
+  cupos_disponibles    Int
+  itinerario           String?   @db.LongText
+  servicios_incluidos  String?   @db.LongText // Optional JSON array of inclusions for this specific variant
+  servicios_excluidos  String?   @db.LongText // Optional JSON array of exclusions for this specific variant
+  fechas_disponibles   String?   @db.LongText // Optional JSON array of dates for this specific variant
+
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  @@map("tour_variantes")
+}
+
+// ─────────────────────────────────────────────
+// ENUM: EstadoReserva
+// Solo el Webhook de pagos puede cambiar a PAID.
+// ─────────────────────────────────────────────
+enum EstadoReserva {
+  PENDING
+  PAID
+  CANCELLED
+}
+
+// ─────────────────────────────────────────────
+// MODEL: Reserva
+// tokenSeguridad: UUID criptográfico único por
+// reserva. Protege el acceso al PDF del invoice.
+// El precio total SIEMPRE se calcula en el backend.
+// ─────────────────────────────────────────────
+model Reserva {
+  id              Int           @id @default(autoincrement())
+  tourId          Int
+  tour            Tour          @relation(fields: [tourId], references: [id])
+
+  fechaViaje      DateTime
+  cantAdultos     Int
+  cantNinos       Int
+  precioTotal     Decimal       @db.Decimal(10, 2)
+  duracion_dias   Int           @default(1)
+
+  estado          EstadoReserva @default(PENDING)
+
+  // Token criptográfico único — generado con crypto.randomUUID()
+  tokenSeguridad  String        @unique @db.VarChar(36)
+
+  // Titular de la reserva (obligatorio)
+  titularNombre   String        @db.VarChar(255)
+  titularEmail    String        @db.VarChar(255)
+  titularTelefono String?       @db.VarChar(50)
+
+  // Pasajeros incluidos en la reserva
+  pasajeros       Pasajero[]
+
+  // Referencia de pago (se llena vía Webhook)
+  referenciaPago  String?       @db.VarChar(255)
+  urlPago         String?       @db.Text
+
+  // Timestamp exacto del pago confirmado por Stripe
+  pagadoEn        DateTime?
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@map("reservas")
+}
+
+// ─────────────────────────────────────────────
+// MODEL: Pasajero
+// Cascade delete: si se elimina la Reserva,
+// se eliminan todos los pasajeros asociados.
+// ─────────────────────────────────────────────
+model Pasajero {
+  id         Int     @id @default(autoincrement())
+  nombre     String  @db.VarChar(150)
+  apellido   String  @db.VarChar(150)
+  dni        String? @db.VarChar(20)
+  tipo       String  @db.VarChar(10) // "adulto" | "nino"
+  reservaId  Int
+  reserva    Reserva @relation(fields: [reservaId], references: [id], onDelete: Cascade)
+
+  @@map("pasajeros")
+}

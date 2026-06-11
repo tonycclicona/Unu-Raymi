@@ -1,0 +1,20 @@
+# ── Unu-Raymi Monorepo ────────────────────────────
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Gemini / AI Agent
+.gemini/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Each sub-project has its own .gitignore for
+# node_modules, .env, build artifacts, etc.
