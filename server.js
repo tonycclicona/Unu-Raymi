@@ -1,39 +1,40 @@
 // ==============================================================================
-// server.js — Unified Entry Point for Hostinger Node.js deployments
-// Reads APP_TYPE env var to decide which app to start:
-//   APP_TYPE=backend  → Express API (backend/src/server.js)
-//   APP_TYPE=frontend → Next.js Landing Page (frontend/)
-//   APP_TYPE=admin    → Next.js Admin Panel (admin/)
+// server.js — Unified Entry Point for Hostinger Node.js (LiteSpeed lsnode.js)
+//
+// IMPORTANT: Hostinger LiteSpeed loads this file via require(), NOT import().
+// Therefore this file MUST be CommonJS-compatible:
+//   - No top-level await
+//   - No import statements
+//   - Use require() and async function wrapper instead
 // ==============================================================================
 
-import { readFileSync, existsSync } from 'fs';
-import { createRequire } from 'module';
-import { resolve } from 'path';
-import { fileURLToPath } from 'url';
-import { createServer } from 'http';
-import { parse } from 'url';
+'use strict';
 
-const __dirname = fileURLToPath(new URL('.', import.meta.url));
+const fs = require('fs');
+const path = require('path');
+const { createRequire } = require('module');
 
 const appType = (process.env.APP_TYPE || 'backend').toLowerCase().trim();
 
-console.log(`> Launching app: [${appType.toUpperCase()}] from root server.js...`);
+console.log('> Launching app: [' + appType.toUpperCase() + '] from root server.js...');
 
-// ── BACKEND ─────────────────────────────────────────────────────────────────
+// ── BACKEND ───────────────────────────────────────────────────────────────────
 if (appType === 'backend') {
-  // Load environment variables from backend/.env if present (CWD may differ from repo root)
-  const envPath = resolve(__dirname, 'backend/.env');
-  if (existsSync(envPath)) {
+
+  // Load backend .env manually (CWD may differ from repo root on Hostinger)
+  const envPath = path.resolve(__dirname, 'backend/.env');
+  if (fs.existsSync(envPath)) {
     try {
-      const envContent = readFileSync(envPath, 'utf8');
-      envContent.split('\n').forEach((line) => {
+      const envContent = fs.readFileSync(envPath, 'utf8');
+      envContent.split('\n').forEach(function(line) {
         const trimmed = line.trim();
         if (trimmed && !trimmed.startsWith('#')) {
           const firstEqual = trimmed.indexOf('=');
           if (firstEqual !== -1) {
             const key = trimmed.substring(0, firstEqual).trim();
             let val = trimmed.substring(firstEqual + 1).trim();
-            if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+            if ((val.startsWith('"') && val.endsWith('"')) ||
+                (val.startsWith("'") && val.endsWith("'"))) {
               val = val.substring(1, val.length - 1);
             }
             if (!process.env[key]) {
@@ -44,54 +45,65 @@ if (appType === 'backend') {
       });
       console.log('> Loaded environment variables from backend/.env');
     } catch (err) {
-      console.error('Warning: Failed to load backend/.env file:', err.message);
+      console.error('Warning: Failed to load backend/.env:', err.message);
     }
   }
 
-  // Boot the Express Backend API
-  await import('./backend/src/server.js');
+  // Use dynamic import() inside an async wrapper (avoids top-level await)
+  (async function() {
+    try {
+      await import('./backend/src/server.js');
+    } catch (err) {
+      console.error('> FATAL: Failed to start backend:', err);
+      process.exit(1);
+    }
+  })();
 
-// ── FRONTEND / ADMIN (Next.js) ───────────────────────────────────────────────
+// ── FRONTEND / ADMIN (Next.js) ────────────────────────────────────────────────
 } else {
-  const dir = resolve(__dirname, appType === 'admin' ? 'admin' : 'frontend');
-  const dev = process.env.NODE_ENV !== 'production';
+  const dir = path.resolve(__dirname, appType === 'admin' ? 'admin' : 'frontend');
   const port = parseInt(process.env.PORT || '3000', 10);
+  const dev = process.env.NODE_ENV !== 'production';
 
-  // Load Next.js from the subapp's own node_modules to avoid resolution issues
-  const subappRequire = createRequire(resolve(dir, 'package.json'));
+  console.log('> Starting Next.js [' + appType.toUpperCase() + '] from: ' + dir);
+
+  // Load Next.js from the subapp's own node_modules
   let nextModule;
   try {
+    const subappRequire = createRequire(path.join(dir, 'package.json'));
     nextModule = subappRequire('next');
   } catch (e) {
-    console.error(`> ERROR: Could not load 'next' from ${dir}/node_modules/next`);
-    console.error('> Make sure dependencies are installed in the subapp directory.');
+    console.error('> ERROR: Could not load next from ' + dir + '/node_modules');
+    console.error('> Ensure npm install ran in the subapp directory.');
+    console.error(e.message);
     process.exit(1);
   }
 
   const next = nextModule.default || nextModule;
-
-  console.log(`> Starting Next.js [${appType.toUpperCase()}] from: ${dir}`);
-  console.log(`> Production mode: ${!dev}`);
-
-  const app = next({ dev, dir });
+  const app = next({ dev: dev, dir: dir });
   const handle = app.getRequestHandler();
 
-  app.prepare().then(() => {
-    createServer(async (req, res) => {
-      try {
-        const parsedUrl = parse(req.url, true);
-        await handle(req, res, parsedUrl);
-      } catch (err) {
-        console.error('Error occurred handling Next.js request:', req.url, err);
-        res.statusCode = 500;
-        res.end('Internal server error');
-      }
-    }).listen(port, (err) => {
-      if (err) throw err;
-      console.log(`> Next.js [${appType.toUpperCase()}] running on http://localhost:${port}`);
+  app.prepare()
+    .then(function() {
+      const http = require('http');
+      const url = require('url');
+
+      http.createServer(function(req, res) {
+        try {
+          const parsedUrl = url.parse(req.url, true);
+          handle(req, res, parsedUrl);
+        } catch (err) {
+          console.error('Error handling request:', req.url, err);
+          res.statusCode = 500;
+          res.end('Internal server error');
+        }
+      }).listen(port, function(err) {
+        if (err) throw err;
+        console.log('> Next.js [' + appType.toUpperCase() + '] running on port ' + port);
+      });
+    })
+    .catch(function(err) {
+      console.error('> Next.js failed to start:', err);
+      process.exit(1);
     });
-  }).catch((err) => {
-    console.error(`> Next.js [${appType.toUpperCase()}] failed to start:`, err);
-    process.exit(1);
-  });
 }
