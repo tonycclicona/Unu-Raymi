@@ -361,7 +361,7 @@ export default function TourForm({ initialData }) {
               type="text"
               {...register('nombre', { required: 'El nombre es obligatorio' })}
               onChange={handleNombreChange}
-              className="w-full bg-[#121224] border border-[#b0c4b1] rounded-xl px-4 py-2.5 text-[#4a5759] focus:outline-none focus:border-[#4a5759] text-sm"
+              className="w-full bg-[#ffffff] border border-[#b0c4b1] rounded-xl px-4 py-2.5 text-[#4a5759] focus:outline-none focus:border-[#4a5759] text-sm"
               placeholder="Ej. Ascenso al Volcán Villarrica Activo"
             />
             {errors.nombre && <p className="text-xs text-red-400">{errors.nombre.message}</p>}
@@ -373,7 +373,7 @@ export default function TourForm({ initialData }) {
               type="text"
               {...register('slug', { required: 'El slug es obligatorio' })}
               disabled={isEdit}
-              className="w-full bg-[#121224] border border-[#b0c4b1] rounded-xl px-4 py-2.5 text-[#4a5759] focus:outline-none focus:border-[#4a5759] text-sm disabled:opacity-50"
+              className="w-full bg-[#ffffff] border border-[#b0c4b1] rounded-xl px-4 py-2.5 text-[#4a5759] focus:outline-none focus:border-[#4a5759] text-sm disabled:opacity-50"
               placeholder="ej-ascenso-al-volcan-villarrica"
             />
           </div>
@@ -386,7 +386,7 @@ export default function TourForm({ initialData }) {
                 setSelectedPais(e.target.value);
                 setValue('ciudad', SUDAMERICA_GEOGRAPHY[e.target.value][0]);
               }}
-              className="w-full bg-[#121224] border border-[#b0c4b1] rounded-xl px-4 py-2.5 text-[#4a5759] focus:outline-none focus:border-[#4a5759] text-sm"
+              className="w-full bg-[#ffffff] border border-[#b0c4b1] rounded-xl px-4 py-2.5 text-[#4a5759] focus:outline-none focus:border-[#4a5759] text-sm"
             >
               {Object.keys(SUDAMERICA_GEOGRAPHY).map(pais => (
                 <option key={pais} value={pais}>{pais}</option>
@@ -400,7 +400,7 @@ export default function TourForm({ initialData }) {
             <label className="block text-sm font-medium text-[#4a5759]">Ciudad Destino *</label>
             <select
               {...register('ciudad', { required: 'La ciudad es obligatoria' })}
-              className="w-full bg-[#121224] border border-[#b0c4b1] rounded-xl px-4 py-2.5 text-[#4a5759] focus:outline-none focus:border-[#4a5759] text-sm"
+              className="w-full bg-[#ffffff] border border-[#b0c4b1] rounded-xl px-4 py-2.5 text-[#4a5759] focus:outline-none focus:border-[#4a5759] text-sm"
             >
               {SUDAMERICA_GEOGRAPHY[selectedPais]?.map(ciudad => (
                 <option key={ciudad} value={ciudad}>{ciudad}</option>
@@ -412,7 +412,7 @@ export default function TourForm({ initialData }) {
             <label className="block text-sm font-medium text-[#4a5759]">Categoría del Tour *</label>
             <select
               {...register('categoria', { required: 'La categoría es obligatoria' })}
-              className="w-full bg-[#121224] border border-[#b0c4b1] rounded-xl px-4 py-2.5 text-[#4a5759] focus:outline-none focus:border-[#4a5759] text-sm"
+              className="w-full bg-[#ffffff] border border-[#b0c4b1] rounded-xl px-4 py-2.5 text-[#4a5759] focus:outline-none focus:border-[#4a5759] text-sm"
             >
               <option value="Trekking">Trekking</option>
               <option value="Full Days">Full Days</option>
@@ -426,7 +426,7 @@ export default function TourForm({ initialData }) {
           <textarea
             rows="4"
             {...register('descripcion', { required: 'La descripción es obligatoria' })}
-            className="w-full bg-[#121224] border border-[#b0c4b1] rounded-xl px-4 py-2.5 text-[#4a5759] focus:outline-none focus:border-[#4a5759] text-sm"
+            className="w-full bg-[#ffffff] border border-[#b0c4b1] rounded-xl px-4 py-2.5 text-[#4a5759] focus:outline-none focus:border-[#4a5759] text-sm"
             placeholder="Vive la experiencia inigualable de subir a pie hasta el cráter de un volcán activo..."
           ></textarea>
         </div>
@@ -438,7 +438,7 @@ export default function TourForm({ initialData }) {
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => { e.preventDefault(); if (e.dataTransfer.files) handleFiles(e.dataTransfer.files); }}
             onClick={() => fileInputRef.current?.click()}
-            className="border-2 border-dashed border-[#b0c4b1] hover:border-[#4a5759] bg-[#121224]/30 hover:bg-[#4a5759]/5 rounded-2xl p-8 flex flex-col items-center justify-center gap-3 cursor-pointer transition-all duration-300 group"
+            className="border-2 border-dashed border-[#b0c4b1] hover:border-[#4a5759] bg-[#ffffff]/30 hover:bg-[#4a5759]/5 rounded-2xl p-8 flex flex-col items-center justify-center gap-3 cursor-pointer transition-all duration-300 group"
           >
             <input type="file" ref={fileInputRef} multiple onChange={(e) => handleFiles(e.target.files)} className="hidden" accept="image/*" />
             <div className="w-12 h-12 bg-white/[0.03] group-hover:bg-[#4a5759]/10 rounded-full flex items-center justify-center border border-black/5 group-hover:border-[#4a5759]/20 text-[#6c7a7c] group-hover:text-[#4a5759]">
@@ -456,7 +456,7 @@ export default function TourForm({ initialData }) {
           {uploadedImages.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3">
               {uploadedImages.map((img, index) => (
-                <div key={index} className="flex gap-4 bg-[#121224] border border-[#b0c4b1]/60 p-3 rounded-xl relative">
+                <div key={index} className="flex gap-4 bg-[#ffffff] border border-[#b0c4b1]/60 p-3 rounded-xl relative">
                   <div className="w-16 h-16 bg-black/40 rounded-lg overflow-hidden border border-[#b0c4b1] flex-shrink-0">
                     <img src={`${API_ASSETS_URL}${img.url}`} alt="Preview" className="w-full h-full object-cover" onError={(e) => { e.target.src = img.url; }} />
                   </div>
@@ -505,13 +505,13 @@ export default function TourForm({ initialData }) {
         </div>
 
         {variantes.length === 0 ? (
-          <div className="bg-[#121224]/30 border border-[#b0c4b1]/50 rounded-2xl p-6 text-center text-xs text-[#6c7a7c]/80 italic">
+          <div className="bg-[#ffffff]/30 border border-[#b0c4b1]/50 rounded-2xl p-6 text-center text-xs text-[#6c7a7c]/80 italic">
             No has agregado ninguna variante. Haz clic en "Agregar Nueva Variante" para configurar los precios, calendarios y servicios por cada paquete de días.
           </div>
         ) : (
           <div className="space-y-8">
             {variantes.map((v, vIdx) => (
-              <div key={vIdx} className="bg-[#121224]/40 border-2 border-[#b0c4b1] p-6 rounded-2xl space-y-6 relative border-t-[#4a5759]">
+              <div key={vIdx} className="bg-[#ffffff]/40 border-2 border-[#b0c4b1] p-6 rounded-2xl space-y-6 relative border-t-[#4a5759]">
                 <div className="flex justify-between items-center border-b border-[#b0c4b1] pb-2">
                   <span className="text-xs font-black uppercase text-[#4a5759] tracking-widest">Configuración Completa: Variante {v.duracion_dias} Día(s)</span>
                   <button type="button" onClick={() => handleRemoveVariant(vIdx)} className="text-[#6c7a7c]/80 hover:text-red-400 p-1"><Trash2 className="w-4.5 h-4.5" /></button>
@@ -549,7 +549,7 @@ export default function TourForm({ initialData }) {
                         type="date"
                         value={variantTempDates[vIdx] || ''}
                         onChange={(e) => setVariantTempDates(prev => ({ ...prev, [vIdx]: e.target.value }))}
-                        className="w-full bg-[#121224] border border-[#b0c4b1] rounded-xl px-3 py-1.5 text-[#4a5759] text-xs focus:outline-none"
+                        className="w-full bg-[#ffffff] border border-[#b0c4b1] rounded-xl px-3 py-1.5 text-[#4a5759] text-xs focus:outline-none"
                       />
                     </div>
                     <button type="button" onClick={() => handleAddDateToVariant(vIdx)} className="bg-[#4a5759]/10 text-[#4a5759] border border-[#4a5759]/20 px-3 py-1.5 rounded-xl text-xs font-bold hover:bg-[#4a5759] hover:text-[#4a5759] transition-all">
@@ -584,11 +584,11 @@ export default function TourForm({ initialData }) {
                       const customItems = (v.servicios_incluidos[catId] || []).filter(x => !PREDEFINED_TAXONOMY[catId].includes(x));
 
                       return (
-                        <div key={catId} className="border border-[#b0c4b1]/60 rounded-xl overflow-hidden bg-[#121224]/20">
+                        <div key={catId} className="border border-[#b0c4b1]/60 rounded-xl overflow-hidden bg-[#ffffff]/20">
                           <button
                             type="button"
                             onClick={() => setActiveAccordion(prev => ({ ...prev, [accordionKey]: !prev[accordionKey] }))}
-                            className="w-full flex items-center justify-between p-3 bg-[#121224]/40 hover:bg-white/80 text-left"
+                            className="w-full flex items-center justify-between p-3 bg-[#ffffff]/40 hover:bg-white/80 text-left"
                           >
                             <div className="flex items-center gap-2">
                               <div className={`p-1.5 rounded-lg border ${meta.color}`}><Icon className="w-3.5 h-3.5" /></div>
@@ -678,7 +678,7 @@ export default function TourForm({ initialData }) {
           </div>
           <label className="relative inline-flex items-center cursor-pointer">
             <input type="checkbox" {...register('activo')} className="sr-only peer" />
-            <div className="w-11 h-6 bg-[#121224] border border-[#b0c4b1] rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-gray-400 after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#4a5759] peer-checked:after:bg-white"></div>
+            <div className="w-11 h-6 bg-[#ffffff] border border-[#b0c4b1] rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-gray-400 after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#4a5759] peer-checked:after:bg-white"></div>
           </label>
         </div>
 
@@ -689,7 +689,7 @@ export default function TourForm({ initialData }) {
           </div>
           <label className="relative inline-flex items-center cursor-pointer">
             <input type="checkbox" {...register('destacado')} className="sr-only peer" />
-            <div className="w-11 h-6 bg-[#121224] border border-[#b0c4b1] rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-gray-400 after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#4a5759] peer-checked:after:bg-white"></div>
+            <div className="w-11 h-6 bg-[#ffffff] border border-[#b0c4b1] rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-gray-400 after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#4a5759] peer-checked:after:bg-white"></div>
           </label>
         </div>
       </div>

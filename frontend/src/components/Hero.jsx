@@ -22,7 +22,7 @@ export default function Hero() {
   const blurProgress = Math.min(10, scrollY * 0.02);
 
   return (
-    <section id="inicio" className="h-screen w-full relative overflow-hidden flex items-center justify-center bg-[#090910]">
+    <section id="inicio" className="h-screen w-full relative overflow-hidden flex items-center justify-center bg-[#f7e1d7]">
       {/* Video de fondo con efecto de escala y desenfoque por scroll */}
       <div
         className="absolute inset-0 w-full h-full transition-transform duration-75 ease-out overflow-hidden"

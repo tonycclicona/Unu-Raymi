@@ -256,7 +256,7 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
 
             {/* Multi-duration Toggle Tabs */}
             {hasVariants && (
-              <div className="bg-[#121224]/50 border border-[#b0c4b1]/40 p-4 rounded-2xl space-y-2.5">
+              <div className="bg-[#ffffff]/50 border border-[#b0c4b1]/40 p-4 rounded-2xl space-y-2.5">
                 <span className="text-[10px] text-[#6c7a7c] block uppercase font-bold tracking-wider">Duración del Paquete</span>
                 <div className="flex flex-wrap gap-2">
                   {tour.variantes.map((v) => {
@@ -287,7 +287,7 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
               </h3>
 
               {displayItinerario ? (
-                <div className="bg-[#121224]/50 border border-[#b0c4b1]/40 p-4 rounded-2xl space-y-4 text-sm text-[#4a5759] leading-relaxed md:max-h-[260px] md:overflow-y-auto no-scrollbar">
+                <div className="bg-[#ffffff]/50 border border-[#b0c4b1]/40 p-4 rounded-2xl space-y-4 text-sm text-[#4a5759] leading-relaxed md:max-h-[260px] md:overflow-y-auto no-scrollbar">
                   {displayItinerario.split('\n\n').map((parrafo, i) => (
                     <p key={i} className="relative pl-4 border-l border-[#4a5759]/30 hover:border-[#4a5759] transition-colors py-0.5">
                       {parrafo}
@@ -295,7 +295,7 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
                   ))}
                 </div>
               ) : (
-                <div className="bg-[#121224]/50 border border-[#b0c4b1]/40 p-5 rounded-2xl text-center text-xs text-[#6c7a7c]/80 italic">
+                <div className="bg-[#ffffff]/50 border border-[#b0c4b1]/40 p-5 rounded-2xl text-center text-xs text-[#6c7a7c]/80 italic">
                   No se ha registrado un itinerario detallado para este tour.
                 </div>
               )}
@@ -308,7 +308,7 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
                   <X className="w-4 h-4 text-[#4a5759]" />
                   Servicios Excluidos
                 </h3>
-                <ul className="bg-[#121224]/50 border border-[#b0c4b1]/40 p-4 rounded-2xl space-y-2 text-xs text-[#6c7a7c]">
+                <ul className="bg-[#ffffff]/50 border border-[#b0c4b1]/40 p-4 rounded-2xl space-y-2 text-xs text-[#6c7a7c]">
                   {displayExclusiones.map((item, idx) => (
                     <li key={idx} className="flex items-start gap-2">
                       <span className="text-[#4a5759] font-black">•</span>
@@ -332,7 +332,7 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
         </div>
 
         {/* 3. Columna Derecha: Servicios por Categoría, Precios y Pago */}
-        <div className="w-full md:w-[30%] p-5 md:p-8 flex flex-col justify-between bg-[#121224]/30 md:h-full md:overflow-y-auto no-scrollbar">
+        <div className="w-full md:w-[30%] p-5 md:p-8 flex flex-col justify-between bg-[#ffffff]/30 md:h-full md:overflow-y-auto no-scrollbar">
           <div className="space-y-5">
             <div className="space-y-1">
               <span className="text-[10px] text-[#4a5759] font-extrabold uppercase tracking-widest">Inclusiones</span>
@@ -386,7 +386,7 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
 
           {/* Info Financiera y Botón de Acción Principal */}
           <div className="pt-5 space-y-3 md:space-y-4">
-            <div className="bg-[#121224] border border-[#b0c4b1]/50 p-4 rounded-2xl flex justify-between items-center">
+            <div className="bg-[#ffffff] border border-[#b0c4b1]/50 p-4 rounded-2xl flex justify-between items-center">
               <div>
                 <span className="text-[10px] text-[#6c7a7c] block uppercase font-bold tracking-wider">Precio Adulto</span>
                 <span className="text-base font-extrabold text-[#4a5759]">${displayPrecioAdulto} USD</span>

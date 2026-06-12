@@ -74,7 +74,7 @@ export default function LoginPage() {
                 required
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full bg-[#121224] border border-[#b0c4b1] rounded-xl pl-12 pr-4 py-3.5 text-[#4a5759] placeholder-gray-500 focus:outline-none focus:border-[#4a5759] focus:ring-1 focus:ring-[#4a5759] transition-all text-sm"
+                className="w-full bg-[#ffffff] border border-[#b0c4b1] rounded-xl pl-12 pr-4 py-3.5 text-[#4a5759] placeholder-gray-500 focus:outline-none focus:border-[#4a5759] focus:ring-1 focus:ring-[#4a5759] transition-all text-sm"
                 placeholder="Ingresa tu usuario"
               />
             </div>
@@ -89,7 +89,7 @@ export default function LoginPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-[#121224] border border-[#b0c4b1] rounded-xl pl-12 pr-4 py-3.5 text-[#4a5759] placeholder-gray-500 focus:outline-none focus:border-[#4a5759] focus:ring-1 focus:ring-[#4a5759] transition-all text-sm"
+                className="w-full bg-[#ffffff] border border-[#b0c4b1] rounded-xl pl-12 pr-4 py-3.5 text-[#4a5759] placeholder-gray-500 focus:outline-none focus:border-[#4a5759] focus:ring-1 focus:ring-[#4a5759] transition-all text-sm"
                 placeholder="••••••••"
               />
             </div>

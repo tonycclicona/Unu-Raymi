@@ -34,7 +34,7 @@ export default function Guias() {
   ];
 
   return (
-    <section id="guias" className="py-16 md:py-24 px-6 flex items-center bg-[#0c0c14] border-t border-[#b0c4b1]/30 relative overflow-hidden scroll-mt-16 md:scroll-mt-20">
+    <section id="guias" className="py-16 md:py-24 px-6 flex items-center bg-[#dedbd2] border-t border-[#b0c4b1]/30 relative overflow-hidden scroll-mt-16 md:scroll-mt-20">
       {/* Luz ambiental */}
       <div className="absolute bottom-1/4 left-1/4 w-[350px] h-[350px] bg-purple-500/5 rounded-full filter blur-[100px] pointer-events-none -z-10"></div>
 

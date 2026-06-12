@@ -193,7 +193,7 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
             </p>
           </div>
 
-          <div className="bg-[#121224] border border-[#b0c4b1] p-5 rounded-2xl space-y-3 text-left">
+          <div className="bg-[#ffffff] border border-[#b0c4b1] p-5 rounded-2xl space-y-3 text-left">
             <div className="flex justify-between text-sm text-[#6c7a7c]">
               <span>Tour:</span>
               <span className="text-[#4a5759] font-bold">{tour.nombre} ({displayDuration} {displayDuration === 1 ? 'Día' : 'Días'})</span>
@@ -280,7 +280,7 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
           )}
 
           {/* Configuración de Fecha y Contadores */}
-          <div className="bg-[#121224]/50 border border-[#b0c4b1]/40 p-5 rounded-2xl space-y-4">
+          <div className="bg-[#ffffff]/50 border border-[#b0c4b1]/40 p-5 rounded-2xl space-y-4">
             <div className="border-b border-[#b0c4b1]/30 pb-3 flex justify-between items-center">
               <div>
                 <span className="text-[10px] text-[#6c7a7c] block uppercase font-bold tracking-wider">Aventura</span>
@@ -359,7 +359,7 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
               Pasajero #1: Titular de la Reserva (Adulto)
             </h3>
 
-            <div className="bg-[#121224] border border-[#b0c4b1]/60 p-5 rounded-2xl space-y-4">
+            <div className="bg-[#ffffff] border border-[#b0c4b1]/60 p-5 rounded-2xl space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-[10px] text-[#6c7a7c]">Nombre *</label>
@@ -438,7 +438,7 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
                   const labelTipo = index < (cantAdultos - 1) ? 'Adulto' : 'Niño';
 
                   return (
-                    <div key={index} className="bg-[#121224]/50 border border-[#b0c4b1]/40 p-4 rounded-2xl space-y-3">
+                    <div key={index} className="bg-[#ffffff]/50 border border-[#b0c4b1]/40 p-4 rounded-2xl space-y-3">
                       <span className="text-[9px] text-[#4a5759] font-bold uppercase tracking-wider">
                         Pasajero #{index + 2} ({labelTipo})
                       </span>

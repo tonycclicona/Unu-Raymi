@@ -38,7 +38,7 @@ export default function TourCard({ tour, onReservar }) {
   return (
     <div className="bg-[#ffffff]/40 border border-[#b0c4b1]/50 rounded-2xl overflow-hidden flex flex-col sm:flex-row group hover:border-[#4a5759]/30 transition-all duration-300 shadow-md">
       {/* Imagen */}
-      <div className="w-full sm:w-2/5 h-52 sm:h-auto relative overflow-hidden bg-[#121224] flex-shrink-0">
+      <div className="w-full sm:w-2/5 h-52 sm:h-auto relative overflow-hidden bg-[#ffffff] flex-shrink-0">
         {currentImage ? (
           <Image
             src={currentImage.startsWith('http') ? currentImage : `${API_ASSETS_URL}${currentImage}`}
@@ -58,7 +58,7 @@ export default function TourCard({ tour, onReservar }) {
             {tour.pais}
           </span>
           {tour.ciudad && (
-            <span className="bg-[#121224]/90 backdrop-blur-md border border-[#b0c4b1]/50 px-2.5 py-1 rounded-full text-[9px] font-bold text-[#4a5759] uppercase tracking-wider">
+            <span className="bg-[#ffffff]/90 backdrop-blur-md border border-[#b0c4b1]/50 px-2.5 py-1 rounded-full text-[9px] font-bold text-[#4a5759] uppercase tracking-wider">
               {tour.ciudad}
             </span>
           )}

@@ -128,7 +128,7 @@ export default function Home() {
       <Hero />
 
       {/* 2. Sección Tours — Layout Responsivo */}
-      <section id="tours" className="w-full border-t border-[#b0c4b1]/50 bg-[#0c0c14] relative z-10 scroll-mt-16">
+      <section id="tours" className="w-full border-t border-[#b0c4b1]/50 bg-[#dedbd2] relative z-10 scroll-mt-16">
 
         {/* ── MOBILE LAYOUT ── */}
         <div className="flex flex-col md:hidden">
@@ -359,12 +359,12 @@ export default function Home() {
       <Guias />
 
       {/* 4. Sección de Contacto / Footer */}
-      <section id="contacto" className="bg-[#0b0b14] border-t border-[#b0c4b1]/50 py-16 px-6 relative z-10">
+      <section id="contacto" className="bg-[#dedbd2] border-t border-[#b0c4b1]/50 py-16 px-6 relative z-10">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12">
           {/* Logo y lema */}
           <div className="space-y-4">
             <div className="flex items-center gap-2.5">
-              <div className="w-10 h-10 rounded-xl bg-[#4a5759] flex items-center justify-center font-bold text-[#4a5759] text-xl shadow-lg">
+              <div className="w-10 h-10 rounded-xl bg-[#4a5759] flex items-center justify-center font-bold text-white text-xl shadow-lg">
                 U
               </div>
               <span className="font-extrabold text-[#4a5759] text-lg tracking-wider">UNU-RAYMI</span>

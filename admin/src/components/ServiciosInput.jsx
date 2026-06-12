@@ -35,7 +35,7 @@ export default function ServiciosInput({ label, items, onChange, placeholder = '
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          className="flex-1 bg-[#121224] border border-[#b0c4b1] rounded-xl px-4 py-2.5 text-[#4a5759] placeholder-gray-500 focus:outline-none focus:border-[#4a5759] focus:ring-1 focus:ring-[#4a5759] transition-all text-sm"
+          className="flex-1 bg-[#ffffff] border border-[#b0c4b1] rounded-xl px-4 py-2.5 text-[#4a5759] placeholder-gray-500 focus:outline-none focus:border-[#4a5759] focus:ring-1 focus:ring-[#4a5759] transition-all text-sm"
         />
         <button
           type="button"

@@ -155,7 +155,7 @@ export default function Confianza() {
 
           </div>
 
-          <div className="bg-[#121224]/50 border border-[#b0c4b1]/40 p-4 rounded-xl text-[10px] text-[#6c7a7c]/80 leading-relaxed text-center">
+          <div className="bg-[#ffffff]/50 border border-[#b0c4b1]/40 p-4 rounded-xl text-[10px] text-[#6c7a7c]/80 leading-relaxed text-center">
             🔐 En Unu-Raymi nos tomamos en serio tu tranquilidad. Contamos con seguros contra accidentes y cobertura completa para todas nuestras rutas.
           </div>
         </div>

@@ -26,9 +26,9 @@ export default function Navbar() {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-[background-color,backdrop-filter,padding,border-color,box-shadow] duration-500 ease-in-out ${isScrolled
-        ? 'bg-black/50 py-1.5 md:py-2'
-        : 'bg-white/80 py-2 md:py-5'
+      className={`fixed top-0 left-0 right-0 z-50 transition-[background-color,backdrop-filter,padding,border-color,box-shadow] duration-500 ease-in-out backdrop-blur-md ${isScrolled
+        ? 'bg-[#f7e1d7]/90 border-b border-[#b0c4b1]/30 shadow-sm py-1.5 md:py-2'
+        : 'bg-transparent py-2 md:py-5'
         }`}
     >
       <div className="max-w-7xl mx-auto px-3 sm:px-2 md:px-1 flex items-center justify-between gap-5">
