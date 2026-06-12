@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { LayoutDashboard, Compass, Receipt, LogOut, X } from 'lucide-react';
 
@@ -43,15 +44,16 @@ export default function Sidebar({ isOpen = false, onClose = () => {} }) {
         `}
       >
         {/* Header */}
-        <div className="p-6 border-b border-[#2b2b46] flex items-center justify-between gap-3">
+        <div className="p-5 border-b border-[#2b2b46] flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-[#e94560] flex items-center justify-center font-bold text-white text-lg shadow-lg shadow-[#e94560]/30">
-              U
-            </div>
-            <div>
-              <h1 className="font-bold text-white text-lg leading-tight">Unu-Raymi</h1>
-              <span className="text-xs text-gray-400">Panel de Control</span>
-            </div>
+            <Image
+              src="/logo.webp"
+              alt="Unu-Raymi"
+              width={120}
+              height={40}
+              className="h-9 w-auto object-contain"
+              priority
+            />
           </div>
           {/* Close button — mobile only */}
           <button

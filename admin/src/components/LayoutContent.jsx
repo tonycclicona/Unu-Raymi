@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import Sidebar from '@/components/Sidebar';
 import { usePathname } from 'next/navigation';
 import { Menu } from 'lucide-react';
@@ -29,12 +30,14 @@ export default function LayoutContent({ children }) {
           >
             <Menu className="w-5 h-5" />
           </button>
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-md bg-[#e94560] flex items-center justify-center font-bold text-white text-xs shadow-md">
-              U
-            </div>
-            <span className="font-bold text-white text-sm tracking-wider">UNU-RAYMI</span>
-          </div>
+          <Image
+              src="/logo.webp"
+              alt="Unu-Raymi"
+              width={100}
+              height={32}
+              className="h-7 w-auto object-contain"
+              priority
+            />
         </header>
 
         {/* Main content */}

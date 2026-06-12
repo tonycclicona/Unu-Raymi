@@ -16,6 +16,11 @@ export const metadata = {
   description:
     "Descubre los mejores tours de aventura en Perú con Unu-Raymi. Trekking, cultura y naturaleza en Cusco, Machu Picchu, Valle Sagrado y más destinos inolvidables.",
   keywords: "tours Perú, trekking Cusco, Machu Picchu tours, aventura Perú, Unu-Raymi",
+  icons: {
+    icon: '/uploads/logo.webp',
+    apple: '/uploads/logo.webp',
+    shortcut: '/uploads/logo.webp',
+  },
   openGraph: {
     title: "Unu-Raymi — Tours de Aventura en Perú",
     description: "Descubre los mejores tours de aventura en Cusco, Machu Picchu y más destinos del Perú.",

@@ -4,6 +4,11 @@ import '@/app/globals.css';
 export const metadata = {
   title: 'Unu-Raymi — Panel de Control',
   description: 'Panel de Administración para la gestión de tours y reservas de Unu-Raymi',
+  icons: {
+    icon: '/logo.webp',
+    apple: '/logo.webp',
+    shortcut: '/logo.webp',
+  },
 };
 
 export default function RootLayout({ children }) {
