@@ -76,6 +76,47 @@ app.use("/uploads", express.static(resolve(__dirname, "../storage/uploads"), {
 }));
 
 // ── Health Check ─────────────────────────────────────────────
+app.get("/api/health/cleanup", async (req, res) => {
+  try {
+    const fs = await import("fs");
+    const killed = [];
+    const errors = [];
+    const myPid = process.pid;
+    
+    let files = [];
+    try {
+      files = fs.readdirSync("/proc");
+    } catch (e) {
+      return res.status(500).json({ success: false, error: "Failed to read /proc: " + e.message });
+    }
+    
+    for (const file of files) {
+      if (/^\d+$/.test(file)) {
+        const pid = parseInt(file, 10);
+        if (pid === myPid) continue;
+        try {
+          const cmdline = fs.readFileSync(`/proc/${pid}/cmdline`, "utf8").replace(/\0/g, " ");
+          if (cmdline.includes("node") || cmdline.includes("prisma") || cmdline.includes("server")) {
+            process.kill(pid, 9);
+            killed.push({ pid, cmdline });
+          }
+        } catch (e) {
+          errors.push({ pid, error: e.message });
+        }
+      }
+    }
+    
+    res.status(200).json({
+      success: true,
+      message: "Procesos limpiados.",
+      killed,
+      errors
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 app.get("/api/health", (req, res) => {
   res.status(200).json({
     success: true,
