@@ -179,7 +179,7 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
             onClose();
           }
         }}
-        className="fixed inset-0 z-50 bg-[#f7e1d7]  flex items-center justify-center p-4"
+        className="fixed inset-0 z-50 bg-[#dbeafe]  flex items-center justify-center p-4"
       >
         <div className="glass max-w-lg w-full p-8 rounded-3xl text-center space-y-6 shadow-2xl relative border border-black/5">
           <div className="w-16 h-16 bg-emerald-500/10 border border-emerald-500/20 rounded-full flex items-center justify-center mx-auto text-emerald-400">
@@ -251,7 +251,7 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
       }`}
     >
       {/* Contenedor flotante lateral de checkout */}
-      <div className="w-full max-w-full md:max-w-xl h-full bg-[#f7e1d7] md:border-l border-[#b0c4b1] flex flex-col relative shadow-2xl">
+      <div className="w-full max-w-full md:max-w-xl h-full bg-[#dbeafe] md:border-l border-[#b0c4b1] flex flex-col relative shadow-2xl">
         
         {/* Header */}
         <div className="p-6 border-b border-[#b0c4b1] flex justify-between items-center">
@@ -306,7 +306,7 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
                   <select
                     value={fechaViaje}
                     onChange={(e) => setFechaViaje(e.target.value)}
-                    className="w-full bg-[#f7e1d7] border border-[#b0c4b1] rounded-xl px-3 py-2.5 text-[#4a5759] text-xs focus:outline-none focus:border-[#4a5759]"
+                    className="w-full bg-[#dbeafe] border border-[#b0c4b1] rounded-xl px-3 py-2.5 text-[#4a5759] text-xs focus:outline-none focus:border-[#4a5759]"
                   >
                     {fechasDisponibles.map((d) => (
                       <option key={d} value={d}>
@@ -321,7 +321,7 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
                     min={getTodayDateString()}
                     value={fechaViaje}
                     onChange={(e) => setFechaViaje(e.target.value)}
-                    className="w-full bg-[#f7e1d7] border border-[#b0c4b1] rounded-xl px-3 py-2.5 text-[#4a5759] text-xs focus:outline-none focus:border-[#4a5759]"
+                    className="w-full bg-[#dbeafe] border border-[#b0c4b1] rounded-xl px-3 py-2.5 text-[#4a5759] text-xs focus:outline-none focus:border-[#4a5759]"
                   />
                 )}
               </div>
@@ -334,7 +334,7 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
                   max="20"
                   value={cantAdultos}
                   onChange={(e) => setCantAdultos(Math.max(1, parseInt(e.target.value) || 1))}
-                  className="w-full bg-[#f7e1d7] border border-[#b0c4b1] rounded-xl px-3 py-2 text-[#4a5759] text-xs focus:outline-none"
+                  className="w-full bg-[#dbeafe] border border-[#b0c4b1] rounded-xl px-3 py-2 text-[#4a5759] text-xs focus:outline-none"
                 />
               </div>
 
@@ -346,7 +346,7 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
                   max="20"
                   value={cantNinos}
                   onChange={(e) => setCantNinos(Math.max(0, parseInt(e.target.value) || 0))}
-                  className="w-full bg-[#f7e1d7] border border-[#b0c4b1] rounded-xl px-3 py-2 text-[#4a5759] text-xs focus:outline-none"
+                  className="w-full bg-[#dbeafe] border border-[#b0c4b1] rounded-xl px-3 py-2 text-[#4a5759] text-xs focus:outline-none"
                 />
               </div>
             </div>
@@ -368,7 +368,7 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
                     required
                     value={titularNombre}
                     onChange={(e) => setTitularNombre(e.target.value)}
-                    className="w-full bg-[#f7e1d7] border border-[#b0c4b1] rounded-xl px-3 py-2.5 text-[#4a5759] text-xs focus:outline-none"
+                    className="w-full bg-[#dbeafe] border border-[#b0c4b1] rounded-xl px-3 py-2.5 text-[#4a5759] text-xs focus:outline-none"
                     placeholder="Ej. Juan"
                   />
                 </div>
@@ -379,7 +379,7 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
                     required
                     value={titularApellido}
                     onChange={(e) => setTitularApellido(e.target.value)}
-                    className="w-full bg-[#f7e1d7] border border-[#b0c4b1] rounded-xl px-3 py-2.5 text-[#4a5759] text-xs focus:outline-none"
+                    className="w-full bg-[#dbeafe] border border-[#b0c4b1] rounded-xl px-3 py-2.5 text-[#4a5759] text-xs focus:outline-none"
                     placeholder="Ej. Pérez"
                   />
                 </div>
@@ -392,7 +392,7 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
                     type="text"
                     value={titularDni}
                     onChange={(e) => setTitularDni(e.target.value)}
-                    className="w-full bg-[#f7e1d7] border border-[#b0c4b1] rounded-xl px-3 py-2.5 text-[#4a5759] text-xs focus:outline-none"
+                    className="w-full bg-[#dbeafe] border border-[#b0c4b1] rounded-xl px-3 py-2.5 text-[#4a5759] text-xs focus:outline-none"
                     placeholder="Opcional"
                   />
                 </div>
@@ -402,7 +402,7 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
                     type="tel"
                     value={titularTelefono}
                     onChange={(e) => setTitularTelefono(e.target.value)}
-                    className="w-full bg-[#f7e1d7] border border-[#b0c4b1] rounded-xl px-3 py-2.5 text-[#4a5759] text-xs focus:outline-none"
+                    className="w-full bg-[#dbeafe] border border-[#b0c4b1] rounded-xl px-3 py-2.5 text-[#4a5759] text-xs focus:outline-none"
                     placeholder="Opcional"
                   />
                 </div>
@@ -417,7 +417,7 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
                     required
                     value={titularEmail}
                     onChange={(e) => setTitularEmail(e.target.value)}
-                    className="w-full bg-[#f7e1d7] border border-[#b0c4b1] rounded-xl pl-10 pr-4 py-2.5 text-[#4a5759] text-xs focus:outline-none focus:border-[#4a5759]"
+                    className="w-full bg-[#dbeafe] border border-[#b0c4b1] rounded-xl pl-10 pr-4 py-2.5 text-[#4a5759] text-xs focus:outline-none focus:border-[#4a5759]"
                     placeholder="ejemplo@correo.com"
                   />
                 </div>
@@ -449,7 +449,7 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
                           required
                           value={p.nombre}
                           onChange={(e) => handleAdicionalFieldChange(index, 'nombre', e.target.value)}
-                          className="w-full bg-[#f7e1d7] border border-[#b0c4b1] rounded-xl px-3 py-2 text-[#4a5759] text-xs focus:outline-none"
+                          className="w-full bg-[#dbeafe] border border-[#b0c4b1] rounded-xl px-3 py-2 text-[#4a5759] text-xs focus:outline-none"
                           placeholder="Nombre *"
                         />
                         <input
@@ -457,7 +457,7 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
                           required
                           value={p.apellido}
                           onChange={(e) => handleAdicionalFieldChange(index, 'apellido', e.target.value)}
-                          className="w-full bg-[#f7e1d7] border border-[#b0c4b1] rounded-xl px-3 py-2 text-[#4a5759] text-xs focus:outline-none"
+                          className="w-full bg-[#dbeafe] border border-[#b0c4b1] rounded-xl px-3 py-2 text-[#4a5759] text-xs focus:outline-none"
                           placeholder="Apellido *"
                         />
                       </div>
@@ -466,7 +466,7 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
                         type="text"
                         value={p.dni}
                         onChange={(e) => handleAdicionalFieldChange(index, 'dni', e.target.value)}
-                        className="w-full bg-[#f7e1d7] border border-[#b0c4b1] rounded-xl px-3 py-2 text-[#4a5759] text-xs focus:outline-none"
+                        className="w-full bg-[#dbeafe] border border-[#b0c4b1] rounded-xl px-3 py-2 text-[#4a5759] text-xs focus:outline-none"
                         placeholder="Documento (DNI/Pasaporte)"
                       />
                     </div>

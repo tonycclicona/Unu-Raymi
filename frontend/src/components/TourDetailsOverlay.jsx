@@ -182,7 +182,7 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
           onClose();
         }
       }}
-      className={`fixed inset-0 z-50 bg-[#f7e1d7]  flex items-center transition-all duration-500 ease-in-out p-2 sm:p-4 ${
+      className={`fixed inset-0 z-50 bg-[#dbeafe]  flex items-center transition-all duration-500 ease-in-out p-2 sm:p-4 ${
         isShifted
           ? 'justify-start md:pl-12 md:pr-[600px]'
           : 'justify-center md:p-8'
@@ -364,7 +364,7 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
 
                     {/* Tooltip — works on hover (desktop) and tap (mobile) */}
                     {isActive && (
-                      <div className="absolute z-30 left-1/2 -translate-x-1/2 bottom-[110%] w-52 md:w-56 bg-[#f7e1d7] border border-[#b0c4b1] p-3 md:p-4 rounded-2xl shadow-2xl animate-fade-in text-left">
+                      <div className="absolute z-30 left-1/2 -translate-x-1/2 bottom-[110%] w-52 md:w-56 bg-[#dbeafe] border border-[#b0c4b1] p-3 md:p-4 rounded-2xl shadow-2xl animate-fade-in text-left">
                         <div className="text-[10px] text-[#4a5759] font-bold uppercase tracking-wider mb-2">
                           {cat.label}
                         </div>

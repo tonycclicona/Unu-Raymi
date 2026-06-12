@@ -71,7 +71,7 @@ export default function Guias() {
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent transition-opacity duration-300 group-hover:opacity-90"></div>
 
               {/* Panel Desplizable Dinámico desde Abajo (Hover animado) */}
-              <div className="absolute bottom-0 left-0 right-0 p-5 md:p-6 bg-gradient-to-t from-[#f7e1d7]/95 via-[#f7e1d7]/90 to-transparent border-t border-black/5 translate-y-[calc(100%-85px)] md:translate-y-[calc(100%-85px)] group-hover:translate-y-0 transition-transform duration-500 ease-out">
+              <div className="absolute bottom-0 left-0 right-0 p-5 md:p-6 bg-gradient-to-t from-[#dbeafe]/95 via-[#dbeafe]/90 to-transparent border-t border-black/5 translate-y-[calc(100%-85px)] md:translate-y-[calc(100%-85px)] group-hover:translate-y-0 transition-transform duration-500 ease-out">
                 
                 {/* Cabecera del Panel (Siempre visible) */}
                 <div className="space-y-1.5 pb-4">

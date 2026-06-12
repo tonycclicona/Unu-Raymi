@@ -16,7 +16,7 @@ export default function LayoutContent({ children }) {
   }
 
   return (
-    <div className="flex h-screen bg-[#f7e1d7] text-[#4a5759] antialiased overflow-hidden w-full">
+    <div className="flex h-screen bg-[#dbeafe] text-[#4a5759] antialiased overflow-hidden w-full">
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="flex-1 flex flex-col overflow-hidden">

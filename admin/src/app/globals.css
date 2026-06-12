@@ -2,13 +2,13 @@
 
 :root {
   --color-rose: #edafb8;
-  --color-peach: #f7e1d7;
+  --color-peach: #dbeafe;
   --color-warm-gray: #dedbd2;
   --color-sage: #b0c4b1;
   --color-slate-green: #4a5759;
 
   /* Mapeos Semánticos de Tema Claro */
-  --background: #f7e1d7;
+  --background: #dbeafe;
   --foreground: #4a5759;
   --sidebar: #dedbd2;
   --card: #ffffff;

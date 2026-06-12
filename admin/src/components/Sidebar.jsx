@@ -73,7 +73,7 @@ export default function Sidebar({ isOpen = false, onClose = () => {} }) {
                 onClick={handleNavClick}
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
                   isActive
-                    ? 'bg-[#4a5759] text-[#f7e1d7] shadow-lg shadow-[#4a5759]/20 font-medium'
+                    ? 'bg-[#4a5759] text-[#dbeafe] shadow-lg shadow-[#4a5759]/20 font-medium'
                     : 'text-[#6c7a7c] hover:bg-[#ffffff] hover:text-[#4a5759]'
                 }`}
               >

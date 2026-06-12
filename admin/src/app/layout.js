@@ -14,7 +14,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="es">
-      <body className="bg-[#f7e1d7] text-[#4a5759] antialiased overflow-hidden">
+      <body className="bg-[#dbeafe] text-[#4a5759] antialiased overflow-hidden">
         <LayoutContent>{children}</LayoutContent>
       </body>
     </html>

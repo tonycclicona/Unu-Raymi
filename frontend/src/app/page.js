@@ -121,7 +121,7 @@ export default function Home() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#f7e1d7] relative">
+    <div className="flex flex-col min-h-screen bg-[#dbeafe] relative">
       <Navbar />
 
       {/* 1. Hero con Dynamic Reveal */}

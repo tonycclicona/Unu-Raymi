@@ -54,7 +54,7 @@ export default function TourCard({ tour, onReservar }) {
           </div>
         )}
         <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
-          <span className="bg-[#f7e1d7]/80  border border-black/10 px-2.5 py-1 rounded-full text-[9px] font-extrabold text-[#4a5759] uppercase tracking-wider">
+          <span className="bg-[#dbeafe]/80  border border-black/10 px-2.5 py-1 rounded-full text-[9px] font-extrabold text-[#4a5759] uppercase tracking-wider">
             {tour.pais}
           </span>
           {tour.ciudad && (

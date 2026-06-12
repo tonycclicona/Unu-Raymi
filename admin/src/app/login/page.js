@@ -39,7 +39,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f7e1d7] relative px-4">
+    <div className="min-h-screen flex items-center justify-center bg-[#dbeafe] relative px-4">
       {/* Luces decorativas */}
       <div className="absolute top-1/4 left-1/4 w-[350px] h-[350px] bg-[#4a5759]/10 rounded-full filter blur-[100px] pointer-events-none"></div>
       <div className="absolute bottom-1/4 right-1/4 w-[300px] h-[300px] bg-purple-500/5 rounded-full filter blur-[100px] pointer-events-none"></div>
