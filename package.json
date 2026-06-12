@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "node server.js",
-    "postinstall": "node -e \"const t=process.env.APP_TYPE||'all'; if(t==='backend'||t==='all'){require('child_process').execSync('npm install',{cwd:'backend',stdio:'inherit'})} if(t==='admin'||t==='all'){require('child_process').execSync('npm install',{cwd:'admin',stdio:'inherit'})} if(t==='frontend'||t==='all'){require('child_process').execSync('npm install',{cwd:'frontend',stdio:'inherit'})}\"",
+    "postinstall": "node postinstall.cjs",
 
     "install:backend": "cd backend && npm install",
     "build:backend": "cd backend && npm run build",
