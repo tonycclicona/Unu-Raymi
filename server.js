@@ -63,7 +63,7 @@ if (appType === 'backend') {
 } else {
   const dir = path.resolve(__dirname, appType === 'admin' ? 'admin' : 'frontend');
   const port = parseInt(process.env.PORT || '3000', 10);
-  const dev = process.env.NODE_ENV !== 'production';
+  const dev = process.env.NODE_ENV === 'development';
 
   console.log('> Starting Next.js [' + appType.toUpperCase() + '] from: ' + dir);
 
