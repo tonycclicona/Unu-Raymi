@@ -292,7 +292,7 @@ export const obtenerReservas = async (req, res, next) => {
         pasajeros: true,
       },
       orderBy: {
-        creadoEn: 'desc',
+        createdAt: 'desc',
       },
     });
 
