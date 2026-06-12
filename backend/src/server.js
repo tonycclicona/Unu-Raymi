@@ -76,29 +76,6 @@ app.use("/uploads", express.static(resolve(__dirname, "../storage/uploads"), {
 }));
 
 // ── Health Check ─────────────────────────────────────────────
-import { exec } from "child_process";
-import { promisify } from "util";
-const execAsync = promisify(exec);
-
-app.get("/api/health/debug", async (req, res) => {
-  try {
-    const ps = await execAsync("ps aux | grep -i 'node\\|prisma'").catch(e => ({ stdout: e.message, stderr: "" }));
-    const ulimit = await execAsync("ulimit -a").catch(e => ({ stdout: e.message, stderr: "" }));
-    const free = await execAsync("free -m").catch(e => ({ stdout: e.message, stderr: "" }));
-    const openssl = await execAsync("openssl version").catch(e => ({ stdout: e.message, stderr: "" }));
-    
-    res.status(200).json({
-      success: true,
-      ps: ps.stdout,
-      ulimit: ulimit.stdout,
-      free: free.stdout,
-      openssl: openssl.stdout,
-    });
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
-  }
-});
-
 app.get("/api/health", (req, res) => {
   res.status(200).json({
     success: true,
