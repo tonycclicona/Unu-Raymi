@@ -2,7 +2,6 @@
   "name": "unu-raymi-monorepo",
   "version": "1.0.0",
   "private": true,
-  "packageManager": "pnpm@11.6.0",
   "scripts": {
     "install:backend": "npx -y pnpm install --prefix backend",
     "build:backend": "npx -y pnpm run build --prefix backend",
