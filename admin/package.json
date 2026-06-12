@@ -4,10 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "node --max-old-space-size=512 ./node_modules/next/dist/bin/next build",
     "start": "next start",
     "lint": "eslint",
-    "postinstall": "next build"
+    "postinstall": "npm run build"
   },
   "dependencies": {
     "lucide-react": "^1.17.0",
