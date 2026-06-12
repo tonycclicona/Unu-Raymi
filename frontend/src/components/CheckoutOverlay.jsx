@@ -251,7 +251,7 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
       }`}
     >
       {/* Contenedor flotante lateral de checkout */}
-      <div className="w-full max-w-xl h-full bg-[#0f0f1a] border-l border-[#2b2b46] flex flex-col relative shadow-2xl">
+      <div className="w-full max-w-full md:max-w-xl h-full bg-[#0f0f1a] md:border-l border-[#2b2b46] flex flex-col relative shadow-2xl">
         
         {/* Header */}
         <div className="p-6 border-b border-[#2b2b46] flex justify-between items-center">
@@ -299,7 +299,7 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
               Fecha de Viaje y Cantidad
             </h3>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="space-y-1">
                 <label className="text-[10px] font-bold text-gray-400 uppercase">Calendario *</label>
                 {fechasDisponibles.length > 0 ? (

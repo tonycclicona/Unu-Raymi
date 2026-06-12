@@ -127,75 +127,63 @@ export default function Home() {
       {/* 1. Hero con Dynamic Reveal */}
       <Hero />
 
-      {/* 2. Sección Split-Screen Invertido */}
-      <section id="tours" className="h-screen w-full flex flex-col md:flex-row border-t border-[#2b2b46]/50 bg-[#0c0c14] relative z-10 pt-16 md:pt-0 scroll-mt-16 md:scroll-mt-20">
+      {/* 2. Sección Tours — Layout Responsivo */}
+      <section id="tours" className="w-full border-t border-[#2b2b46]/50 bg-[#0c0c14] relative z-10 scroll-mt-16">
 
-        {/* Columna Izquierda: Mapa SVG Interactivo Fijo (55% de ancho en Desktop) */}
-        <div className="w-full md:w-[55%] h-[480px] md:h-full p-4 md:p-8 flex items-center justify-center border-b md:border-b-0 md:border-r border-[#2b2b46]/40">
-          <MapaSudamerica
-            filtroPais={filtroPais}
-            setFiltroPais={(p) => {
-              setFiltroPais(p);
-              setVisibleCount(6);
-            }}
-          />
-        </div>
+        {/* ── MOBILE LAYOUT ── */}
+        <div className="flex flex-col md:hidden">
 
-        {/* Columna Derecha: Listado de Tours Desplazable (45% de ancho en Desktop) */}
-        <div className="w-full md:w-[45%] h-[calc(100vh-480px)] md:h-full flex flex-col">
-          {/* Header del catálogo */}
-          <div className="p-6 border-b border-[#2b2b46]/40 bg-[#0e0e1a]/80 backdrop-blur-md space-y-4">
+          {/* Mapa compacto en mobile */}
+          <div className="w-full h-[230px] p-3 flex items-center justify-center border-b border-[#2b2b46]/40">
+            <MapaSudamerica
+              filtroPais={filtroPais}
+              setFiltroPais={(p) => {
+                setFiltroPais(p);
+                setVisibleCount(6);
+              }}
+            />
+          </div>
 
-            {/* Fila del Título y Chips (en la parte derecha) */}
-            <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
-              <div>
-                <div className="flex items-center gap-2">
-                  <h2 className="text-sm sm:text-base font-black text-white flex items-center gap-1.5">
-                    <Compass className="w-4 h-4 text-[#e94560]" />
-                    Tours en {filtroPais === 'Todos' ? 'Sudamérica' : filtroPais}
-                  </h2>
-                  {filtroPais !== 'Todos' && (
-                    <button
-                      onClick={() => {
-                        setFiltroPais('Todos');
-                        setVisibleCount(6);
-                      }}
-                      className="bg-[#e94560]/10 text-[#e94560] hover:bg-[#e94560] hover:text-white border border-[#e94560]/20 text-[9px] px-2 py-0.5 rounded-full font-bold transition-all duration-300"
-                    >
-                      Limpiar
-                    </button>
-                  )}
-                </div>
-                <p className="text-[10px] text-gray-400 mt-0.5">
-                  {filteredTours.length} {filteredTours.length === 1 ? 'aventura encontrada' : 'aventuras encontradas'}
-                </p>
-              </div>
-
-              {/* 1. Categoría (Filter Chips en la parte derecha) */}
-              <div className="flex flex-wrap gap-1.5">
-                {['*', 'Full Days', 'Trekking', 'Trek & Climb'].map((cat) => {
-                  const isSelected = filtroCategoria === cat;
-                  const displayLabel = cat === '*' ? '*' : cat;
-                  return (
-                    <button
-                      key={cat}
-                      onClick={() => {
-                        setFiltroCategoria(cat);
-                        setVisibleCount(6);
-                      }}
-                      className={`px-2.5 py-1 rounded-full text-[9px] font-extrabold uppercase tracking-wider transition-all duration-300 ${isSelected
-                        ? 'bg-[#e94560] text-white shadow-md shadow-[#e94560]/20 scale-105'
-                        : 'bg-[#16162a]/60 hover:bg-[#16162a] text-gray-400 hover:text-white border border-[#2b2b46]/60 hover:border-[#e94560]/40'
-                        }`}
-                    >
-                      {displayLabel}
-                    </button>
-                  );
-                })}
+          {/* Header catálogo mobile */}
+          <div className="p-4 border-b border-[#2b2b46]/40 bg-[#0e0e1a]/90 backdrop-blur-md space-y-3 sticky top-[52px] z-10">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-black text-white flex items-center gap-1.5">
+                <Compass className="w-4 h-4 text-[#e94560]" />
+                Tours en {filtroPais === 'Todos' ? 'Sudamérica' : filtroPais}
+              </h2>
+              <div className="flex items-center gap-2">
+                <span className="text-[9px] text-gray-400">{filteredTours.length} {filteredTours.length === 1 ? 'result.' : 'results.'}</span>
+                {filtroPais !== 'Todos' && (
+                  <button
+                    onClick={() => { setFiltroPais('Todos'); setVisibleCount(6); }}
+                    className="bg-[#e94560]/10 text-[#e94560] border border-[#e94560]/20 text-[9px] px-2 py-0.5 rounded-full font-bold"
+                  >
+                    ✕ Limpiar
+                  </button>
+                )}
               </div>
             </div>
 
-            {/* Barra de búsqueda */}
+            {/* Chips de categoría */}
+            <div className="flex flex-nowrap gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
+              {['*', 'Full Days', 'Trekking', 'Trek & Climb'].map((cat) => {
+                const isSelected = filtroCategoria === cat;
+                return (
+                  <button
+                    key={cat}
+                    onClick={() => { setFiltroCategoria(cat); setVisibleCount(6); }}
+                    className={`flex-shrink-0 px-3 py-1.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider transition-all ${isSelected
+                      ? 'bg-[#e94560] text-white shadow-md shadow-[#e94560]/20'
+                      : 'bg-[#16162a]/60 text-gray-400 border border-[#2b2b46]/60'
+                    }`}
+                  >
+                    {cat === '*' ? 'Todos' : cat}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Búsqueda */}
             <div className="relative">
               <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <Search className="h-3.5 w-3.5 text-gray-500" />
@@ -203,35 +191,27 @@ export default function Home() {
               <input
                 type="text"
                 value={busqueda}
-                onChange={(e) => {
-                  setBusqueda(e.target.value);
-                  setVisibleCount(6);
-                }}
-                placeholder="Buscar por nombre, descripción o país..."
-                className="w-full pl-9 pr-8 py-2.5 bg-[#121224]/80 border border-[#2b2b46]/50 rounded-xl text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#e94560]/50 focus:ring-1 focus:ring-[#e94560]/30 transition-all duration-300 shadow-inner"
+                onChange={(e) => { setBusqueda(e.target.value); setVisibleCount(6); }}
+                placeholder="Buscar tours..."
+                className="w-full pl-9 pr-8 py-2.5 bg-[#121224]/80 border border-[#2b2b46]/50 rounded-xl text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#e94560]/50"
               />
               {busqueda && (
-                <button
-                  onClick={() => {
-                    setBusqueda('');
-                    setVisibleCount(6);
-                  }}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-white transition-colors"
-                >
+                <button onClick={() => { setBusqueda(''); setVisibleCount(6); }}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500">
                   <X className="h-3.5 w-3.5" />
                 </button>
               )}
             </div>
           </div>
 
-          {/* Lista scrollable */}
-          <div className="flex-1 overflow-y-auto p-6 space-y-6 no-scrollbar">
+          {/* Lista de tours mobile */}
+          <div className="p-4 space-y-4">
             {filteredTours.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-center space-y-3">
-                <HelpCircle className="w-12 h-12 text-gray-600" />
+              <div className="py-16 flex flex-col items-center justify-center text-center space-y-3">
+                <HelpCircle className="w-10 h-10 text-gray-600" />
                 <h4 className="text-white font-bold text-sm">No hay tours en esta región</h4>
                 <p className="text-xs text-gray-500 max-w-xs leading-relaxed">
-                  Pronto agregaremos nuevas expediciones para {filtroPais}. Selecciona otro país en el mapa.
+                  Selecciona otro país en el mapa.
                 </p>
               </div>
             ) : (
@@ -240,18 +220,14 @@ export default function Home() {
                   <TourCard
                     key={tour.id}
                     tour={tour}
-                    onReservar={(t, dur) => {
-                      setSelectedTour(t);
-                      setSelectedDuration(dur);
-                    }}
+                    onReservar={(t, dur) => { setSelectedTour(t); setSelectedDuration(dur); }}
                   />
                 ))}
-
                 {visibleCount < filteredTours.length && (
-                  <div className="flex justify-center pt-2 pb-6">
+                  <div className="flex justify-center pt-2 pb-4">
                     <button
                       onClick={() => setVisibleCount((prev) => prev + 6)}
-                      className="group flex items-center gap-2 bg-[#16162a]/60 border border-[#e94560]/40 hover:border-[#e94560] hover:bg-[#e94560] text-white px-6 py-3 rounded-xl text-xs font-bold transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-md shadow-[#e94560]/5 hover:shadow-[#e94560]/20"
+                      className="group flex items-center gap-2 bg-[#16162a]/60 border border-[#e94560]/40 hover:border-[#e94560] hover:bg-[#e94560] text-white px-6 py-3 rounded-xl text-xs font-bold transition-all"
                     >
                       Cargar más aventuras
                       <Compass className="w-4 h-4 text-[#e94560] group-hover:text-white group-hover:rotate-180 transition-all duration-500" />
@@ -260,6 +236,120 @@ export default function Home() {
                 )}
               </>
             )}
+          </div>
+        </div>
+
+        {/* ── DESKTOP LAYOUT (split-screen) ── */}
+        <div className="hidden md:flex flex-row h-screen">
+
+          {/* Columna Izquierda: Mapa */}
+          <div className="w-[55%] h-full p-8 flex items-center justify-center border-r border-[#2b2b46]/40">
+            <MapaSudamerica
+              filtroPais={filtroPais}
+              setFiltroPais={(p) => {
+                setFiltroPais(p);
+                setVisibleCount(6);
+              }}
+            />
+          </div>
+
+          {/* Columna Derecha: Listado Desplazable */}
+          <div className="w-[45%] h-full flex flex-col">
+            {/* Header del catálogo */}
+            <div className="p-6 border-b border-[#2b2b46]/40 bg-[#0e0e1a]/80 backdrop-blur-md space-y-4">
+              <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-sm sm:text-base font-black text-white flex items-center gap-1.5">
+                      <Compass className="w-4 h-4 text-[#e94560]" />
+                      Tours en {filtroPais === 'Todos' ? 'Sudamérica' : filtroPais}
+                    </h2>
+                    {filtroPais !== 'Todos' && (
+                      <button
+                        onClick={() => { setFiltroPais('Todos'); setVisibleCount(6); }}
+                        className="bg-[#e94560]/10 text-[#e94560] hover:bg-[#e94560] hover:text-white border border-[#e94560]/20 text-[9px] px-2 py-0.5 rounded-full font-bold transition-all"
+                      >
+                        Limpiar
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-[10px] text-gray-400 mt-0.5">
+                    {filteredTours.length} {filteredTours.length === 1 ? 'aventura encontrada' : 'aventuras encontradas'}
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap gap-1.5">
+                  {['*', 'Full Days', 'Trekking', 'Trek & Climb'].map((cat) => {
+                    const isSelected = filtroCategoria === cat;
+                    return (
+                      <button
+                        key={cat}
+                        onClick={() => { setFiltroCategoria(cat); setVisibleCount(6); }}
+                        className={`px-2.5 py-1 rounded-full text-[9px] font-extrabold uppercase tracking-wider transition-all duration-300 ${isSelected
+                          ? 'bg-[#e94560] text-white shadow-md shadow-[#e94560]/20 scale-105'
+                          : 'bg-[#16162a]/60 hover:bg-[#16162a] text-gray-400 hover:text-white border border-[#2b2b46]/60 hover:border-[#e94560]/40'
+                        }`}
+                      >
+                        {cat === '*' ? '*' : cat}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="relative">
+                <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Search className="h-3.5 w-3.5 text-gray-500" />
+                </span>
+                <input
+                  type="text"
+                  value={busqueda}
+                  onChange={(e) => { setBusqueda(e.target.value); setVisibleCount(6); }}
+                  placeholder="Buscar por nombre, descripción o país..."
+                  className="w-full pl-9 pr-8 py-2.5 bg-[#121224]/80 border border-[#2b2b46]/50 rounded-xl text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#e94560]/50 focus:ring-1 focus:ring-[#e94560]/30 transition-all"
+                />
+                {busqueda && (
+                  <button onClick={() => { setBusqueda(''); setVisibleCount(6); }}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-white">
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Lista scrollable */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-6 no-scrollbar">
+              {filteredTours.length === 0 ? (
+                <div className="h-full flex flex-col items-center justify-center text-center space-y-3">
+                  <HelpCircle className="w-12 h-12 text-gray-600" />
+                  <h4 className="text-white font-bold text-sm">No hay tours en esta región</h4>
+                  <p className="text-xs text-gray-500 max-w-xs leading-relaxed">
+                    Pronto agregaremos nuevas expediciones para {filtroPais}. Selecciona otro país en el mapa.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  {visibleTours.map((tour) => (
+                    <TourCard
+                      key={tour.id}
+                      tour={tour}
+                      onReservar={(t, dur) => { setSelectedTour(t); setSelectedDuration(dur); }}
+                    />
+                  ))}
+                  {visibleCount < filteredTours.length && (
+                    <div className="flex justify-center pt-2 pb-6">
+                      <button
+                        onClick={() => setVisibleCount((prev) => prev + 6)}
+                        className="group flex items-center gap-2 bg-[#16162a]/60 border border-[#e94560]/40 hover:border-[#e94560] hover:bg-[#e94560] text-white px-6 py-3 rounded-xl text-xs font-bold transition-all hover:scale-[1.02] active:scale-[0.98]"
+                      >
+                        Cargar más aventuras
+                        <Compass className="w-4 h-4 text-[#e94560] group-hover:text-white group-hover:rotate-180 transition-all duration-500" />
+                      </button>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
           </div>
         </div>
       </section>

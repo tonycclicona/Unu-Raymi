@@ -34,7 +34,7 @@ export default function Guias() {
   ];
 
   return (
-    <section id="guias" className="py-20 px-6 min-h-screen flex items-center bg-[#0c0c14] border-t border-[#2b2b46]/30 relative overflow-hidden scroll-mt-16 md:scroll-mt-20">
+    <section id="guias" className="py-16 md:py-24 px-6 flex items-center bg-[#0c0c14] border-t border-[#2b2b46]/30 relative overflow-hidden scroll-mt-16 md:scroll-mt-20">
       {/* Luz ambiental */}
       <div className="absolute bottom-1/4 left-1/4 w-[350px] h-[350px] bg-purple-500/5 rounded-full filter blur-[100px] pointer-events-none -z-10"></div>
 
@@ -58,7 +58,7 @@ export default function Guias() {
           {guias.map((guia) => (
             <div
               key={guia.id}
-              className="relative h-[420px] rounded-3xl overflow-hidden border border-[#2b2b46]/50 group bg-[#16162a]/20 shadow-xl"
+              className="relative h-[400px] md:h-[420px] rounded-3xl overflow-hidden border border-[#2b2b46]/50 group bg-[#16162a]/20 shadow-xl"
             >
               {/* Foto de fondo (.webp optimizada desde Unsplash) */}
               <img
@@ -71,7 +71,7 @@ export default function Guias() {
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent transition-opacity duration-300 group-hover:opacity-90"></div>
 
               {/* Panel Desplizable Dinámico desde Abajo (Hover animado) */}
-              <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-[#0f0f1a]/95 via-[#0f0f1a]/90 to-transparent border-t border-white/5 translate-y-[calc(100%-85px)] group-hover:translate-y-0 transition-transform duration-500 ease-out">
+              <div className="absolute bottom-0 left-0 right-0 p-5 md:p-6 bg-gradient-to-t from-[#0f0f1a]/95 via-[#0f0f1a]/90 to-transparent border-t border-white/5 translate-y-[calc(100%-85px)] md:translate-y-[calc(100%-85px)] group-hover:translate-y-0 transition-transform duration-500 ease-out">
                 
                 {/* Cabecera del Panel (Siempre visible) */}
                 <div className="space-y-1.5 pb-4">

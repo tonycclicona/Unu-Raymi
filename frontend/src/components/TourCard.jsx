@@ -28,7 +28,7 @@ export default function TourCard({ tour, onReservar }) {
 
     const interval = setInterval(() => {
       setCurrentImageIndex((prev) => (prev + 1) % imagenes.length);
-    }, 500);
+    }, 3000);
 
     return () => clearInterval(interval);
   }, [imagenes.length]);
@@ -38,7 +38,7 @@ export default function TourCard({ tour, onReservar }) {
   return (
     <div className="bg-[#16162a]/40 border border-[#2b2b46]/50 rounded-2xl overflow-hidden flex flex-col sm:flex-row group hover:border-[#e94560]/30 transition-all duration-300 shadow-md">
       {/* Imagen */}
-      <div className="w-full sm:w-2/5 h-48 sm:h-auto relative overflow-hidden bg-[#121224]">
+      <div className="w-full sm:w-2/5 h-52 sm:h-auto relative overflow-hidden bg-[#121224] flex-shrink-0">
         {currentImage ? (
           <Image
             src={currentImage.startsWith('http') ? currentImage : `${API_ASSETS_URL}${currentImage}`}
@@ -53,7 +53,7 @@ export default function TourCard({ tour, onReservar }) {
             No Image
           </div>
         )}
-        <div className="absolute top-4 left-4 flex flex-wrap gap-1.5">
+        <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
           <span className="bg-[#0f0f1a]/80 backdrop-blur-md border border-white/10 px-2.5 py-1 rounded-full text-[9px] font-extrabold text-[#e94560] uppercase tracking-wider">
             {tour.pais}
           </span>
@@ -66,9 +66,9 @@ export default function TourCard({ tour, onReservar }) {
       </div>
 
       {/* Info */}
-      <div className="flex-1 p-5 flex flex-col justify-between space-y-4">
+      <div className="flex-1 p-4 sm:p-5 flex flex-col justify-between gap-3">
         <div className="space-y-2">
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[10px] text-gray-400">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[10px] text-gray-400">
             {hasVariants ? (
               <div className="flex flex-wrap gap-1.5 items-center">
                 <Calendar className="w-3.5 h-3.5 text-[#e94560]" />
@@ -110,7 +110,7 @@ export default function TourCard({ tour, onReservar }) {
             )}
           </div>
 
-          <h3 className="font-extrabold text-white text-lg leading-snug group-hover:text-[#e94560] transition-colors line-clamp-1">
+          <h3 className="font-extrabold text-white text-base sm:text-lg leading-snug group-hover:text-[#e94560] transition-colors line-clamp-2">
             {tour.nombre}
           </h3>
 
@@ -120,7 +120,7 @@ export default function TourCard({ tour, onReservar }) {
         </div>
 
         {/* Footer Tarjeta */}
-        <div className="flex items-center justify-between border-t border-[#2b2b46]/50 pt-4">
+        <div className="flex items-center justify-between border-t border-[#2b2b46]/50 pt-3 gap-3">
           <div>
             <span className="text-[10px] text-gray-500 block uppercase font-bold tracking-wider">Desde</span>
             <span className="text-lg font-black text-white flex items-center">
@@ -131,7 +131,7 @@ export default function TourCard({ tour, onReservar }) {
 
           <button
             onClick={() => onReservar(tour, displayDuration)}
-            className="flex items-center gap-1.5 bg-[#e94560] hover:bg-[#ff5c77] text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-lg shadow-[#e94560]/10 hover:shadow-[#e94560]/20 transition-all duration-300 group/btn"
+            className="flex items-center gap-1.5 bg-[#e94560] hover:bg-[#ff5c77] text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-lg shadow-[#e94560]/10 hover:shadow-[#e94560]/20 transition-all duration-300 group/btn whitespace-nowrap"
           >
             Reservar
             <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-1 transition-transform" />
