@@ -71,7 +71,11 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 // Servir carpeta de subidas estáticamente (ruta absoluta para producción)
-app.use("/uploads", express.static(resolve(__dirname, "../storage/uploads"), {
+const uploadsPath = process.env.UPLOADS_PATH
+  ? resolve(process.env.UPLOADS_PATH)
+  : resolve(__dirname, "../storage/uploads");
+
+app.use("/uploads", express.static(uploadsPath, {
   maxAge: isProduction ? "7d" : 0, // Cache de 7 días en producción
 }));
 

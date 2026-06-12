@@ -11,7 +11,9 @@ import { fileURLToPath } from "url";
 import { randomUUID } from "crypto";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const UPLOADS_DIR = join(__dirname, "..", "..", "storage", "uploads");
+const UPLOADS_DIR = process.env.UPLOADS_PATH
+  ? process.env.UPLOADS_PATH
+  : join(__dirname, "..", "..", "storage", "uploads");
 
 // Configurar multer en memoria para obtener el buffer del archivo
 const storage = multer.memoryStorage();
