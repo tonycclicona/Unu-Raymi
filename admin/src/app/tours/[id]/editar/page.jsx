@@ -27,11 +27,9 @@ export default function EditarTourPage({ params }) {
   }
 
   // Mapear los datos de la API al formato esperado por el formulario
-  const formData = {
-    ...tour,
-    // Convertir el array de objetos imágenes en una cadena separada por comas
-    imagenes: tour.imagenes ? tour.imagenes.map(img => img.url).join(', ') : '',
-  };
+  const formData = tour?.data ? {
+    ...tour.data,
+  } : null;
 
   return (
     <div className="space-y-8">
