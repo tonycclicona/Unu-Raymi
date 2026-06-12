@@ -179,7 +179,7 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
             onClose();
           }
         }}
-        className="fixed inset-0 z-50 bg-[#f7e1d7]/85 backdrop-blur-md flex items-center justify-center p-4"
+        className="fixed inset-0 z-50 bg-[#f7e1d7]  flex items-center justify-center p-4"
       >
         <div className="glass max-w-lg w-full p-8 rounded-3xl text-center space-y-6 shadow-2xl relative border border-black/5">
           <div className="w-16 h-16 bg-emerald-500/10 border border-emerald-500/20 rounded-full flex items-center justify-center mx-auto text-emerald-400">
@@ -222,7 +222,7 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
               href={`${API_BASE_URL}/reservas/${successData.reservaId || successData.id}/invoice?token=${successData.tokenSeguridad}`}
               target="_blank"
               rel="noreferrer"
-              className="flex-1 bg-black/[0.04] hover:bg-black/[0.08] text-[#4a5759] py-3.5 rounded-xl text-sm font-bold border border-black/10 transition-all text-center"
+              className="flex-1 bg-[#dedbd2] hover:bg-[#dedbd2] text-[#4a5759] py-3.5 rounded-xl text-sm font-bold border border-black/10 transition-all text-center"
             >
               Inspeccionar PDF
             </a>
@@ -247,7 +247,7 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
         }
       }}
       className={`fixed inset-0 z-[60] flex items-center justify-end transition-all duration-300 ${
-        onBack ? 'bg-black/35' : 'bg-black/75 backdrop-blur-sm'
+        onBack ? 'bg-[#dedbd2]' : 'bg-[#dedbd2] '
       }`}
     >
       {/* Contenedor flotante lateral de checkout */}
@@ -259,7 +259,7 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
             <button
               type="button"
               onClick={onBack ? onBack : onClose}
-              className="text-[#6c7a7c] hover:text-[#4a5759] p-2.5 bg-black/5 rounded-xl border border-black/5 transition-all flex items-center gap-1.5 text-xs font-bold shrink-0"
+              className="text-[#6c7a7c] hover:text-[#4a5759] p-2.5 bg-[#dedbd2] rounded-xl border border-black/5 transition-all flex items-center gap-1.5 text-xs font-bold shrink-0"
             >
               <ArrowLeft className="w-4 h-4" />
               Volver
@@ -280,7 +280,7 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
           )}
 
           {/* Configuración de Fecha y Contadores */}
-          <div className="bg-[#ffffff]/50 border border-[#b0c4b1]/40 p-5 rounded-2xl space-y-4">
+          <div className="bg-[#ffffff] border border-[#b0c4b1]/40 p-5 rounded-2xl space-y-4">
             <div className="border-b border-[#b0c4b1]/30 pb-3 flex justify-between items-center">
               <div>
                 <span className="text-[10px] text-[#6c7a7c] block uppercase font-bold tracking-wider">Aventura</span>
@@ -438,7 +438,7 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
                   const labelTipo = index < (cantAdultos - 1) ? 'Adulto' : 'Niño';
 
                   return (
-                    <div key={index} className="bg-[#ffffff]/50 border border-[#b0c4b1]/40 p-4 rounded-2xl space-y-3">
+                    <div key={index} className="bg-[#ffffff] border border-[#b0c4b1]/40 p-4 rounded-2xl space-y-3">
                       <span className="text-[9px] text-[#4a5759] font-bold uppercase tracking-wider">
                         Pasajero #{index + 2} ({labelTipo})
                       </span>
@@ -478,7 +478,7 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
         </form>
 
         {/* Footer Financiero */}
-        <div className="p-6 border-t border-[#b0c4b1] bg-white/80 backdrop-blur-md space-y-4">
+        <div className="p-6 border-t border-[#b0c4b1] bg-white  space-y-4">
           <div className="flex justify-between items-center">
             <div>
               <span className="text-[10px] text-[#6c7a7c]/80 block uppercase font-bold tracking-wider">Monto Total</span>

@@ -438,7 +438,7 @@ export default function TourForm({ initialData }) {
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => { e.preventDefault(); if (e.dataTransfer.files) handleFiles(e.dataTransfer.files); }}
             onClick={() => fileInputRef.current?.click()}
-            className="border-2 border-dashed border-[#b0c4b1] hover:border-[#4a5759] bg-[#ffffff]/30 hover:bg-[#4a5759]/5 rounded-2xl p-8 flex flex-col items-center justify-center gap-3 cursor-pointer transition-all duration-300 group"
+            className="border-2 border-dashed border-[#b0c4b1] hover:border-[#4a5759] bg-[#ffffff] hover:bg-[#4a5759]/5 rounded-2xl p-8 flex flex-col items-center justify-center gap-3 cursor-pointer transition-all duration-300 group"
           >
             <input type="file" ref={fileInputRef} multiple onChange={(e) => handleFiles(e.target.files)} className="hidden" accept="image/*" />
             <div className="w-12 h-12 bg-white/[0.03] group-hover:bg-[#4a5759]/10 rounded-full flex items-center justify-center border border-black/5 group-hover:border-[#4a5759]/20 text-[#6c7a7c] group-hover:text-[#4a5759]">
@@ -505,7 +505,7 @@ export default function TourForm({ initialData }) {
         </div>
 
         {variantes.length === 0 ? (
-          <div className="bg-[#ffffff]/30 border border-[#b0c4b1]/50 rounded-2xl p-6 text-center text-xs text-[#6c7a7c]/80 italic">
+          <div className="bg-[#ffffff] border border-[#b0c4b1]/50 rounded-2xl p-6 text-center text-xs text-[#6c7a7c]/80 italic">
             No has agregado ninguna variante. Haz clic en "Agregar Nueva Variante" para configurar los precios, calendarios y servicios por cada paquete de días.
           </div>
         ) : (
@@ -584,11 +584,11 @@ export default function TourForm({ initialData }) {
                       const customItems = (v.servicios_incluidos[catId] || []).filter(x => !PREDEFINED_TAXONOMY[catId].includes(x));
 
                       return (
-                        <div key={catId} className="border border-[#b0c4b1]/60 rounded-xl overflow-hidden bg-[#ffffff]/20">
+                        <div key={catId} className="border border-[#b0c4b1]/60 rounded-xl overflow-hidden bg-[#ffffff]">
                           <button
                             type="button"
                             onClick={() => setActiveAccordion(prev => ({ ...prev, [accordionKey]: !prev[accordionKey] }))}
-                            className="w-full flex items-center justify-between p-3 bg-[#ffffff]/40 hover:bg-white/80 text-left"
+                            className="w-full flex items-center justify-between p-3 bg-[#ffffff]/40 hover:bg-white text-left"
                           >
                             <div className="flex items-center gap-2">
                               <div className={`p-1.5 rounded-lg border ${meta.color}`}><Icon className="w-3.5 h-3.5" /></div>
@@ -630,7 +630,7 @@ export default function TourForm({ initialData }) {
                                   onChange={(e) => setVariantCustomInputs(prev => ({ ...prev, [`${vIdx}-${catId}`]: e.target.value }))}
                                   className="w-full bg-[#f7e1d7] border border-[#b0c4b1] rounded-lg px-2.5 py-1 text-[#4a5759] text-xs outline-none"
                                 />
-                                <button type="button" onClick={() => handleAddCustomServiceToVariant(vIdx, catId)} className="bg-black/5 border border-[#b0c4b1] px-2.5 py-1 rounded-lg text-[11px] text-[#4a5759]">+</button>
+                                <button type="button" onClick={() => handleAddCustomServiceToVariant(vIdx, catId)} className="bg-[#dedbd2] border border-[#b0c4b1] px-2.5 py-1 rounded-lg text-[11px] text-[#4a5759]">+</button>
                               </div>
                             </div>
                           )}
@@ -699,7 +699,7 @@ export default function TourForm({ initialData }) {
         <button
           type="button"
           onClick={() => router.push('/tours')}
-          className="flex items-center gap-2 border border-[#b0c4b1] hover:bg-black/5 text-[#4a5759] px-6 py-3 rounded-xl transition-all text-sm font-semibold"
+          className="flex items-center gap-2 border border-[#b0c4b1] hover:bg-[#dedbd2] text-[#4a5759] px-6 py-3 rounded-xl transition-all text-sm font-semibold"
         >
           <ArrowLeft className="w-4 h-4" />
           Cancelar

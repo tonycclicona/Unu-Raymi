@@ -24,7 +24,7 @@ export default function LayoutContent({ children }) {
         <header className="md:hidden flex items-center gap-3 px-4 py-3 bg-[#dedbd2] border-b border-[#b0c4b1] shrink-0">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="p-2 text-[#6c7a7c] hover:text-[#4a5759] hover:bg-black/5 rounded-xl transition-all"
+            className="p-2 text-[#6c7a7c] hover:text-[#4a5759] hover:bg-[#dedbd2] rounded-xl transition-all"
             aria-label="Abrir menú"
           >
             <Menu className="w-5 h-5" />

@@ -56,7 +56,7 @@ export default function MapaSudamerica({ filtroPais, setFiltroPais }) {
   ];
 
   return (
-    <div className="w-full h-full flex flex-col justify-between p-6 bg-[#ffffff]/30 border border-[#b0c4b1]/40 rounded-3xl relative overflow-hidden select-none">
+    <div className="w-full h-full flex flex-col justify-between p-6 bg-[#ffffff] border border-[#b0c4b1]/40 rounded-3xl relative overflow-hidden select-none">
       {/* Luces de fondo */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-purple-500/5 rounded-full filter blur-[80px] pointer-events-none -z-10"></div>
 

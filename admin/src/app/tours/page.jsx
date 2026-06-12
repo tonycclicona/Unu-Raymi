@@ -83,7 +83,7 @@ export default function ToursList() {
                       <Compass className="w-12 h-12" />
                     </div>
                   )}
-                  <span className="absolute top-4 right-4 bg-black/60 backdrop-blur-md border border-black/10 px-3 py-1 rounded-full text-xs font-semibold text-[#4a5759] flex items-center gap-1">
+                  <span className="absolute top-4 right-4 bg-black/60  border border-black/10 px-3 py-1 rounded-full text-xs font-semibold text-[#4a5759] flex items-center gap-1">
                     <Calendar className="w-3.5 h-3.5 text-[#4a5759]" />
                     {tour.duracion_dias} {tour.duracion_dias === 1 ? 'Día' : 'Días'}
                   </span>

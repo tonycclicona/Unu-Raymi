@@ -58,7 +58,7 @@ export default function Guias() {
           {guias.map((guia) => (
             <div
               key={guia.id}
-              className="relative h-[400px] md:h-[420px] rounded-3xl overflow-hidden border border-[#b0c4b1]/50 group bg-[#ffffff]/20 shadow-xl"
+              className="relative h-[400px] md:h-[420px] rounded-3xl overflow-hidden border border-[#b0c4b1]/50 group bg-[#ffffff] shadow-xl"
             >
               {/* Foto de fondo (.webp optimizada desde Unsplash) */}
               <img

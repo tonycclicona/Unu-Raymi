@@ -145,7 +145,7 @@ export default function Home() {
           </div>
 
           {/* Header catálogo mobile */}
-          <div className="p-4 border-b border-[#b0c4b1]/40 bg-[#0e0e1a]/90 backdrop-blur-md space-y-3 sticky top-[52px] z-10">
+          <div className="p-4 border-b border-[#b0c4b1]/40 bg-[#0e0e1a]/90  space-y-3 sticky top-[52px] z-10">
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-black text-[#4a5759] flex items-center gap-1.5">
                 <Compass className="w-4 h-4 text-[#4a5759]" />
@@ -193,7 +193,7 @@ export default function Home() {
                 value={busqueda}
                 onChange={(e) => { setBusqueda(e.target.value); setVisibleCount(6); }}
                 placeholder="Buscar tours..."
-                className="w-full pl-9 pr-8 py-2.5 bg-white/80 border border-[#b0c4b1]/50 rounded-xl text-xs text-[#4a5759] placeholder-gray-500 focus:outline-none focus:border-[#4a5759]/50"
+                className="w-full pl-9 pr-8 py-2.5 bg-white border border-[#b0c4b1]/50 rounded-xl text-xs text-[#4a5759] placeholder-gray-500 focus:outline-none focus:border-[#4a5759]/50"
               />
               {busqueda && (
                 <button onClick={() => { setBusqueda(''); setVisibleCount(6); }}
@@ -256,7 +256,7 @@ export default function Home() {
           {/* Columna Derecha: Listado Desplazable */}
           <div className="w-[45%] h-full flex flex-col">
             {/* Header del catálogo */}
-            <div className="p-6 border-b border-[#b0c4b1]/40 bg-[#0e0e1a]/80 backdrop-blur-md space-y-4">
+            <div className="p-6 border-b border-[#b0c4b1]/40 bg-[#0e0e1a]/80  space-y-4">
               <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
                 <div>
                   <div className="flex items-center gap-2">
@@ -306,7 +306,7 @@ export default function Home() {
                   value={busqueda}
                   onChange={(e) => { setBusqueda(e.target.value); setVisibleCount(6); }}
                   placeholder="Buscar por nombre, descripción o país..."
-                  className="w-full pl-9 pr-8 py-2.5 bg-white/80 border border-[#b0c4b1]/50 rounded-xl text-xs text-[#4a5759] placeholder-gray-500 focus:outline-none focus:border-[#4a5759]/50 focus:ring-1 focus:ring-[#4a5759]/30 transition-all"
+                  className="w-full pl-9 pr-8 py-2.5 bg-white border border-[#b0c4b1]/50 rounded-xl text-xs text-[#4a5759] placeholder-gray-500 focus:outline-none focus:border-[#4a5759]/50 focus:ring-1 focus:ring-[#4a5759]/30 transition-all"
                 />
                 {busqueda && (
                   <button onClick={() => { setBusqueda(''); setVisibleCount(6); }}

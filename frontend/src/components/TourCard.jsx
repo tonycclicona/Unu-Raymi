@@ -54,11 +54,11 @@ export default function TourCard({ tour, onReservar }) {
           </div>
         )}
         <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
-          <span className="bg-[#f7e1d7]/80 backdrop-blur-md border border-black/10 px-2.5 py-1 rounded-full text-[9px] font-extrabold text-[#4a5759] uppercase tracking-wider">
+          <span className="bg-[#f7e1d7]/80  border border-black/10 px-2.5 py-1 rounded-full text-[9px] font-extrabold text-[#4a5759] uppercase tracking-wider">
             {tour.pais}
           </span>
           {tour.ciudad && (
-            <span className="bg-[#ffffff]/90 backdrop-blur-md border border-[#b0c4b1]/50 px-2.5 py-1 rounded-full text-[9px] font-bold text-[#4a5759] uppercase tracking-wider">
+            <span className="bg-[#ffffff]  border border-[#b0c4b1]/50 px-2.5 py-1 rounded-full text-[9px] font-bold text-[#4a5759] uppercase tracking-wider">
               {tour.ciudad}
             </span>
           )}
@@ -85,7 +85,7 @@ export default function TourCard({ tour, onReservar }) {
                       className={`px-2.5 py-0.5 rounded-full text-[9px] font-extrabold transition-all border ${
                         isSelected
                           ? 'bg-[#4a5759] text-white border-transparent'
-                          : 'bg-white/80 hover:bg-[#b0c4b1]/50 text-[#6c7a7c] hover:text-[#4a5759] border-[#b0c4b1]'
+                          : 'bg-white hover:bg-[#b0c4b1]/50 text-[#6c7a7c] hover:text-[#4a5759] border-[#b0c4b1]'
                       }`}
                     >
                       {v.duracion_dias} {v.duracion_dias === 1 ? 'Día' : 'Días'}

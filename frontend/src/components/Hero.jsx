@@ -44,7 +44,7 @@ export default function Hero() {
           <source src="/uploads/Background_Home_page.mp4" type="video/mp4" />
           Tu navegador no soporta elementos de video integrados.
         </video>
-        <div className="absolute inset-0 bg-gradient-to-t from-[#f7e1d7] via-transparent to-black/40"></div>
+        <div className="absolute inset-0 bg-[#f7e1d7]"></div>
       </div>
 
       {/* Contenido del Hero con Parallax y desvanecimiento */}
@@ -60,7 +60,7 @@ export default function Hero() {
         </span>
         <h1 className="text-4xl md:text-7xl font-extrabold text-[#4a5759] tracking-tight leading-none drop-shadow-md">
           Aventuras Auténticas <br />
-          <span className="bg-gradient-to-r from-white via-gray-200 to-[#4a5759] bg-clip-text text-transparent">
+          <span className="text-[#4a5759]">
             en Sudamérica
           </span>
         </h1>

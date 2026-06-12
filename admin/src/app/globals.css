@@ -32,23 +32,19 @@ body {
   overflow-x: hidden;
 }
 
-/* Glassmorphism custom classes using modern CSS and Tailwind - Light Theme */
+/* Glassmorphism custom classes using modern CSS and Tailwind - Converted to Solid */
 .glass {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(74, 87, 89, 0.1);
+  background: var(--sidebar); /* #dedbd2 sólido */
+  border: 1px solid var(--border);
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.45);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(74, 87, 89, 0.08);
+  background: var(--card); /* #ffffff sólido */
+  border: 1px solid var(--border);
   transition: all 0.3s ease;
 }
 
 .glass-card:hover {
   border-color: rgba(237, 175, 184, 0.4);
-  box-shadow: 0 8px 30px rgba(74, 87, 89, 0.1);
+  box-shadow: 0 4px 12px rgba(74, 87, 89, 0.08);
 }

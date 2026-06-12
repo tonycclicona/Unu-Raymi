@@ -30,7 +30,7 @@ export default function Sidebar({ isOpen = false, onClose = () => {} }) {
       {/* Mobile backdrop */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden"
+          className="fixed inset-0 z-40 bg-black/60  md:hidden"
           onClick={onClose}
         />
       )}
@@ -54,7 +54,7 @@ export default function Sidebar({ isOpen = false, onClose = () => {} }) {
           {/* Close button — mobile only */}
           <button
             onClick={onClose}
-            className="md:hidden text-[#6c7a7c] hover:text-[#4a5759] p-1.5 rounded-lg hover:bg-black/5 transition-all"
+            className="md:hidden text-[#6c7a7c] hover:text-[#4a5759] p-1.5 rounded-lg hover:bg-[#dedbd2] transition-all"
             aria-label="Cerrar menú"
           >
             <X className="w-5 h-5" />
