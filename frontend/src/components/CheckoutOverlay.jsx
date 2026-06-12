@@ -179,7 +179,7 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
             onClose();
           }
         }}
-        className="fixed inset-0 z-50 bg-[#dbeafe]  flex items-center justify-center p-4"
+        className="fixed inset-0 z-50 bg-[var(--background)]  flex items-center justify-center p-4"
       >
         <div className="glass max-w-lg w-full p-8 rounded-3xl text-center space-y-6 shadow-2xl relative border border-black/5">
           <div className="w-16 h-16 bg-emerald-500/10 border border-emerald-500/20 rounded-full flex items-center justify-center mx-auto text-emerald-400">
@@ -187,24 +187,24 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
           </div>
 
           <div className="space-y-2">
-            <h2 className="text-2xl font-black text-[#4a5759]">¡Reserva Creada!</h2>
-            <p className="text-[#6c7a7c] text-sm">
+            <h2 className="text-2xl font-black text-[var(--foreground)]">¡Reserva Creada!</h2>
+            <p className="text-[var(--muted-foreground)] text-sm">
               Hemos registrado la orden con estado <span className="text-amber-400 font-bold">{successData.estado}</span>.
             </p>
           </div>
 
-          <div className="bg-[#ffffff] border border-[#b0c4b1] p-5 rounded-2xl space-y-3 text-left">
-            <div className="flex justify-between text-sm text-[#6c7a7c]">
+          <div className="bg-[var(--card)] border border-[var(--border)] p-5 rounded-2xl space-y-3 text-left">
+            <div className="flex justify-between text-sm text-[var(--muted-foreground)]">
               <span>Tour:</span>
-              <span className="text-[#4a5759] font-bold">{tour.nombre} ({displayDuration} {displayDuration === 1 ? 'Día' : 'Días'})</span>
+              <span className="text-[var(--foreground)] font-bold">{tour.nombre} ({displayDuration} {displayDuration === 1 ? 'Día' : 'Días'})</span>
             </div>
-            <div className="flex justify-between text-sm text-[#6c7a7c]">
+            <div className="flex justify-between text-sm text-[var(--muted-foreground)]">
               <span>Total a Pagar:</span>
               <span className="text-emerald-400 font-extrabold">${parseFloat(successData.precioTotal).toFixed(2)} USD</span>
             </div>
-            <div className="border-t border-[#b0c4b1]/50 my-2 pt-2">
-              <span className="text-[10px] text-[#6c7a7c]/80 block uppercase font-bold tracking-wider mb-1">Token de Seguridad (Invoice PDF)</span>
-              <span className="text-[11px] text-[#6c7a7c] font-mono select-all break-all">{successData.tokenSeguridad}</span>
+            <div className="border-t border-[var(--border)]/50 my-2 pt-2">
+              <span className="text-[10px] text-[var(--muted-foreground)]/80 block uppercase font-bold tracking-wider mb-1">Token de Seguridad (Invoice PDF)</span>
+              <span className="text-[11px] text-[var(--muted-foreground)] font-mono select-all break-all">{successData.tokenSeguridad}</span>
             </div>
           </div>
 
@@ -212,7 +212,7 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
             <span className="text-xs font-bold text-amber-400 block flex items-center gap-1">
               <CreditCard className="w-4 h-4" /> Integración con Stripe / Pago Simulado
             </span>
-            <p className="text-[11px] text-[#4a5759] leading-relaxed">
+            <p className="text-[11px] text-[var(--foreground)] leading-relaxed">
               El servidor ha enviado el Webhook. En un entorno real serás redirigido a la pasarela segura. Pulsa abajo para simular el pago digital.
             </p>
           </div>
@@ -222,14 +222,14 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
               href={`${API_BASE_URL}/reservas/${successData.reservaId || successData.id}/invoice?token=${successData.tokenSeguridad}`}
               target="_blank"
               rel="noreferrer"
-              className="flex-1 bg-[#dedbd2] hover:bg-[#dedbd2] text-[#4a5759] py-3.5 rounded-xl text-sm font-bold border border-black/10 transition-all text-center"
+              className="flex-1 bg-[var(--sidebar)] hover:bg-[var(--sidebar)] text-[var(--foreground)] py-3.5 rounded-xl text-sm font-bold border border-black/10 transition-all text-center"
             >
               Inspeccionar PDF
             </a>
-            
+
             <button
               onClick={onClose}
-              className="flex-1 bg-[#4a5759] hover:bg-[#384244] text-white py-3.5 rounded-xl text-sm font-bold shadow-lg shadow-[#4a5759]/20 transition-all"
+              className="flex-1 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white py-3.5 rounded-xl text-sm font-bold shadow-lg shadow-[var(--accent)]/20 transition-all"
             >
               Finalizar
             </button>
@@ -246,27 +246,26 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
           onBack ? onBack() : onClose();
         }
       }}
-      className={`fixed inset-0 z-[60] flex items-center justify-end transition-all duration-300 ${
-        onBack ? 'bg-[#dedbd2]' : 'bg-[#dedbd2] '
-      }`}
+      className={`fixed inset-0 z-[60] flex items-center justify-end transition-all duration-300 ${onBack ? 'bg-[var(--sidebar)]/30' : 'bg-[var(--sidebar)] '
+        }`}
     >
       {/* Contenedor flotante lateral de checkout */}
-      <div className="w-full max-w-full md:max-w-xl h-full bg-[#dbeafe] md:border-l border-[#b0c4b1] flex flex-col relative shadow-2xl">
-        
+      <div className="w-full max-w-full md:max-w-xl h-full bg-[var(--background)]/80 md:border-l border-[var(--border)] flex flex-col relative shadow-2xl">
+
         {/* Header */}
-        <div className="p-6 border-b border-[#b0c4b1] flex justify-between items-center">
+        <div className="p-6 border-b border-[var(--border)] flex justify-between items-center">
           <div className="flex items-center gap-3.5">
             <button
               type="button"
               onClick={onBack ? onBack : onClose}
-              className="text-[#6c7a7c] hover:text-[#4a5759] p-2.5 bg-[#dedbd2] rounded-xl border border-black/5 transition-all flex items-center gap-1.5 text-xs font-bold shrink-0"
+              className="text-[var(--muted-foreground)] hover:text-[var(--foreground)] p-2.5 bg-[var(--sidebar)] rounded-xl border border-black/5 transition-all flex items-center gap-1.5 text-xs font-bold shrink-0"
             >
               <ArrowLeft className="w-4 h-4" />
               Volver
             </button>
             <div>
-              <span className="text-[10px] text-[#4a5759] font-extrabold uppercase tracking-widest">Nivel 2</span>
-              <h2 className="font-extrabold text-[#4a5759] text-base leading-tight">Datos de Registro y Facturación</h2>
+              <span className="text-[10px] text-[var(--foreground)] font-extrabold uppercase tracking-widest">Nivel 2</span>
+              <h2 className="font-extrabold text-[var(--foreground)] text-base leading-tight">Datos de Registro y Facturación</h2>
             </div>
           </div>
         </div>
@@ -280,33 +279,33 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
           )}
 
           {/* Configuración de Fecha y Contadores */}
-          <div className="bg-[#ffffff] border border-[#b0c4b1]/40 p-5 rounded-2xl space-y-4">
-            <div className="border-b border-[#b0c4b1]/30 pb-3 flex justify-between items-center">
+          <div className="bg-[var(--card)] border border-[var(--border)]/40 p-5 rounded-2xl space-y-4">
+            <div className="border-b border-[var(--border)]/30 pb-3 flex justify-between items-center">
               <div>
-                <span className="text-[10px] text-[#6c7a7c] block uppercase font-bold tracking-wider">Aventura</span>
-                <span className="text-xs font-bold text-[#4a5759]">{tour.nombre}</span>
+                <span className="text-[10px] text-[var(--muted-foreground)] block uppercase font-bold tracking-wider">Aventura</span>
+                <span className="text-xs font-bold text-[var(--foreground)]">{tour.nombre}</span>
               </div>
               <div className="text-right">
-                <span className="text-[10px] text-[#6c7a7c] block uppercase font-bold tracking-wider">Duración</span>
-                <span className="text-[10px] bg-[#4a5759]/10 text-[#4a5759] border border-[#4a5759]/20 px-2.5 py-0.5 rounded-full font-bold">
+                <span className="text-[10px] text-[var(--muted-foreground)] block uppercase font-bold tracking-wider">Duración</span>
+                <span className="text-[10px] bg-[var(--accent)]/10 text-[var(--foreground)] border border-[var(--accent)]/20 px-2.5 py-0.5 rounded-full font-bold">
                   {displayDuration} {displayDuration === 1 ? 'Día' : 'Días'}
                 </span>
               </div>
             </div>
 
-            <h3 className="text-xs font-bold text-[#4a5759] uppercase tracking-wider flex items-center gap-1.5">
-              <Calendar className="w-4 h-4 text-[#4a5759]" />
+            <h3 className="text-xs font-bold text-[var(--foreground)] uppercase tracking-wider flex items-center gap-1.5">
+              <Calendar className="w-4 h-4 text-[var(--foreground)]" />
               Fecha de Viaje y Cantidad
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-[#6c7a7c] uppercase">Calendario *</label>
+                <label className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase">Calendario *</label>
                 {fechasDisponibles.length > 0 ? (
                   <select
                     value={fechaViaje}
                     onChange={(e) => setFechaViaje(e.target.value)}
-                    className="w-full bg-[#dbeafe] border border-[#b0c4b1] rounded-xl px-3 py-2.5 text-[#4a5759] text-xs focus:outline-none focus:border-[#4a5759]"
+                    className="w-full bg-[var(--background)] border border-[var(--border)] rounded-xl px-3 py-2.5 text-[var(--foreground)] text-xs focus:outline-none focus:border-[var(--accent)]"
                   >
                     {fechasDisponibles.map((d) => (
                       <option key={d} value={d}>
@@ -321,32 +320,32 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
                     min={getTodayDateString()}
                     value={fechaViaje}
                     onChange={(e) => setFechaViaje(e.target.value)}
-                    className="w-full bg-[#dbeafe] border border-[#b0c4b1] rounded-xl px-3 py-2.5 text-[#4a5759] text-xs focus:outline-none focus:border-[#4a5759]"
+                    className="w-full bg-[var(--background)] border border-[var(--border)] rounded-xl px-3 py-2.5 text-[var(--foreground)] text-xs focus:outline-none focus:border-[var(--accent)]"
                   />
                 )}
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-[#6c7a7c] uppercase">Adultos</label>
+                <label className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase">Adultos</label>
                 <input
                   type="number"
                   min="1"
                   max="20"
                   value={cantAdultos}
                   onChange={(e) => setCantAdultos(Math.max(1, parseInt(e.target.value) || 1))}
-                  className="w-full bg-[#dbeafe] border border-[#b0c4b1] rounded-xl px-3 py-2 text-[#4a5759] text-xs focus:outline-none"
+                  className="w-full bg-[var(--background)] border border-[var(--border)] rounded-xl px-3 py-2 text-[var(--foreground)] text-xs focus:outline-none"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-[#6c7a7c] uppercase">Niños (0-12)</label>
+                <label className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase">Niños (0-12)</label>
                 <input
                   type="number"
                   min="0"
                   max="20"
                   value={cantNinos}
                   onChange={(e) => setCantNinos(Math.max(0, parseInt(e.target.value) || 0))}
-                  className="w-full bg-[#dbeafe] border border-[#b0c4b1] rounded-xl px-3 py-2 text-[#4a5759] text-xs focus:outline-none"
+                  className="w-full bg-[var(--background)] border border-[var(--border)] rounded-xl px-3 py-2 text-[var(--foreground)] text-xs focus:outline-none"
                 />
               </div>
             </div>
@@ -354,32 +353,32 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
 
           {/* Bloque 1: Titular de la Reserva (Pasajero #1) */}
           <div className="space-y-4">
-            <h3 className="text-xs font-bold text-[#4a5759] uppercase tracking-wider flex items-center gap-1.5">
-              <User className="w-4 h-4 text-[#4a5759]" />
+            <h3 className="text-xs font-bold text-[var(--foreground)] uppercase tracking-wider flex items-center gap-1.5">
+              <User className="w-4 h-4 text-[var(--foreground)]" />
               Pasajero #1: Titular de la Reserva (Adulto)
             </h3>
 
-            <div className="bg-[#ffffff] border border-[#b0c4b1]/60 p-5 rounded-2xl space-y-4">
+            <div className="bg-[var(--card)] border border-[var(--border)]/60 p-5 rounded-2xl space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-[10px] text-[#6c7a7c]">Nombre *</label>
+                  <label className="text-[10px] text-[var(--muted-foreground)]">Nombre *</label>
                   <input
                     type="text"
                     required
                     value={titularNombre}
                     onChange={(e) => setTitularNombre(e.target.value)}
-                    className="w-full bg-[#dbeafe] border border-[#b0c4b1] rounded-xl px-3 py-2.5 text-[#4a5759] text-xs focus:outline-none"
+                    className="w-full bg-[var(--background)] border border-[var(--border)] rounded-xl px-3 py-2.5 text-[var(--foreground)] text-xs focus:outline-none"
                     placeholder="Ej. Juan"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] text-[#6c7a7c]">Apellido *</label>
+                  <label className="text-[10px] text-[var(--muted-foreground)]">Apellido *</label>
                   <input
                     type="text"
                     required
                     value={titularApellido}
                     onChange={(e) => setTitularApellido(e.target.value)}
-                    className="w-full bg-[#dbeafe] border border-[#b0c4b1] rounded-xl px-3 py-2.5 text-[#4a5759] text-xs focus:outline-none"
+                    className="w-full bg-[var(--background)] border border-[var(--border)] rounded-xl px-3 py-2.5 text-[var(--foreground)] text-xs focus:outline-none"
                     placeholder="Ej. Pérez"
                   />
                 </div>
@@ -387,37 +386,37 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-[10px] text-[#6c7a7c]">Documento (DNI/Pasaporte)</label>
+                  <label className="text-[10px] text-[var(--muted-foreground)]">Documento (DNI/Pasaporte)</label>
                   <input
                     type="text"
                     value={titularDni}
                     onChange={(e) => setTitularDni(e.target.value)}
-                    className="w-full bg-[#dbeafe] border border-[#b0c4b1] rounded-xl px-3 py-2.5 text-[#4a5759] text-xs focus:outline-none"
+                    className="w-full bg-[var(--background)] border border-[var(--border)] rounded-xl px-3 py-2.5 text-[var(--foreground)] text-xs focus:outline-none"
                     placeholder="Opcional"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] text-[#6c7a7c]">Teléfono Móvil</label>
+                  <label className="text-[10px] text-[var(--muted-foreground)]">Teléfono Móvil</label>
                   <input
                     type="tel"
                     value={titularTelefono}
                     onChange={(e) => setTitularTelefono(e.target.value)}
-                    className="w-full bg-[#dbeafe] border border-[#b0c4b1] rounded-xl px-3 py-2.5 text-[#4a5759] text-xs focus:outline-none"
+                    className="w-full bg-[var(--background)] border border-[var(--border)] rounded-xl px-3 py-2.5 text-[var(--foreground)] text-xs focus:outline-none"
                     placeholder="Opcional"
                   />
                 </div>
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10px] text-[#6c7a7c]">Correo Electrónico (Obligatorio para Invoice) *</label>
+                <label className="text-[10px] text-[var(--muted-foreground)]">Correo Electrónico (Obligatorio para Invoice) *</label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6c7a7c]/80" />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)]/80" />
                   <input
                     type="email"
                     required
                     value={titularEmail}
                     onChange={(e) => setTitularEmail(e.target.value)}
-                    className="w-full bg-[#dbeafe] border border-[#b0c4b1] rounded-xl pl-10 pr-4 py-2.5 text-[#4a5759] text-xs focus:outline-none focus:border-[#4a5759]"
+                    className="w-full bg-[var(--background)] border border-[var(--border)] rounded-xl pl-10 pr-4 py-2.5 text-[var(--foreground)] text-xs focus:outline-none focus:border-[var(--accent)]"
                     placeholder="ejemplo@correo.com"
                   />
                 </div>
@@ -428,8 +427,8 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
           {/* Bloques Pasajeros Adicionales */}
           {pasajerosAdicionales.length > 0 && (
             <div className="space-y-4">
-              <h3 className="text-xs font-bold text-[#4a5759] uppercase tracking-wider flex items-center gap-1.5">
-                <Users className="w-4 h-4 text-[#4a5759]" />
+              <h3 className="text-xs font-bold text-[var(--foreground)] uppercase tracking-wider flex items-center gap-1.5">
+                <Users className="w-4 h-4 text-[var(--foreground)]" />
                 Pasajeros Adicionales
               </h3>
 
@@ -438,18 +437,18 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
                   const labelTipo = index < (cantAdultos - 1) ? 'Adulto' : 'Niño';
 
                   return (
-                    <div key={index} className="bg-[#ffffff] border border-[#b0c4b1]/40 p-4 rounded-2xl space-y-3">
-                      <span className="text-[9px] text-[#4a5759] font-bold uppercase tracking-wider">
+                    <div key={index} className="bg-[var(--card)] border border-[var(--border)]/40 p-4 rounded-2xl space-y-3">
+                      <span className="text-[9px] text-[var(--foreground)] font-bold uppercase tracking-wider">
                         Pasajero #{index + 2} ({labelTipo})
                       </span>
-                      
+
                       <div className="grid grid-cols-2 gap-3">
                         <input
                           type="text"
                           required
                           value={p.nombre}
                           onChange={(e) => handleAdicionalFieldChange(index, 'nombre', e.target.value)}
-                          className="w-full bg-[#dbeafe] border border-[#b0c4b1] rounded-xl px-3 py-2 text-[#4a5759] text-xs focus:outline-none"
+                          className="w-full bg-[var(--background)] border border-[var(--border)] rounded-xl px-3 py-2 text-[var(--foreground)] text-xs focus:outline-none"
                           placeholder="Nombre *"
                         />
                         <input
@@ -457,7 +456,7 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
                           required
                           value={p.apellido}
                           onChange={(e) => handleAdicionalFieldChange(index, 'apellido', e.target.value)}
-                          className="w-full bg-[#dbeafe] border border-[#b0c4b1] rounded-xl px-3 py-2 text-[#4a5759] text-xs focus:outline-none"
+                          className="w-full bg-[var(--background)] border border-[var(--border)] rounded-xl px-3 py-2 text-[var(--foreground)] text-xs focus:outline-none"
                           placeholder="Apellido *"
                         />
                       </div>
@@ -466,7 +465,7 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
                         type="text"
                         value={p.dni}
                         onChange={(e) => handleAdicionalFieldChange(index, 'dni', e.target.value)}
-                        className="w-full bg-[#dbeafe] border border-[#b0c4b1] rounded-xl px-3 py-2 text-[#4a5759] text-xs focus:outline-none"
+                        className="w-full bg-[var(--background)] border border-[var(--border)] rounded-xl px-3 py-2 text-[var(--foreground)] text-xs focus:outline-none"
                         placeholder="Documento (DNI/Pasaporte)"
                       />
                     </div>
@@ -478,16 +477,16 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
         </form>
 
         {/* Footer Financiero */}
-        <div className="p-6 border-t border-[#b0c4b1] bg-white  space-y-4">
+        <div className="p-6 border-t border-[var(--border)] bg-white  space-y-4">
           <div className="flex justify-between items-center">
             <div>
-              <span className="text-[10px] text-[#6c7a7c]/80 block uppercase font-bold tracking-wider">Monto Total</span>
-              <span className="text-xl font-black text-[#4a5759] flex items-center">
+              <span className="text-[10px] text-[var(--muted-foreground)]/80 block uppercase font-bold tracking-wider">Monto Total</span>
+              <span className="text-xl font-black text-[var(--foreground)] flex items-center">
                 <DollarSign className="w-5 h-5 -mr-0.5 text-emerald-400" />
-                {total.toFixed(2)} <span className="text-xs text-[#6c7a7c] font-normal ml-1">USD</span>
+                {total.toFixed(2)} <span className="text-xs text-[var(--muted-foreground)] font-normal ml-1">USD</span>
               </span>
             </div>
-            <div className="flex items-center gap-1.5 text-xs text-[#6c7a7c]">
+            <div className="flex items-center gap-1.5 text-xs text-[var(--muted-foreground)]">
               <ShieldCheck className="w-4 h-4 text-emerald-400" />
               <span>Checkout Protegido</span>
             </div>
@@ -496,7 +495,7 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
           <button
             onClick={handleCheckoutSubmit}
             disabled={loading}
-            className="w-full bg-[#4a5759] hover:bg-[#384244] text-white py-3.5 rounded-xl font-bold shadow-lg shadow-[#4a5759]/20 hover:shadow-[#4a5759]/30 transition-all text-sm flex items-center justify-center gap-2 disabled:opacity-50"
+            className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white py-3.5 rounded-xl font-bold shadow-lg shadow-[var(--accent)]/20 hover:shadow-[var(--accent)]/30 transition-all text-sm flex items-center justify-center gap-2 disabled:opacity-50"
           >
             {loading ? 'Redirigiendo a Pasarela...' : 'Proceder al Pago'}
           </button>

@@ -41,22 +41,22 @@ export default function Confianza() {
   };
 
   return (
-    <section id="reviews" className="py-16 md:py-24 px-6 flex items-center bg-[#dbeafe] border-t border-[#b0c4b1]/30 relative overflow-hidden scroll-mt-16 md:scroll-mt-20">
+    <section id="reviews" className="py-16 md:py-24 px-6 flex items-center bg-[var(--background)] border-t border-[var(--border)]/30 relative overflow-hidden scroll-mt-16 md:scroll-mt-20">
       {/* Luz ambiental */}
-      <div className="absolute top-1/2 right-1/4 w-[350px] h-[350px] bg-[#4a5759]/5 rounded-full filter blur-[100px] pointer-events-none -z-10"></div>
+      <div className="absolute top-1/2 right-1/4 w-[350px] h-[350px] bg-[var(--accent)]/5 rounded-full filter blur-[100px] pointer-events-none -z-10"></div>
 
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
         
         {/* LADO IZQUIERDO: Opiniones estilo TripAdvisor (7 columnas en desktop) */}
         <div className="lg:col-span-7 space-y-6">
           <div className="space-y-2">
-            <span className="text-[10px] text-[#4a5759] font-extrabold uppercase tracking-widest block">
+            <span className="text-[10px] text-[var(--foreground)] font-extrabold uppercase tracking-widest block">
               Opiniones Reales
             </span>
-            <h2 className="text-3xl font-black text-[#4a5759] tracking-tight">
+            <h2 className="text-3xl font-black text-[var(--foreground)] tracking-tight">
               Recomendados en TripAdvisor
             </h2>
-            <p className="text-sm text-[#6c7a7c] max-w-xl">
+            <p className="text-sm text-[var(--muted-foreground)] max-w-xl">
               Nuestra prioridad es tu seguridad y satisfacción. Mira lo que opinan los viajeros que confiaron en nosotros.
             </p>
           </div>
@@ -74,17 +74,17 @@ export default function Confianza() {
                       TA
                     </div>
                     <div>
-                      <h4 className="text-xs font-bold text-[#4a5759] leading-tight">{op.nombre}</h4>
-                      <span className="text-[10px] text-[#6c7a7c]/80">{op.origen}</span>
+                      <h4 className="text-xs font-bold text-[var(--foreground)] leading-tight">{op.nombre}</h4>
+                      <span className="text-[10px] text-[var(--muted-foreground)]/80">{op.origen}</span>
                     </div>
                   </div>
-                  <span className="text-[10px] text-[#6c7a7c]/80">{op.fecha}</span>
+                  <span className="text-[10px] text-[var(--muted-foreground)]/80">{op.fecha}</span>
                 </div>
 
                 <div className="space-y-1">
                   <TripAdvisorRating rating={op.burbujas} />
-                  <h5 className="font-bold text-sm text-[#4a5759] pt-1">{op.titulo}</h5>
-                  <p className="text-xs text-[#6c7a7c] leading-relaxed italic">
+                  <h5 className="font-bold text-sm text-[var(--foreground)] pt-1">{op.titulo}</h5>
+                  <p className="text-xs text-[var(--muted-foreground)] leading-relaxed italic">
                     "{op.comentario}"
                   </p>
                 </div>
@@ -94,8 +94,8 @@ export default function Confianza() {
         </div>
 
         {/* LADO DERECHO: Licencias y Sellos SSL (5 columnas en desktop) */}
-        <div className="lg:col-span-5 space-y-6 bg-[#ffffff] border border-[#b0c4b1]/50 p-8 rounded-3xl relative">
-          <h3 className="text-base font-extrabold text-[#4a5759] uppercase tracking-wider border-b border-[#b0c4b1]/50 pb-3">
+        <div className="lg:col-span-5 space-y-6 bg-[var(--card)] border border-[var(--border)]/50 p-8 rounded-3xl relative">
+          <h3 className="text-base font-extrabold text-[var(--foreground)] uppercase tracking-wider border-b border-[var(--border)]/50 pb-3">
             Garantías y Seguridad
           </h3>
 
@@ -107,8 +107,8 @@ export default function Confianza() {
                 <Award className="w-5 h-5" />
               </div>
               <div className="space-y-0.5">
-                <h4 className="text-xs font-bold text-[#4a5759]">MINCETUR</h4>
-                <p className="text-[10px] text-[#6c7a7c]/80 leading-normal">
+                <h4 className="text-xs font-bold text-[var(--foreground)]">MINCETUR</h4>
+                <p className="text-[10px] text-[var(--muted-foreground)]/80 leading-normal">
                   Operador oficial autorizado de turismo de aventura.
                 </p>
               </div>
@@ -120,8 +120,8 @@ export default function Confianza() {
                 <Lock className="w-5 h-5" />
               </div>
               <div className="space-y-0.5">
-                <h4 className="text-xs font-bold text-[#4a5759]">SSL Encriptado</h4>
-                <p className="text-[10px] text-[#6c7a7c]/80 leading-normal">
+                <h4 className="text-xs font-bold text-[var(--foreground)]">SSL Encriptado</h4>
+                <p className="text-[10px] text-[var(--muted-foreground)]/80 leading-normal">
                   Tus transacciones y datos están protegidos bajo cifrado SSL.
                 </p>
               </div>
@@ -133,8 +133,8 @@ export default function Confianza() {
                 <ShieldCheck className="w-5 h-5" />
               </div>
               <div className="space-y-0.5">
-                <h4 className="text-xs font-bold text-[#4a5759]">Stripe Verified</h4>
-                <p className="text-[10px] text-[#6c7a7c]/80 leading-normal">
+                <h4 className="text-xs font-bold text-[var(--foreground)]">Stripe Verified</h4>
+                <p className="text-[10px] text-[var(--muted-foreground)]/80 leading-normal">
                   Procesamiento de tarjetas bajo estándares PCI-DSS.
                 </p>
               </div>
@@ -146,8 +146,8 @@ export default function Confianza() {
                 <Star className="w-5 h-5" />
               </div>
               <div className="space-y-0.5">
-                <h4 className="text-xs font-bold text-[#4a5759]">Marca Perú</h4>
-                <p className="text-[10px] text-[#6c7a7c]/80 leading-normal">
+                <h4 className="text-xs font-bold text-[var(--foreground)]">Marca Perú</h4>
+                <p className="text-[10px] text-[var(--muted-foreground)]/80 leading-normal">
                   Promotor del turismo sostenible e identidad nacional.
                 </p>
               </div>
@@ -155,7 +155,7 @@ export default function Confianza() {
 
           </div>
 
-          <div className="bg-[#ffffff] border border-[#b0c4b1]/40 p-4 rounded-xl text-[10px] text-[#6c7a7c]/80 leading-relaxed text-center">
+          <div className="bg-[var(--card)] border border-[var(--border)]/40 p-4 rounded-xl text-[10px] text-[var(--muted-foreground)]/80 leading-relaxed text-center">
             🔐 En Unu-Raymi nos tomamos en serio tu tranquilidad. Contamos con seguros contra accidentes y cobertura completa para todas nuestras rutas.
           </div>
         </div>

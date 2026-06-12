@@ -44,7 +44,7 @@ export default function Hero() {
           <source src="/uploads/Background_Home_page.mp4" type="video/mp4" />
           Tu navegador no soporta elementos de video integrados.
         </video>
-        <div className="absolute inset-0 bg-gradient-to-t from-[#dbeafe] via-transparent to-black/40"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-[var(--background)]/20 via-transparent to-black/40"></div>
       </div>
 
       {/* Contenido del Hero con Parallax y desvanecimiento */}
@@ -71,7 +71,7 @@ export default function Hero() {
         <div className="pt-6">
           <a
             href="#tours"
-            className="inline-flex items-center gap-2 bg-[#4a5759] hover:bg-[#384244] text-white px-8 py-4 rounded-xl font-bold shadow-lg shadow-[#4a5759]/20 hover:shadow-[#4a5759]/30 transition-all duration-300 group"
+            className="inline-flex items-center gap-2 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white px-8 py-4 rounded-xl font-bold shadow-lg shadow-[var(--accent)]/20 hover:shadow-[var(--accent)]/30 transition-all duration-300 group"
           >
             Ver Catálogo de Tours
             <ChevronDown className="w-5 h-5 group-hover:translate-y-1 transition-transform" />

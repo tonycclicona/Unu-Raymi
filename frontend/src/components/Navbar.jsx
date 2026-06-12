@@ -1,12 +1,30 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, Sun, Moon } from 'lucide-react';
 import Link from 'next/link';
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [theme, setTheme] = useState('light');
+
+  useEffect(() => {
+    const isDark = document.documentElement.classList.contains('dark');
+    setTheme(isDark ? 'dark' : 'light');
+  }, []);
+
+  const toggleTheme = () => {
+    if (theme === 'light') {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+      setTheme('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+      setTheme('light');
+    }
+  };
 
   const navItems = [
     { label: 'Inicio', href: '#inicio' },
@@ -27,8 +45,8 @@ export default function Navbar() {
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-[background-color,backdrop-filter,padding,border-color,box-shadow] duration-500 ease-in-out  ${isScrolled
-        ? 'bg-[#dbeafe] border-b border-[#b0c4b1]/30 shadow-sm py-1.5 md:py-2'
-        : 'bg-transparent py-2 md:py-5'
+        ? 'bg-[var(--background)]/40 border-b border-[var(--border)]/30 shadow-sm py-1.5 md:py-2'
+        : 'bg-[var(--background)]/80 py-2 md:py-5'
         }`}
     >
       <div className="max-w-7xl mx-auto px-3 sm:px-2 md:px-1 flex items-center justify-between gap-5">
@@ -87,7 +105,7 @@ export default function Navbar() {
         <div className="hidden md:flex items-center justify-center flex-grow mx-4">
           <svg
             viewBox="0 0 200 50"
-            className="w-full h-12 text-gray-700 hover:text-[#4a5759] transition-colors duration-500"
+            className="w-full h-12 text-gray-700 hover:text-[#ca8a04] transition-colors duration-500"
             fill="none"
             stroke="currentColor"
             strokeWidth="1.5"
@@ -122,44 +140,69 @@ export default function Navbar() {
           </svg>
         </div>
 
-        {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-8">
           {navItems.map((item) => (
             <a
               key={item.label}
               href={item.href}
-              className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors relative after:content-[''] after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-[2px] after:bg-[#4a5759] after:transition-all hover:after:w-full"
+              className="text-sm font-medium text-[var(--foreground)]/90 hover:text-[var(--foreground)] transition-colors relative after:content-[''] after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-[2px] after:bg-[var(--accent)] after:transition-all hover:after:w-full"
             >
               {item.label}
             </a>
           ))}
           <a
             href="#tours"
-            className="bg-[#4a5759] hover:bg-[#384244] text-white px-5 py-2.5 rounded-xl font-semibold shadow-lg shadow-[#4a5759]/20 hover:shadow-[#4a5759]/30 transition-all duration-300 text-sm"
+            className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white px-5 py-2.5 rounded-xl font-semibold shadow-lg shadow-[var(--accent)]/20 hover:shadow-[var(--accent)]/30 transition-all duration-300 text-sm"
           >
             Explorar Ahora
           </a>
+
+          <button
+            onClick={toggleTheme}
+            className="p-2.5 rounded-xl border border-[var(--border)] bg-[var(--card)] hover:bg-[var(--sidebar)] text-[var(--foreground)] hover:scale-105 active:scale-95 transition-all duration-300 shadow-sm flex items-center justify-center cursor-pointer shrink-0"
+            aria-label="Cambiar t
+            ema"
+          >
+            {theme === 'light' ? (
+              <Moon className="w-4.5 h-4.5 text-[var(--foreground)]" />
+            ) : (
+              <Sun className="w-4.5 h-4.5 text-amber-400" />
+            )}
+          </button>
         </nav>
 
-        {/* Mobile menu button */}
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="md:hidden text-gray-700 hover:text-gray-900 p-2 shrink-0"
-          aria-label={isOpen ? 'Cerrar menú' : 'Abrir menú'}
-        >
-          {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-        </button>
+        {/* Mobile theme switch & menu buttons */}
+        <div className="flex md:hidden items-center gap-2">
+          <button
+            onClick={toggleTheme}
+            className="p-2 rounded-xl border border-[var(--border)] bg-[var(--card)] hover:bg-[var(--sidebar)] text-[var(--foreground)] hover:scale-105 active:scale-95 transition-all duration-300 shadow-sm flex items-center justify-center cursor-pointer shrink-0"
+            aria-label="Cambiar tema"
+          >
+            {theme === 'light' ? (
+              <Moon className="w-4 h-4 text-[var(--foreground)]" />
+            ) : (
+              <Sun className="w-4 h-4 text-amber-400" />
+            )}
+          </button>
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="text-[var(--foreground)]/80 hover:text-[var(--foreground)] p-2 shrink-0 flex items-center justify-center"
+            aria-label={isOpen ? 'Cerrar menú' : 'Abrir menú'}
+          >
+            {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile menu */}
       {isOpen && (
-        <div className="md:hidden absolute top-full left-0 right-0 bg-white border-b border-gray-200 py-4 px-5 space-y-2.5 shadow-xl">
+        <div className="md:hidden absolute top-full left-0 right-0 bg-[var(--card)] border-b border-[var(--border)]/30 py-4 px-5 space-y-2.5 shadow-xl">
           {navItems.map((item) => (
             <a
               key={item.label}
               href={item.href}
               onClick={() => setIsOpen(false)}
-              className="block text-sm font-semibold text-gray-700 hover:text-gray-900 py-1.5 leading-tight"
+              className="block text-sm font-semibold text-[var(--foreground)]/80 hover:text-[var(--foreground)] py-1.5 leading-tight"
             >
               {item.label}
             </a>
@@ -167,7 +210,7 @@ export default function Navbar() {
           <a
             href="#tours"
             onClick={() => setIsOpen(false)}
-            className="block text-center bg-[#4a5759] hover:bg-[#384244] text-white py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-[#4a5759]/20"
+            className="block text-center bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-[var(--accent)]/20"
           >
             Explorar Ahora
           </a>

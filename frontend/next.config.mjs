@@ -13,6 +13,10 @@ const nextConfig = {
         hostname: 'api.unu-raymi.com',
         pathname: '/uploads/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
     ],
   },
 };

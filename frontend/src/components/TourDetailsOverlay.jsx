@@ -69,54 +69,54 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
     todosServicios.forEach(s => {
       const lower = s.toLowerCase();
       if (
-        lower.includes('guia') || 
-        lower.includes('guiado') || 
-        lower.includes('bilingue') || 
-        lower.includes('conductor') || 
+        lower.includes('guia') ||
+        lower.includes('guiado') ||
+        lower.includes('bilingue') ||
+        lower.includes('conductor') ||
         lower.includes('experto') ||
         lower.includes('lider')
       ) {
         guia.push(s);
       } else if (
-        lower.includes('seguro') || 
-        lower.includes('asistencia') || 
-        lower.includes('medico') || 
-        lower.includes('botquin') || 
-        lower.includes('botiquin') || 
+        lower.includes('seguro') ||
+        lower.includes('asistencia') ||
+        lower.includes('medico') ||
+        lower.includes('botquin') ||
+        lower.includes('botiquin') ||
         lower.includes('emergencia') ||
         lower.includes('oxigeno')
       ) {
         seguridad.push(s);
       } else if (
-        lower.includes('comida') || 
-        lower.includes('almuerzo') || 
-        lower.includes('cena') || 
-        lower.includes('snack') || 
-        lower.includes('desayuno') || 
-        lower.includes('box') || 
+        lower.includes('comida') ||
+        lower.includes('almuerzo') ||
+        lower.includes('cena') ||
+        lower.includes('snack') ||
+        lower.includes('desayuno') ||
+        lower.includes('box') ||
         lower.includes('alimentacion') ||
         lower.includes('cena')
       ) {
         alimentacion.push(s);
       } else if (
-        lower.includes('transporte') || 
-        lower.includes('traslado') || 
-        lower.includes('bus') || 
-        lower.includes('auto') || 
-        lower.includes('tren') || 
-        lower.includes('recogida') || 
+        lower.includes('transporte') ||
+        lower.includes('traslado') ||
+        lower.includes('bus') ||
+        lower.includes('auto') ||
+        lower.includes('tren') ||
+        lower.includes('recogida') ||
         lower.includes('vehiculo') ||
         lower.includes('bote')
       ) {
         transporte.push(s);
       } else if (
-        lower.includes('entrada') || 
-        lower.includes('ticket') || 
-        lower.includes('boleto') || 
-        lower.includes('actividad') || 
-        lower.includes('visita') || 
-        lower.includes('camara') || 
-        lower.includes('acceso') || 
+        lower.includes('entrada') ||
+        lower.includes('ticket') ||
+        lower.includes('boleto') ||
+        lower.includes('actividad') ||
+        lower.includes('visita') ||
+        lower.includes('camara') ||
+        lower.includes('acceso') ||
         lower.includes('permiso') ||
         lower.includes('ticket')
       ) {
@@ -182,32 +182,31 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
           onClose();
         }
       }}
-      className={`fixed inset-0 z-50 bg-[#dbeafe]  flex items-center transition-all duration-500 ease-in-out p-2 sm:p-4 ${
-        isShifted
-          ? 'justify-start md:pl-12 md:pr-[600px]'
-          : 'justify-center md:p-8'
-      }`}
+      className={`fixed inset-0 z-50 bg-[var(--background)]/50  flex items-center transition-all duration-500 ease-in-out p-2 sm:p-4 ${isShifted
+        ? 'justify-start md:pl-12 md:pr-[600px]'
+        : 'justify-center md:p-4'
+        }`}
     >
       {/* Contenedor Principal */}
-      <div className="glass max-w-7xl w-full rounded-2xl md:rounded-3xl overflow-y-auto md:overflow-hidden flex flex-col md:flex-row max-h-[92vh] md:max-h-[85vh] h-full md:h-auto md:max-h-[85vh] shadow-2xl relative border border-black/5">
-        
+      <div className="glass max-w-7.1xl w-full rounded-2xl md:rounded-3xl overflow-y-auto md:overflow-hidden flex flex-col md:flex-row h-[95vh] max-h-[96vh] md:h-[94vh] md:max-h-[95vh] shadow-2xl relative border border-black/5">
+
         {/* Botón cerrar */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-20 text-[#6c7a7c] hover:text-[#4a5759] p-2.5 bg-[#dedbd2] rounded-xl border border-black/5 transition-all"
+          className="absolute top-4 right-4 z-20 text-[var(--muted-foreground)] hover:text-[var(--foreground)] p-2.5 bg-[var(--sidebar)] rounded-xl border border-black/5 transition-all"
         >
           <X className="w-5 h-5" />
         </button>
 
         {/* 1. GALERIA DE IMAGENES — horizontal strip en mobile, columna en desktop */}
-        <div className="w-full md:w-[25%] lg:w-[22%] border-b md:border-b-0 md:border-r border-[#b0c4b1]/50 bg-[#dedbd2] md:h-full md:overflow-y-auto no-scrollbar">
+        <div className="w-full md:w-[25%] lg:w-[22%] border-b md:border-b-0 md:border-r border-[var(--border)]/50 bg-[var(--sidebar)] md:h-full md:overflow-y-auto no-scrollbar">
           {/* Mobile: horizontal scroll */}
           <div className="flex gap-3 p-3 overflow-x-auto no-scrollbar md:hidden">
             {imagenes.map((img, idx) => (
               <div
                 key={idx}
                 onClick={() => setLightboxIndex(idx)}
-                className="relative flex-shrink-0 w-24 h-24 rounded-xl overflow-hidden border border-[#b0c4b1]/50 cursor-pointer shadow-md"
+                className="relative flex-shrink-0 w-24 h-24 rounded-xl overflow-hidden border border-[var(--border)]/50 cursor-pointer shadow-md"
               >
                 <img
                   src={img.url.startsWith('http') ? img.url : `${API_ASSETS_URL}${img.url}`}
@@ -223,7 +222,7 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
               <div
                 key={idx}
                 onClick={() => setLightboxIndex(idx)}
-                className="relative aspect-square rounded-2xl overflow-hidden group border border-[#b0c4b1]/50 cursor-pointer shadow-md hover:scale-[1.12] hover:z-30 hover:shadow-[0_20px_50px_rgba(233,69,96,0.3)] hover:border-[#4a5759]/50 transition-all duration-300 ease-out"
+                className="relative aspect-square rounded-2xl overflow-hidden group border border-[var(--border)]/50 cursor-pointer shadow-md hover:scale-[1.12] hover:z-30 hover:shadow-[0_20px_50px_rgba(233,69,96,0.3)] hover:border-[var(--accent)]/50 transition-all duration-300 ease-out"
               >
                 <img
                   src={img.url.startsWith('http') ? img.url : `${API_ASSETS_URL}${img.url}`}
@@ -237,27 +236,27 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
         </div>
 
         {/* 2. Columna Central: Información, Duraciones, Itinerario y Exclusiones */}
-        <div className="w-full md:w-[45%] lg:w-[48%] p-5 md:p-8 flex flex-col justify-between border-b md:border-b-0 md:border-r border-[#b0c4b1]/50 md:h-full md:overflow-y-auto no-scrollbar">
+        <div className="w-full md:w-[45%] lg:w-[48%] p-5 md:p-8 flex flex-col justify-between border-b md:border-b-0 md:border-r border-[var(--border)]/50 md:h-full md:overflow-y-auto no-scrollbar">
           <div className="space-y-5">
             {/* Header del Tour */}
             <div className="space-y-3 pr-8">
               <div className="flex items-center gap-2">
-                <span className="bg-[#4a5759]/10 text-[#4a5759] border border-[#4a5759]/20 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
+                <span className="bg-[var(--accent)]/10 text-[var(--foreground)] border border-[var(--accent)]/20 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
                   {tour.pais}
                 </span>
-                <span className="text-xs text-[#6c7a7c] flex items-center gap-1">
-                  <Calendar className="w-3.5 h-3.5 text-[#4a5759]" />
+                <span className="text-xs text-[var(--muted-foreground)] flex items-center gap-1">
+                  <Calendar className="w-3.5 h-3.5 text-[var(--foreground)]" />
                   {displayDuration} {displayDuration === 1 ? 'Día' : 'Días'}
                 </span>
               </div>
-              <h2 className="text-xl md:text-3xl font-black text-[#4a5759] leading-tight">{tour.nombre}</h2>
-              <p className="text-[#6c7a7c] text-sm leading-relaxed">{tour.descripcion}</p>
+              <h2 className="text-xl md:text-3xl font-black text-[var(--foreground)] leading-tight">{tour.nombre}</h2>
+              <p className="text-[var(--muted-foreground)] text-sm leading-relaxed">{tour.descripcion}</p>
             </div>
 
             {/* Multi-duration Toggle Tabs */}
             {hasVariants && (
-              <div className="bg-[#ffffff] border border-[#b0c4b1]/40 p-4 rounded-2xl space-y-2.5">
-                <span className="text-[10px] text-[#6c7a7c] block uppercase font-bold tracking-wider">Duración del Paquete</span>
+              <div className="bg-[var(--card)] border border-[var(--border)]/40 p-4 rounded-2xl space-y-2.5">
+                <span className="text-[10px] text-[var(--muted-foreground)] block uppercase font-bold tracking-wider">Duración del Paquete</span>
                 <div className="flex flex-wrap gap-2">
                   {tour.variantes.map((v) => {
                     const isSelected = selectedDuration === v.duracion_dias;
@@ -265,11 +264,10 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
                       <button
                         key={v.duracion_dias}
                         onClick={() => setSelectedDuration(v.duracion_dias)}
-                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${
-                          isSelected
-                            ? 'bg-[#4a5759] text-white shadow-md shadow-[#4a5759]/20'
-                            : 'bg-[#ffffff] hover:bg-[#b0c4b1]/50 text-[#6c7a7c] hover:text-[#4a5759] border border-[#b0c4b1]'
-                        }`}
+                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${isSelected
+                          ? 'bg-[var(--accent)] text-white shadow-md shadow-[var(--accent)]/20'
+                          : 'bg-[var(--card)] hover:bg-[var(--border)]/50 text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)]'
+                          }`}
                       >
                         {v.duracion_dias} {v.duracion_dias === 1 ? 'Día' : 'Días'}
                       </button>
@@ -281,21 +279,21 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
 
             {/* Itinerario del Tour */}
             <div className="space-y-3">
-              <h3 className="text-sm font-bold text-[#4a5759] uppercase tracking-wider flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-[#4a5759]" />
+              <h3 className="text-sm font-bold text-[var(--foreground)] uppercase tracking-wider flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-[var(--foreground)]" />
                 Itinerario Detallado
               </h3>
 
               {displayItinerario ? (
-                <div className="bg-[#ffffff] border border-[#b0c4b1]/40 p-4 rounded-2xl space-y-4 text-sm text-[#4a5759] leading-relaxed md:max-h-[260px] md:overflow-y-auto no-scrollbar">
+                <div className="bg-[var(--card)] border border-[var(--border)]/40 p-4 rounded-2xl space-y-4 text-sm text-[var(--foreground)] leading-relaxed md:max-h-[260px] md:overflow-y-auto no-scrollbar">
                   {displayItinerario.split('\n\n').map((parrafo, i) => (
-                    <p key={i} className="relative pl-4 border-l border-[#4a5759]/30 hover:border-[#4a5759] transition-colors py-0.5">
+                    <p key={i} className="relative pl-4 border-l border-[var(--accent)]/30 hover:border-[var(--accent)] transition-colors py-0.5">
                       {parrafo}
                     </p>
                   ))}
                 </div>
               ) : (
-                <div className="bg-[#ffffff] border border-[#b0c4b1]/40 p-5 rounded-2xl text-center text-xs text-[#6c7a7c]/80 italic">
+                <div className="bg-[var(--card)] border border-[var(--border)]/40 p-5 rounded-2xl text-center text-xs text-[var(--muted-foreground)]/80 italic">
                   No se ha registrado un itinerario detallado para este tour.
                 </div>
               )}
@@ -304,14 +302,14 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
             {/* Exclusiones / Servicios Excluidos */}
             {displayExclusiones && displayExclusiones.length > 0 && (
               <div className="space-y-3">
-                <h3 className="text-sm font-bold text-[#4a5759] uppercase tracking-wider flex items-center gap-2">
-                  <X className="w-4 h-4 text-[#4a5759]" />
+                <h3 className="text-sm font-bold text-[var(--foreground)] uppercase tracking-wider flex items-center gap-2">
+                  <X className="w-4 h-4 text-[var(--foreground)]" />
                   Servicios Excluidos
                 </h3>
-                <ul className="bg-[#ffffff] border border-[#b0c4b1]/40 p-4 rounded-2xl space-y-2 text-xs text-[#6c7a7c]">
+                <ul className="bg-[var(--card)] border border-[var(--border)]/40 p-4 rounded-2xl space-y-2 text-xs text-[var(--muted-foreground)]">
                   {displayExclusiones.map((item, idx) => (
                     <li key={idx} className="flex items-start gap-2">
-                      <span className="text-[#4a5759] font-black">•</span>
+                      <span className="text-[var(--foreground)] font-black">•</span>
                       <span>{item}</span>
                     </li>
                   ))}
@@ -324,7 +322,7 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
           <div className="pt-6 hidden md:block">
             <button
               onClick={onClose}
-              className="text-xs text-[#6c7a7c] hover:text-[#4a5759] font-semibold transition-colors"
+              className="text-xs text-[var(--muted-foreground)] hover:text-[var(--foreground)] font-semibold transition-colors"
             >
               ← Volver al catálogo
             </button>
@@ -332,21 +330,21 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
         </div>
 
         {/* 3. Columna Derecha: Servicios por Categoría, Precios y Pago */}
-        <div className="w-full md:w-[30%] p-5 md:p-8 flex flex-col justify-between bg-[#ffffff] md:h-full md:overflow-y-auto no-scrollbar">
+        <div className="w-full md:w-[30%] p-5 md:p-8 flex flex-col justify-between bg-[var(--card)] md:h-full md:overflow-y-auto no-scrollbar">
           <div className="space-y-5">
             <div className="space-y-1">
-              <span className="text-[10px] text-[#4a5759] font-extrabold uppercase tracking-widest">Inclusiones</span>
-              <h3 className="font-extrabold text-[#4a5759] text-base md:text-lg">Servicios Incluidos</h3>
-              <p className="text-xs text-[#6c7a7c] leading-relaxed hidden md:block">
+              <span className="text-[10px] text-[var(--foreground)] font-extrabold uppercase tracking-widest">Inclusiones</span>
+              <h3 className="font-extrabold text-[var(--foreground)] text-base md:text-lg">Servicios Incluidos</h3>
+              <p className="text-xs text-[var(--muted-foreground)] leading-relaxed hidden md:block">
                 Pasa el cursor sobre cada categoría para ver los detalles.
               </p>
-              <p className="text-xs text-[#6c7a7c] leading-relaxed md:hidden">
+              <p className="text-xs text-[var(--muted-foreground)] leading-relaxed md:hidden">
                 Toca una categoría para ver los detalles.
               </p>
             </div>
 
             {/* Grid de 6 Categorías — tap toggle on mobile, hover on desktop */}
-            <div className="grid grid-cols-2 gap-3 relative">
+            <div className="grid grid-cols-2 gap-4 relative">
               {itemsCategorias.map((cat) => {
                 const Icon = cat.icon;
                 const isActive = activeTooltip === cat.id;
@@ -357,21 +355,21 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
                     onMouseEnter={() => setActiveTooltip(cat.id)}
                     onMouseLeave={() => setActiveTooltip(null)}
                     onClick={() => setActiveTooltip(isActive ? null : cat.id)}
-                    className={`relative p-3 md:p-4 rounded-xl border flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300 ${isActive ? 'border-[#4a5759]/40' : 'hover:border-[#4a5759]/30'} ${cat.color} group`}
+                    className={`relative p-4 md:p-6 rounded-2xl border flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300 ${isActive ? 'border-[var(--accent)]/40' : 'hover:border-[var(--accent)]/30'} ${cat.color} group`}
                   >
-                    <Icon className="w-5 h-5 md:w-6 md:h-6 mb-1.5 transition-transform duration-300 group-hover:scale-110" />
-                    <span className="text-[9px] md:text-[10px] font-bold text-[#4a5759]/90 leading-tight">{cat.label}</span>
+                    <Icon className="w-6 h-6 md:w-8 md:h-8 mb-2 transition-transform duration-300 group-hover:scale-110" />
+                    <span className="text-[10px] md:text-xs font-extrabold text-[var(--foreground)]/90 leading-tight">{cat.label}</span>
 
                     {/* Tooltip — works on hover (desktop) and tap (mobile) */}
                     {isActive && (
-                      <div className="absolute z-30 left-1/2 -translate-x-1/2 bottom-[110%] w-52 md:w-56 bg-[#dbeafe] border border-[#b0c4b1] p-3 md:p-4 rounded-2xl shadow-2xl animate-fade-in text-left">
-                        <div className="text-[10px] text-[#4a5759] font-bold uppercase tracking-wider mb-2">
+                      <div className="absolute z-30 left-1/2 -translate-x-1/2 bottom-[110%] w-52 md:w-56 bg-[var(--background)] border border-[var(--border)] p-3 md:p-4 rounded-2xl shadow-2xl animate-fade-in text-left">
+                        <div className="text-[10px] text-[var(--foreground)] font-bold uppercase tracking-wider mb-2">
                           {cat.label}
                         </div>
                         <ul className="space-y-1.5">
                           {cat.list.map((item, index) => (
-                            <li key={index} className="text-xs text-[#4a5759] flex items-start gap-1.5 leading-snug">
-                              <span className="text-[#4a5759] font-bold mt-0.5">•</span>
+                            <li key={index} className="text-xs text-[var(--foreground)] flex items-start gap-1.5 leading-snug">
+                              <span className="text-[var(--foreground)] font-bold mt-0.5">•</span>
                               <span>{item}</span>
                             </li>
                           ))}
@@ -386,14 +384,14 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
 
           {/* Info Financiera y Botón de Acción Principal */}
           <div className="pt-5 space-y-3 md:space-y-4">
-            <div className="bg-[#ffffff] border border-[#b0c4b1]/50 p-4 rounded-2xl flex justify-between items-center">
+            <div className="bg-[var(--card)] border border-[var(--border)]/50 p-4 rounded-2xl flex justify-between items-center">
               <div>
-                <span className="text-[10px] text-[#6c7a7c] block uppercase font-bold tracking-wider">Precio Adulto</span>
-                <span className="text-base font-extrabold text-[#4a5759]">${displayPrecioAdulto} USD</span>
+                <span className="text-[10px] text-[var(--muted-foreground)] block uppercase font-bold tracking-wider">Precio Adulto</span>
+                <span className="text-base font-extrabold text-[var(--foreground)]">${displayPrecioAdulto} USD</span>
               </div>
               <div className="text-right">
-                <span className="text-[10px] text-[#6c7a7c] block uppercase font-bold tracking-wider">Cupos</span>
-                <span className="text-xs bg-[#4a5759]/10 text-[#4a5759] px-2.5 py-0.5 rounded-full font-bold">
+                <span className="text-[10px] text-[var(--muted-foreground)] block uppercase font-bold tracking-wider">Cupos</span>
+                <span className="text-xs bg-[var(--accent)]/10 text-[var(--foreground)] px-2.5 py-0.5 rounded-full font-bold">
                   {displayCupos} libres
                 </span>
               </div>
@@ -401,7 +399,7 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
 
             <button
               onClick={() => onProceed(selectedDuration)}
-              className="w-full flex items-center justify-center gap-2 bg-[#4a5759] hover:bg-[#384244] text-white py-4 rounded-xl font-bold shadow-lg shadow-[#4a5759]/20 hover:shadow-[#4a5759]/30 transition-all duration-300 text-sm"
+              className="w-full flex items-center justify-center gap-2 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white py-4 rounded-xl font-bold shadow-lg shadow-[var(--accent)]/20 hover:shadow-[var(--accent)]/30 transition-all duration-300 text-sm"
             >
               Proceder al Registro
               <ArrowRight className="w-4 h-4" />
@@ -410,7 +408,7 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
             {/* Mobile back button */}
             <button
               onClick={onClose}
-              className="w-full text-center text-xs text-[#6c7a7c]/80 hover:text-[#4a5759] font-semibold transition-colors py-2 md:hidden"
+              className="w-full text-center text-xs text-[var(--muted-foreground)]/80 hover:text-[var(--foreground)] font-semibold transition-colors py-2 md:hidden"
             >
               ← Volver al catálogo
             </button>
@@ -427,12 +425,12 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
               setLightboxIndex(null);
             }
           }}
-          className="fixed inset-0 z-[70] bg-[#4a5759]  flex items-center justify-center p-4 md:p-12 animate-fade-in"
+          className="fixed inset-0 z-[70] bg-[var(--accent)]  flex items-center justify-center p-4 md:p-12 animate-fade-in"
         >
           {/* Botón Cerrar */}
           <button
             onClick={() => setLightboxIndex(null)}
-            className="absolute top-6 right-6 z-50 text-[#6c7a7c] hover:text-[#4a5759] p-3 bg-[#dedbd2] rounded-xl border border-black/10 transition-all hover:bg-[#dedbd2]"
+            className="absolute top-6 right-6 z-50 text-[var(--muted-foreground)] hover:text-[var(--foreground)] p-3 bg-[var(--sidebar)] rounded-xl border border-black/10 transition-all hover:bg-[var(--sidebar)]"
           >
             <X className="w-6 h-6" />
           </button>
@@ -441,7 +439,7 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
           {imagenes.length > 1 && (
             <button
               onClick={() => setLightboxIndex((prev) => (prev - 1 + imagenes.length) % imagenes.length)}
-              className="absolute left-6 z-50 text-[#6c7a7c] hover:text-[#4a5759] p-3 bg-[#dedbd2] rounded-xl border border-black/10 transition-all hover:bg-[#dedbd2]"
+              className="absolute left-6 z-50 text-[var(--muted-foreground)] hover:text-[var(--foreground)] p-3 bg-[var(--sidebar)] rounded-xl border border-black/10 transition-all hover:bg-[var(--sidebar)]"
             >
               <ChevronLeft className="w-6 h-6" />
             </button>
@@ -464,14 +462,14 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
           {imagenes.length > 1 && (
             <button
               onClick={() => setLightboxIndex((prev) => (prev + 1) % imagenes.length)}
-              className="absolute right-6 z-50 text-[#6c7a7c] hover:text-[#4a5759] p-3 bg-[#dedbd2] rounded-xl border border-black/10 transition-all hover:bg-[#dedbd2]"
+              className="absolute right-6 z-50 text-[var(--muted-foreground)] hover:text-[var(--foreground)] p-3 bg-[var(--sidebar)] rounded-xl border border-black/10 transition-all hover:bg-[var(--sidebar)]"
             >
               <ChevronRight className="w-6 h-6" />
             </button>
           )}
 
           {/* Indicador de Páginas */}
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-black/40 border border-black/10 px-4 py-1.5 rounded-full text-xs text-[#4a5759] font-bold tracking-wider">
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-black/40 border border-black/10 px-4 py-1.5 rounded-full text-xs text-[var(--foreground)] font-bold tracking-wider">
             {lightboxIndex + 1} / {imagenes.length}
           </div>
         </div>

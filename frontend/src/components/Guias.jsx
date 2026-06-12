@@ -34,21 +34,21 @@ export default function Guias() {
   ];
 
   return (
-    <section id="guias" className="py-16 md:py-24 px-6 flex items-center bg-[#dedbd2] border-t border-[#b0c4b1]/30 relative overflow-hidden scroll-mt-16 md:scroll-mt-20">
+    <section id="guias" className="py-16 md:py-24 px-6 flex items-center bg-[var(--sidebar)]/50 border-t border-[var(--border)]/30 relative overflow-hidden scroll-mt-16 md:scroll-mt-20">
       {/* Luz ambiental */}
       <div className="absolute bottom-1/4 left-1/4 w-[350px] h-[350px] bg-purple-500/5 rounded-full filter blur-[100px] pointer-events-none -z-10"></div>
 
       <div className="max-w-7xl mx-auto space-y-12">
-        
+
         {/* Encabezado */}
         <div className="text-center space-y-3">
-          <span className="text-[10px] text-[#4a5759] font-extrabold uppercase tracking-widest bg-[#4a5759]/10 border border-[#4a5759]/20 px-4 py-1.5 rounded-full inline-block shadow-lg">
+          <span className="text-[10px] text-[var(--foreground)] font-extrabold uppercase tracking-widest bg-[var(--accent)]/10 border border-[var(--accent)]/20 px-4 py-1.5 rounded-full inline-block shadow-lg">
             About Us / Expertos
           </span>
-          <h2 className="text-3xl md:text-5xl font-black text-[#4a5759] tracking-tight">
+          <h2 className="text-3xl md:text-5xl font-black text-[var(--foreground)] tracking-tight">
             El Alma de Unu-Raymi
           </h2>
-          <p className="text-sm text-[#6c7a7c] max-w-xl mx-auto leading-relaxed">
+          <p className="text-sm text-[var(--muted-foreground)] max-w-xl mx-auto leading-relaxed">
             Te presentamos a nuestros líderes y guías de expedición. Profesionales certificados con capacitaciones internacionales en primeros auxilios y rescate.
           </p>
         </div>
@@ -58,7 +58,7 @@ export default function Guias() {
           {guias.map((guia) => (
             <div
               key={guia.id}
-              className="relative h-[400px] md:h-[420px] rounded-3xl overflow-hidden border border-[#b0c4b1]/50 group bg-[#ffffff] shadow-xl"
+              className="relative h-[400px] md:h-[420px] rounded-3xl overflow-hidden border border-[var(--border)]/50 group bg-[var(--card)] shadow-xl"
             >
               {/* Foto de fondo (.webp optimizada desde Unsplash) */}
               <img
@@ -71,28 +71,28 @@ export default function Guias() {
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent transition-opacity duration-300 group-hover:opacity-90"></div>
 
               {/* Panel Desplizable Dinámico desde Abajo (Hover animado) */}
-              <div className="absolute bottom-0 left-0 right-0 p-5 md:p-6 bg-gradient-to-t from-[#dbeafe]/95 via-[#dbeafe]/90 to-transparent border-t border-black/5 translate-y-[calc(100%-85px)] md:translate-y-[calc(100%-85px)] group-hover:translate-y-0 transition-transform duration-500 ease-out">
-                
+              <div className="absolute bottom-0 left-0 right-0 p-5 md:p-4 bg-gradient-to-t from-[var(--background)]/95 via-[#dbeafe]/90 to-transparent border-t border-black/5 translate-y-[calc(100%-85px)] md:translate-y-[calc(100%-85px)] group-hover:translate-y-0 transition-transform duration-500 ease-out">
+
                 {/* Cabecera del Panel (Siempre visible) */}
                 <div className="space-y-1.5 pb-4">
-                  <h4 className="text-lg font-black text-[#4a5759] leading-tight">
+                  <h4 className="text-lg font-black text-[#ffffff] leading-tight">
                     {guia.nombre}
                   </h4>
-                  <div className="flex items-center gap-1.5 text-xs text-[#4a5759] font-bold">
+                  <div className="flex items-center gap-1.5 text-xs text-[#ffffff] font-bold">
                     <Sparkles className="w-3.5 h-3.5" />
                     <span>{guia.rol}</span>
                   </div>
                 </div>
 
                 {/* Detalles extra que se revelan al hacer Hover */}
-                <div className="space-y-4 pt-3 border-t border-[#b0c4b1]/50">
-                  
+                <div className="space-y-4 pt-3 border-t border-[var(--border)]/90">
+
                   {/* Idiomas */}
                   <div className="flex items-start gap-2.5">
                     <Languages className="w-4.5 h-4.5 text-indigo-400 mt-0.5 flex-shrink-0" />
                     <div className="space-y-0.5">
-                      <span className="text-[10px] text-[#6c7a7c]/80 font-bold uppercase tracking-wider block">Idiomas</span>
-                      <span className="text-xs text-[#4a5759] font-medium">{guia.idiomas}</span>
+                      <span className="text-[10px] text-[var(--muted-foreground)]/80 font-bold uppercase tracking-wider block">Idiomas</span>
+                      <span className="text-xs text-[var(--foreground)] font-medium">{guia.idiomas}</span>
                     </div>
                   </div>
 
@@ -100,13 +100,13 @@ export default function Guias() {
                   <div className="flex items-start gap-2.5">
                     <Award className="w-4.5 h-4.5 text-emerald-400 mt-0.5 flex-shrink-0" />
                     <div className="space-y-0.5">
-                      <span className="text-[10px] text-[#6c7a7c]/80 font-bold uppercase tracking-wider block">Experiencia</span>
-                      <span className="text-xs text-[#4a5759] font-medium">{guia.experiencia}</span>
+                      <span className="text-[10px] text-[var(--muted-foreground)]/80 font-bold uppercase tracking-wider block">Experiencia</span>
+                      <span className="text-xs text-[var(--foreground)] font-medium">{guia.experiencia}</span>
                     </div>
                   </div>
 
                   {/* Descripción / Bio */}
-                  <p className="text-[11px] text-[#6c7a7c] leading-relaxed font-normal pt-1 border-t border-[#b0c4b1]/30">
+                  <p className="text-[11px] text-[var(--muted-foreground)] leading-relaxed font-normal pt-1 border-t border-[var(--border)]/30">
                     {guia.descripcion}
                   </p>
 
