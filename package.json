@@ -2,17 +2,18 @@
   "name": "unu-raymi-monorepo",
   "version": "1.0.0",
   "private": true,
+  "packageManager": "pnpm@11.5.3",
   "scripts": {
     "install:backend": "pnpm install --prefix backend",
     "build:backend": "pnpm run build --prefix backend",
-    "start:backend": "pnpm start --prefix backend",
+    "start:backend": "pnpm run start --prefix backend",
 
     "install:admin": "pnpm install --prefix admin",
     "build:admin": "pnpm run build --prefix admin",
-    "start:admin": "pnpm run start --prefix admin",
+    "start:admin": "pnpm run start --prefix admin -- -p $PORT",
 
     "install:frontend": "pnpm install --prefix frontend",
     "build:frontend": "pnpm run build --prefix frontend",
-    "start:frontend": "pnpm run start --prefix frontend"
+    "start:frontend": "pnpm run start --prefix frontend -- -p $PORT"
   }
 }

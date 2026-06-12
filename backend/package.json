@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "API Backend para el Sistema de Reservas de Tours Unu-Raymi",
   "type": "module",
+  "packageManager": "pnpm@11.5.3",
   "main": "src/server.js",
   "scripts": {
     "dev": "nodemon src/server.js",
