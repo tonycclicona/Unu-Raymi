@@ -3,16 +3,16 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "install:backend": "npm install --prefix backend",
-    "build:backend": "npm run build --prefix backend",
-    "start:backend": "npm run start --prefix backend",
+    "install:backend": "cd backend && npm install",
+    "build:backend": "cd backend && npm run build",
+    "start:backend": "cd backend && npm run start",
 
-    "install:admin": "npm install --prefix admin",
-    "build:admin": "npm run build --prefix admin",
-    "start:admin": "npm run start --prefix admin -- -p $PORT",
+    "install:admin": "cd admin && npm install",
+    "build:admin": "cd admin && npm run build",
+    "start:admin": "cd admin && npm run start -- -p $PORT",
 
-    "install:frontend": "npm install --prefix frontend",
-    "build:frontend": "npm run build --prefix frontend",
-    "start:frontend": "npm run start --prefix frontend -- -p $PORT"
+    "install:frontend": "cd frontend && npm install",
+    "build:frontend": "cd frontend && npm run build",
+    "start:frontend": "cd frontend && npm run start -- -p $PORT"
   }
 }
