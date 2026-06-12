@@ -41,16 +41,16 @@ export default function Confianza() {
   };
 
   return (
-    <section id="reviews" className="py-16 md:py-24 px-6 flex items-center bg-[#0f0f1a] border-t border-[#2b2b46]/30 relative overflow-hidden scroll-mt-16 md:scroll-mt-20">
+    <section id="reviews" className="py-16 md:py-24 px-6 flex items-center bg-[#12150e] border-t border-[#414833]/30 relative overflow-hidden scroll-mt-16 md:scroll-mt-20">
       {/* Luz ambiental */}
-      <div className="absolute top-1/2 right-1/4 w-[350px] h-[350px] bg-[#e94560]/5 rounded-full filter blur-[100px] pointer-events-none -z-10"></div>
+      <div className="absolute top-1/2 right-1/4 w-[350px] h-[350px] bg-[#656d4a]/5 rounded-full filter blur-[100px] pointer-events-none -z-10"></div>
 
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
         
         {/* LADO IZQUIERDO: Opiniones estilo TripAdvisor (7 columnas en desktop) */}
         <div className="lg:col-span-7 space-y-6">
           <div className="space-y-2">
-            <span className="text-[10px] text-[#e94560] font-extrabold uppercase tracking-widest block">
+            <span className="text-[10px] text-[#656d4a] font-extrabold uppercase tracking-widest block">
               Opiniones Reales
             </span>
             <h2 className="text-3xl font-black text-white tracking-tight">
@@ -94,8 +94,8 @@ export default function Confianza() {
         </div>
 
         {/* LADO DERECHO: Licencias y Sellos SSL (5 columnas en desktop) */}
-        <div className="lg:col-span-5 space-y-6 bg-[#16162a]/30 border border-[#2b2b46]/50 p-8 rounded-3xl relative">
-          <h3 className="text-base font-extrabold text-white uppercase tracking-wider border-b border-[#2b2b46]/50 pb-3">
+        <div className="lg:col-span-5 space-y-6 bg-[#1a1d15]/30 border border-[#414833]/50 p-8 rounded-3xl relative">
+          <h3 className="text-base font-extrabold text-white uppercase tracking-wider border-b border-[#414833]/50 pb-3">
             Garantías y Seguridad
           </h3>
 
@@ -155,7 +155,7 @@ export default function Confianza() {
 
           </div>
 
-          <div className="bg-[#121224]/50 border border-[#2b2b46]/40 p-4 rounded-xl text-[10px] text-gray-500 leading-relaxed text-center">
+          <div className="bg-[#121224]/50 border border-[#414833]/40 p-4 rounded-xl text-[10px] text-gray-500 leading-relaxed text-center">
             🔐 En Unu-Raymi nos tomamos en serio tu tranquilidad. Contamos con seguros contra accidentes y cobertura completa para todas nuestras rutas.
           </div>
         </div>

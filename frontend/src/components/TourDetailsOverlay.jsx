@@ -182,7 +182,7 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
           onClose();
         }
       }}
-      className={`fixed inset-0 z-50 bg-[#0f0f1a]/92 backdrop-blur-md flex items-center transition-all duration-500 ease-in-out p-2 sm:p-4 ${
+      className={`fixed inset-0 z-50 bg-[#12150e]/92 backdrop-blur-md flex items-center transition-all duration-500 ease-in-out p-2 sm:p-4 ${
         isShifted
           ? 'justify-start md:pl-12 md:pr-[600px]'
           : 'justify-center md:p-8'
@@ -200,14 +200,14 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
         </button>
 
         {/* 1. GALERIA DE IMAGENES — horizontal strip en mobile, columna en desktop */}
-        <div className="w-full md:w-[25%] lg:w-[22%] border-b md:border-b-0 md:border-r border-[#2b2b46]/50 bg-black/10 md:h-full md:overflow-y-auto no-scrollbar">
+        <div className="w-full md:w-[25%] lg:w-[22%] border-b md:border-b-0 md:border-r border-[#414833]/50 bg-black/10 md:h-full md:overflow-y-auto no-scrollbar">
           {/* Mobile: horizontal scroll */}
           <div className="flex gap-3 p-3 overflow-x-auto no-scrollbar md:hidden">
             {imagenes.map((img, idx) => (
               <div
                 key={idx}
                 onClick={() => setLightboxIndex(idx)}
-                className="relative flex-shrink-0 w-24 h-24 rounded-xl overflow-hidden border border-[#2b2b46]/50 cursor-pointer shadow-md"
+                className="relative flex-shrink-0 w-24 h-24 rounded-xl overflow-hidden border border-[#414833]/50 cursor-pointer shadow-md"
               >
                 <img
                   src={img.url.startsWith('http') ? img.url : `${API_ASSETS_URL}${img.url}`}
@@ -223,7 +223,7 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
               <div
                 key={idx}
                 onClick={() => setLightboxIndex(idx)}
-                className="relative aspect-square rounded-2xl overflow-hidden group border border-[#2b2b46]/50 cursor-pointer shadow-md hover:scale-[1.12] hover:z-30 hover:shadow-[0_20px_50px_rgba(233,69,96,0.3)] hover:border-[#e94560]/50 transition-all duration-300 ease-out"
+                className="relative aspect-square rounded-2xl overflow-hidden group border border-[#414833]/50 cursor-pointer shadow-md hover:scale-[1.12] hover:z-30 hover:shadow-[0_20px_50px_rgba(233,69,96,0.3)] hover:border-[#656d4a]/50 transition-all duration-300 ease-out"
               >
                 <img
                   src={img.url.startsWith('http') ? img.url : `${API_ASSETS_URL}${img.url}`}
@@ -237,16 +237,16 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
         </div>
 
         {/* 2. Columna Central: Información, Duraciones, Itinerario y Exclusiones */}
-        <div className="w-full md:w-[45%] lg:w-[48%] p-5 md:p-8 flex flex-col justify-between border-b md:border-b-0 md:border-r border-[#2b2b46]/50 md:h-full md:overflow-y-auto no-scrollbar">
+        <div className="w-full md:w-[45%] lg:w-[48%] p-5 md:p-8 flex flex-col justify-between border-b md:border-b-0 md:border-r border-[#414833]/50 md:h-full md:overflow-y-auto no-scrollbar">
           <div className="space-y-5">
             {/* Header del Tour */}
             <div className="space-y-3 pr-8">
               <div className="flex items-center gap-2">
-                <span className="bg-[#e94560]/10 text-[#e94560] border border-[#e94560]/20 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
+                <span className="bg-[#656d4a]/10 text-[#656d4a] border border-[#656d4a]/20 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
                   {tour.pais}
                 </span>
                 <span className="text-xs text-gray-400 flex items-center gap-1">
-                  <Calendar className="w-3.5 h-3.5 text-[#e94560]" />
+                  <Calendar className="w-3.5 h-3.5 text-[#656d4a]" />
                   {displayDuration} {displayDuration === 1 ? 'Día' : 'Días'}
                 </span>
               </div>
@@ -256,7 +256,7 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
 
             {/* Multi-duration Toggle Tabs */}
             {hasVariants && (
-              <div className="bg-[#121224]/50 border border-[#2b2b46]/40 p-4 rounded-2xl space-y-2.5">
+              <div className="bg-[#121224]/50 border border-[#414833]/40 p-4 rounded-2xl space-y-2.5">
                 <span className="text-[10px] text-gray-400 block uppercase font-bold tracking-wider">Duración del Paquete</span>
                 <div className="flex flex-wrap gap-2">
                   {tour.variantes.map((v) => {
@@ -267,8 +267,8 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
                         onClick={() => setSelectedDuration(v.duracion_dias)}
                         className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${
                           isSelected
-                            ? 'bg-[#e94560] text-white shadow-md shadow-[#e94560]/20'
-                            : 'bg-[#16162a] hover:bg-[#2b2b46]/50 text-gray-400 hover:text-white border border-[#2b2b46]'
+                            ? 'bg-[#656d4a] text-white shadow-md shadow-[#656d4a]/20'
+                            : 'bg-[#1a1d15] hover:bg-[#414833]/50 text-gray-400 hover:text-white border border-[#414833]'
                         }`}
                       >
                         {v.duracion_dias} {v.duracion_dias === 1 ? 'Día' : 'Días'}
@@ -282,20 +282,20 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
             {/* Itinerario del Tour */}
             <div className="space-y-3">
               <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-[#e94560]" />
+                <Sparkles className="w-4 h-4 text-[#656d4a]" />
                 Itinerario Detallado
               </h3>
 
               {displayItinerario ? (
-                <div className="bg-[#121224]/50 border border-[#2b2b46]/40 p-4 rounded-2xl space-y-4 text-sm text-gray-300 leading-relaxed md:max-h-[260px] md:overflow-y-auto no-scrollbar">
+                <div className="bg-[#121224]/50 border border-[#414833]/40 p-4 rounded-2xl space-y-4 text-sm text-gray-300 leading-relaxed md:max-h-[260px] md:overflow-y-auto no-scrollbar">
                   {displayItinerario.split('\n\n').map((parrafo, i) => (
-                    <p key={i} className="relative pl-4 border-l border-[#e94560]/30 hover:border-[#e94560] transition-colors py-0.5">
+                    <p key={i} className="relative pl-4 border-l border-[#656d4a]/30 hover:border-[#656d4a] transition-colors py-0.5">
                       {parrafo}
                     </p>
                   ))}
                 </div>
               ) : (
-                <div className="bg-[#121224]/50 border border-[#2b2b46]/40 p-5 rounded-2xl text-center text-xs text-gray-500 italic">
+                <div className="bg-[#121224]/50 border border-[#414833]/40 p-5 rounded-2xl text-center text-xs text-gray-500 italic">
                   No se ha registrado un itinerario detallado para este tour.
                 </div>
               )}
@@ -305,13 +305,13 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
             {displayExclusiones && displayExclusiones.length > 0 && (
               <div className="space-y-3">
                 <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                  <X className="w-4 h-4 text-[#e94560]" />
+                  <X className="w-4 h-4 text-[#656d4a]" />
                   Servicios Excluidos
                 </h3>
-                <ul className="bg-[#121224]/50 border border-[#2b2b46]/40 p-4 rounded-2xl space-y-2 text-xs text-gray-400">
+                <ul className="bg-[#121224]/50 border border-[#414833]/40 p-4 rounded-2xl space-y-2 text-xs text-gray-400">
                   {displayExclusiones.map((item, idx) => (
                     <li key={idx} className="flex items-start gap-2">
-                      <span className="text-[#e94560] font-black">•</span>
+                      <span className="text-[#656d4a] font-black">•</span>
                       <span>{item}</span>
                     </li>
                   ))}
@@ -335,7 +335,7 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
         <div className="w-full md:w-[30%] p-5 md:p-8 flex flex-col justify-between bg-[#121224]/30 md:h-full md:overflow-y-auto no-scrollbar">
           <div className="space-y-5">
             <div className="space-y-1">
-              <span className="text-[10px] text-[#e94560] font-extrabold uppercase tracking-widest">Inclusiones</span>
+              <span className="text-[10px] text-[#656d4a] font-extrabold uppercase tracking-widest">Inclusiones</span>
               <h3 className="font-extrabold text-white text-base md:text-lg">Servicios Incluidos</h3>
               <p className="text-xs text-gray-400 leading-relaxed hidden md:block">
                 Pasa el cursor sobre cada categoría para ver los detalles.
@@ -357,21 +357,21 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
                     onMouseEnter={() => setActiveTooltip(cat.id)}
                     onMouseLeave={() => setActiveTooltip(null)}
                     onClick={() => setActiveTooltip(isActive ? null : cat.id)}
-                    className={`relative p-3 md:p-4 rounded-xl border flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300 ${isActive ? 'border-[#e94560]/40' : 'hover:border-[#e94560]/30'} ${cat.color} group`}
+                    className={`relative p-3 md:p-4 rounded-xl border flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300 ${isActive ? 'border-[#656d4a]/40' : 'hover:border-[#656d4a]/30'} ${cat.color} group`}
                   >
                     <Icon className="w-5 h-5 md:w-6 md:h-6 mb-1.5 transition-transform duration-300 group-hover:scale-110" />
                     <span className="text-[9px] md:text-[10px] font-bold text-white/90 leading-tight">{cat.label}</span>
 
                     {/* Tooltip — works on hover (desktop) and tap (mobile) */}
                     {isActive && (
-                      <div className="absolute z-30 left-1/2 -translate-x-1/2 bottom-[110%] w-52 md:w-56 bg-[#0f0f1a] border border-[#2b2b46] p-3 md:p-4 rounded-2xl shadow-2xl animate-fade-in text-left">
-                        <div className="text-[10px] text-[#e94560] font-bold uppercase tracking-wider mb-2">
+                      <div className="absolute z-30 left-1/2 -translate-x-1/2 bottom-[110%] w-52 md:w-56 bg-[#12150e] border border-[#414833] p-3 md:p-4 rounded-2xl shadow-2xl animate-fade-in text-left">
+                        <div className="text-[10px] text-[#656d4a] font-bold uppercase tracking-wider mb-2">
                           {cat.label}
                         </div>
                         <ul className="space-y-1.5">
                           {cat.list.map((item, index) => (
                             <li key={index} className="text-xs text-gray-300 flex items-start gap-1.5 leading-snug">
-                              <span className="text-[#e94560] font-bold mt-0.5">•</span>
+                              <span className="text-[#656d4a] font-bold mt-0.5">•</span>
                               <span>{item}</span>
                             </li>
                           ))}
@@ -386,14 +386,14 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
 
           {/* Info Financiera y Botón de Acción Principal */}
           <div className="pt-5 space-y-3 md:space-y-4">
-            <div className="bg-[#121224] border border-[#2b2b46]/50 p-4 rounded-2xl flex justify-between items-center">
+            <div className="bg-[#121224] border border-[#414833]/50 p-4 rounded-2xl flex justify-between items-center">
               <div>
                 <span className="text-[10px] text-gray-400 block uppercase font-bold tracking-wider">Precio Adulto</span>
                 <span className="text-base font-extrabold text-white">${displayPrecioAdulto} USD</span>
               </div>
               <div className="text-right">
                 <span className="text-[10px] text-gray-400 block uppercase font-bold tracking-wider">Cupos</span>
-                <span className="text-xs bg-[#e94560]/10 text-[#e94560] px-2.5 py-0.5 rounded-full font-bold">
+                <span className="text-xs bg-[#656d4a]/10 text-[#656d4a] px-2.5 py-0.5 rounded-full font-bold">
                   {displayCupos} libres
                 </span>
               </div>
@@ -401,7 +401,7 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
 
             <button
               onClick={() => onProceed(selectedDuration)}
-              className="w-full flex items-center justify-center gap-2 bg-[#e94560] hover:bg-[#ff5c77] text-white py-4 rounded-xl font-bold shadow-lg shadow-[#e94560]/20 hover:shadow-[#e94560]/30 transition-all duration-300 text-sm"
+              className="w-full flex items-center justify-center gap-2 bg-[#656d4a] hover:bg-[#7b855b] text-white py-4 rounded-xl font-bold shadow-lg shadow-[#656d4a]/20 hover:shadow-[#656d4a]/30 transition-all duration-300 text-sm"
             >
               Proceder al Registro
               <ArrowRight className="w-4 h-4" />

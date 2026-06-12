@@ -37,13 +37,13 @@ export default function Sidebar({ isOpen = false, onClose = () => {} }) {
 
       {/* Sidebar */}
       <aside
-        className={`fixed md:static inset-y-0 left-0 z-50 w-64 bg-[#1a1a2e] border-r border-[#2b2b46] flex flex-col h-screen
+        className={`fixed md:static inset-y-0 left-0 z-50 w-64 bg-[#151811] border-r border-[#414833] flex flex-col h-screen
           transition-transform duration-300 ease-in-out
           ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
         `}
       >
         {/* Header */}
-        <div className="p-5 border-b border-[#2b2b46] flex items-center justify-between gap-3">
+        <div className="p-5 border-b border-[#414833] flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <img
               src="/logo.webp"
@@ -73,8 +73,8 @@ export default function Sidebar({ isOpen = false, onClose = () => {} }) {
                 onClick={handleNavClick}
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
                   isActive
-                    ? 'bg-[#e94560] text-white shadow-lg shadow-[#e94560]/20 font-medium'
-                    : 'text-gray-400 hover:bg-[#16162a] hover:text-white'
+                    ? 'bg-[#656d4a] text-white shadow-lg shadow-[#656d4a]/20 font-medium'
+                    : 'text-gray-400 hover:bg-[#1a1d15] hover:text-white'
                 }`}
               >
                 <Icon className={`w-5 h-5 transition-transform duration-200 group-hover:scale-110 ${
@@ -86,7 +86,7 @@ export default function Sidebar({ isOpen = false, onClose = () => {} }) {
           })}
         </nav>
 
-        <div className="p-4 border-t border-[#2b2b46]">
+        <div className="p-4 border-t border-[#414833]">
           <button
             onClick={handleLogout}
             className="w-full flex items-center gap-3 px-4 py-3 text-gray-400 hover:bg-red-500/10 hover:text-red-400 rounded-xl transition-all duration-200 group"

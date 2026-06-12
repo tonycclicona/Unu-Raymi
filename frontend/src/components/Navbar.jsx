@@ -87,7 +87,7 @@ export default function Navbar() {
         <div className="hidden md:flex items-center justify-center flex-grow mx-4">
           <svg
             viewBox="0 0 200 50"
-            className="w-full h-12 text-gray-700 hover:text-[#e94560] transition-colors duration-500"
+            className="w-full h-12 text-gray-700 hover:text-[#656d4a] transition-colors duration-500"
             fill="none"
             stroke="currentColor"
             strokeWidth="1.5"
@@ -128,14 +128,14 @@ export default function Navbar() {
             <a
               key={item.label}
               href={item.href}
-              className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors relative after:content-[''] after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-[2px] after:bg-[#e94560] after:transition-all hover:after:w-full"
+              className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors relative after:content-[''] after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-[2px] after:bg-[#656d4a] after:transition-all hover:after:w-full"
             >
               {item.label}
             </a>
           ))}
           <a
             href="#tours"
-            className="bg-[#e94560] hover:bg-[#ff5c77] text-white px-5 py-2.5 rounded-xl font-semibold shadow-lg shadow-[#e94560]/20 hover:shadow-[#e94560]/30 transition-all duration-300 text-sm"
+            className="bg-[#656d4a] hover:bg-[#7b855b] text-white px-5 py-2.5 rounded-xl font-semibold shadow-lg shadow-[#656d4a]/20 hover:shadow-[#656d4a]/30 transition-all duration-300 text-sm"
           >
             Explorar Ahora
           </a>
@@ -167,7 +167,7 @@ export default function Navbar() {
           <a
             href="#tours"
             onClick={() => setIsOpen(false)}
-            className="block text-center bg-[#e94560] hover:bg-[#ff5c77] text-white py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-[#e94560]/20"
+            className="block text-center bg-[#656d4a] hover:bg-[#7b855b] text-white py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-[#656d4a]/20"
           >
             Explorar Ahora
           </a>

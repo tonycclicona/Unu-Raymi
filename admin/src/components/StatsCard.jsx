@@ -1,4 +1,4 @@
-export default function StatsCard({ title, value, icon: Icon, colorClass = 'text-[#e94560]', subtitle }) {
+export default function StatsCard({ title, value, icon: Icon, colorClass = 'text-[#656d4a]', subtitle }) {
   return (
     <div className="glass-card p-6 rounded-2xl flex items-center justify-between">
       <div className="space-y-2">

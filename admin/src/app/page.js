@@ -56,7 +56,7 @@ export default function Dashboard() {
           title="Tours Activos"
           value={totalTours}
           icon={Compass}
-          colorClass="text-[#e94560]"
+          colorClass="text-[#656d4a]"
           subtitle="Tours en catálogo"
         />
         <StatsCard
@@ -70,12 +70,12 @@ export default function Dashboard() {
 
       {/* Reservas Recientes */}
       <div className="glass-card rounded-2xl p-6">
-        <div className="flex justify-between items-center border-b border-[#2b2b46] pb-4 mb-4">
+        <div className="flex justify-between items-center border-b border-[#414833] pb-4 mb-4">
           <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-[#e94560]" />
+            <Calendar className="w-5 h-5 text-[#656d4a]" />
             Últimas Reservas
           </h2>
-          <Link href="/reservas" className="text-xs text-[#e94560] hover:text-[#ff5c77] font-semibold transition-colors">
+          <Link href="/reservas" className="text-xs text-[#656d4a] hover:text-[#7b855b] font-semibold transition-colors">
             Ver todas las reservas →
           </Link>
         </div>
@@ -88,7 +88,7 @@ export default function Dashboard() {
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm text-gray-300">
               <thead>
-                <tr className="border-b border-[#2b2b46] text-gray-400 text-xs font-semibold uppercase">
+                <tr className="border-b border-[#414833] text-gray-400 text-xs font-semibold uppercase">
                   <th className="py-3 px-4">Titular</th>
                   <th className="py-3 px-4">Tour</th>
                   <th className="py-3 px-4">Fecha Viaje</th>
@@ -96,7 +96,7 @@ export default function Dashboard() {
                   <th className="py-3 px-4">Estado</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#2b2b46]/50">
+              <tbody className="divide-y divide-[#414833]/50">
                 {ultimasReservas.map((reserva) => (
                   <tr key={reserva.id} className="hover:bg-white/[0.01] transition-colors">
                     <td className="py-4 px-4 font-medium text-white">{reserva.titularNombre}</td>

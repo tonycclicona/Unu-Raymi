@@ -14,7 +14,7 @@ export default function MapaSudamerica({ filtroPais, setFiltroPais }) {
       // Path estilizado simplificado para Colombia
       path: 'M 140 50 Q 180 30, 190 70 Q 170 120, 150 120 Q 100 80, 140 50 Z',
       color: 'fill-indigo-500/20 hover:fill-indigo-500/40',
-      activeColor: 'fill-[#e94560]/40 stroke-[#e94560]',
+      activeColor: 'fill-[#656d4a]/40 stroke-[#656d4a]',
       pinX: '150',
       pinY: '95',
       capital: 'Bogotá',
@@ -25,7 +25,7 @@ export default function MapaSudamerica({ filtroPais, setFiltroPais }) {
       // Path estilizado simplificado para Perú
       path: 'M 120 100 Q 120 110, 80 130 Q 100 160, 110 210 Q 150 230, 140 110 Z',
       color: 'fill-emerald-500/20 hover:fill-emerald-500/40',
-      activeColor: 'fill-[#e94560]/40 stroke-[#e94560]',
+      activeColor: 'fill-[#656d4a]/40 stroke-[#656d4a]',
       pinX: '105',
       pinY: '170',
       capital: 'Lima',
@@ -36,7 +36,7 @@ export default function MapaSudamerica({ filtroPais, setFiltroPais }) {
       // Path estilizado simplificado para Chile (largo y delgado)
       path: 'M 160 220 Q 170 210, 175 250 T 140 400 Q 125 430, 135 410 T 155 220 Z',
       color: 'fill-amber-500/20 hover:fill-amber-500/40',
-      activeColor: 'fill-[#e94560]/40 stroke-[#e94560]',
+      activeColor: 'fill-[#656d4a]/40 stroke-[#656d4a]',
       pinX: '150',
       pinY: '310',
       capital: 'Santiago',
@@ -56,13 +56,13 @@ export default function MapaSudamerica({ filtroPais, setFiltroPais }) {
   ];
 
   return (
-    <div className="w-full h-full flex flex-col justify-between p-6 bg-[#16162a]/30 border border-[#2b2b46]/40 rounded-3xl relative overflow-hidden select-none">
+    <div className="w-full h-full flex flex-col justify-between p-6 bg-[#1a1d15]/30 border border-[#414833]/40 rounded-3xl relative overflow-hidden select-none">
       {/* Luces de fondo */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-purple-500/5 rounded-full filter blur-[80px] pointer-events-none -z-10"></div>
 
       {/* Header del Mapa */}
       <div className="space-y-1 z-10">
-        <span className="text-[10px] text-[#e94560] font-extrabold uppercase tracking-widest">
+        <span className="text-[10px] text-[#656d4a] font-extrabold uppercase tracking-widest">
           Mapa de Destinos
         </span>
         <h3 className="font-extrabold text-white text-xl">Filtro Interactivo</h3>
@@ -115,7 +115,7 @@ export default function MapaSudamerica({ filtroPais, setFiltroPais }) {
                   className={`cursor-pointer transition-all duration-300 stroke-1 ${isActive
                     ? pais.activeColor + ' stroke-[1.5px]'
                     : isHovered
-                      ? 'fill-[#e94560]/20 stroke-[#e94560]/40'
+                      ? 'fill-[#656d4a]/20 stroke-[#656d4a]/40'
                       : pais.color + ' stroke-white/[0.15]'
                     }`}
                 />
@@ -128,12 +128,12 @@ export default function MapaSudamerica({ filtroPais, setFiltroPais }) {
                   {isActive && (
                     <circle
                       r="12"
-                      className="fill-[#e94560]/20 stroke-[#e94560]/40 stroke-1 animate-ping"
+                      className="fill-[#656d4a]/20 stroke-[#656d4a]/40 stroke-1 animate-ping"
                     />
                   )}
                   <circle
                     r="5"
-                    className={`transition-all duration-300 ${isActive ? 'fill-[#e94560]' : 'fill-white/60'
+                    className={`transition-all duration-300 ${isActive ? 'fill-[#656d4a]' : 'fill-white/60'
                       }`}
                   />
                 </g>
@@ -145,7 +145,7 @@ export default function MapaSudamerica({ filtroPais, setFiltroPais }) {
         {/* Info panel flotante sobre el país hovered */}
         {hoveredPais && (
           <div className="absolute bottom-4 right-4 glass p-4 rounded-2xl animate-fade-in pointer-events-none">
-            <span className="text-[10px] text-[#e94560] font-bold uppercase tracking-wider">
+            <span className="text-[10px] text-[#656d4a] font-bold uppercase tracking-wider">
               {paises.some((p) => p.id === hoveredPais) ? 'Destino Disponible' : 'Próximamente'}
             </span>
             <div className="font-extrabold text-white text-lg leading-tight">
@@ -161,7 +161,7 @@ export default function MapaSudamerica({ filtroPais, setFiltroPais }) {
       </div>
 
       {/* Footer / Selector de Todos */}
-      <div className="flex justify-between items-center z-10 border-t border-[#2b2b46]/50 pt-4">
+      <div className="flex justify-between items-center z-10 border-t border-[#414833]/50 pt-4">
         <div className="text-xs text-gray-400">
           Mostrando:{' '}
           <span className="text-white font-bold">
@@ -172,7 +172,7 @@ export default function MapaSudamerica({ filtroPais, setFiltroPais }) {
         {filtroPais !== 'Todos' && (
           <button
             onClick={() => setFiltroPais('Todos')}
-            className="text-xs bg-[#e94560]/10 hover:bg-[#e94560] text-[#e94560] hover:text-white border border-[#e94560]/20 hover:border-transparent px-3 py-1.5 rounded-xl font-semibold transition-all duration-200"
+            className="text-xs bg-[#656d4a]/10 hover:bg-[#656d4a] text-[#656d4a] hover:text-white border border-[#656d4a]/20 hover:border-transparent px-3 py-1.5 rounded-xl font-semibold transition-all duration-200"
           >
             Limpiar Filtro
           </button>

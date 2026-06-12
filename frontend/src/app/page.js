@@ -121,20 +121,20 @@ export default function Home() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#0f0f1a] relative">
+    <div className="flex flex-col min-h-screen bg-[#12150e] relative">
       <Navbar />
 
       {/* 1. Hero con Dynamic Reveal */}
       <Hero />
 
       {/* 2. Sección Tours — Layout Responsivo */}
-      <section id="tours" className="w-full border-t border-[#2b2b46]/50 bg-[#0c0c14] relative z-10 scroll-mt-16">
+      <section id="tours" className="w-full border-t border-[#414833]/50 bg-[#0c0c14] relative z-10 scroll-mt-16">
 
         {/* ── MOBILE LAYOUT ── */}
         <div className="flex flex-col md:hidden">
 
           {/* Mapa compacto en mobile */}
-          <div className="w-full h-[230px] p-3 flex items-center justify-center border-b border-[#2b2b46]/40">
+          <div className="w-full h-[230px] p-3 flex items-center justify-center border-b border-[#414833]/40">
             <MapaSudamerica
               filtroPais={filtroPais}
               setFiltroPais={(p) => {
@@ -145,10 +145,10 @@ export default function Home() {
           </div>
 
           {/* Header catálogo mobile */}
-          <div className="p-4 border-b border-[#2b2b46]/40 bg-[#0e0e1a]/90 backdrop-blur-md space-y-3 sticky top-[52px] z-10">
+          <div className="p-4 border-b border-[#414833]/40 bg-[#0e0e1a]/90 backdrop-blur-md space-y-3 sticky top-[52px] z-10">
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-black text-white flex items-center gap-1.5">
-                <Compass className="w-4 h-4 text-[#e94560]" />
+                <Compass className="w-4 h-4 text-[#656d4a]" />
                 Tours en {filtroPais === 'Todos' ? 'Sudamérica' : filtroPais}
               </h2>
               <div className="flex items-center gap-2">
@@ -156,7 +156,7 @@ export default function Home() {
                 {filtroPais !== 'Todos' && (
                   <button
                     onClick={() => { setFiltroPais('Todos'); setVisibleCount(6); }}
-                    className="bg-[#e94560]/10 text-[#e94560] border border-[#e94560]/20 text-[9px] px-2 py-0.5 rounded-full font-bold"
+                    className="bg-[#656d4a]/10 text-[#656d4a] border border-[#656d4a]/20 text-[9px] px-2 py-0.5 rounded-full font-bold"
                   >
                     ✕ Limpiar
                   </button>
@@ -173,8 +173,8 @@ export default function Home() {
                     key={cat}
                     onClick={() => { setFiltroCategoria(cat); setVisibleCount(6); }}
                     className={`flex-shrink-0 px-3 py-1.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider transition-all ${isSelected
-                      ? 'bg-[#e94560] text-white shadow-md shadow-[#e94560]/20'
-                      : 'bg-[#16162a]/60 text-gray-400 border border-[#2b2b46]/60'
+                      ? 'bg-[#656d4a] text-white shadow-md shadow-[#656d4a]/20'
+                      : 'bg-[#1a1d15]/60 text-gray-400 border border-[#414833]/60'
                     }`}
                   >
                     {cat === '*' ? 'Todos' : cat}
@@ -193,7 +193,7 @@ export default function Home() {
                 value={busqueda}
                 onChange={(e) => { setBusqueda(e.target.value); setVisibleCount(6); }}
                 placeholder="Buscar tours..."
-                className="w-full pl-9 pr-8 py-2.5 bg-[#121224]/80 border border-[#2b2b46]/50 rounded-xl text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#e94560]/50"
+                className="w-full pl-9 pr-8 py-2.5 bg-[#121224]/80 border border-[#414833]/50 rounded-xl text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#656d4a]/50"
               />
               {busqueda && (
                 <button onClick={() => { setBusqueda(''); setVisibleCount(6); }}
@@ -227,10 +227,10 @@ export default function Home() {
                   <div className="flex justify-center pt-2 pb-4">
                     <button
                       onClick={() => setVisibleCount((prev) => prev + 6)}
-                      className="group flex items-center gap-2 bg-[#16162a]/60 border border-[#e94560]/40 hover:border-[#e94560] hover:bg-[#e94560] text-white px-6 py-3 rounded-xl text-xs font-bold transition-all"
+                      className="group flex items-center gap-2 bg-[#1a1d15]/60 border border-[#656d4a]/40 hover:border-[#656d4a] hover:bg-[#656d4a] text-white px-6 py-3 rounded-xl text-xs font-bold transition-all"
                     >
                       Cargar más aventuras
-                      <Compass className="w-4 h-4 text-[#e94560] group-hover:text-white group-hover:rotate-180 transition-all duration-500" />
+                      <Compass className="w-4 h-4 text-[#656d4a] group-hover:text-white group-hover:rotate-180 transition-all duration-500" />
                     </button>
                   </div>
                 )}
@@ -243,7 +243,7 @@ export default function Home() {
         <div className="hidden md:flex flex-row h-screen">
 
           {/* Columna Izquierda: Mapa */}
-          <div className="w-[55%] h-full p-8 flex items-center justify-center border-r border-[#2b2b46]/40">
+          <div className="w-[55%] h-full p-8 flex items-center justify-center border-r border-[#414833]/40">
             <MapaSudamerica
               filtroPais={filtroPais}
               setFiltroPais={(p) => {
@@ -256,18 +256,18 @@ export default function Home() {
           {/* Columna Derecha: Listado Desplazable */}
           <div className="w-[45%] h-full flex flex-col">
             {/* Header del catálogo */}
-            <div className="p-6 border-b border-[#2b2b46]/40 bg-[#0e0e1a]/80 backdrop-blur-md space-y-4">
+            <div className="p-6 border-b border-[#414833]/40 bg-[#0e0e1a]/80 backdrop-blur-md space-y-4">
               <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
                 <div>
                   <div className="flex items-center gap-2">
                     <h2 className="text-sm sm:text-base font-black text-white flex items-center gap-1.5">
-                      <Compass className="w-4 h-4 text-[#e94560]" />
+                      <Compass className="w-4 h-4 text-[#656d4a]" />
                       Tours en {filtroPais === 'Todos' ? 'Sudamérica' : filtroPais}
                     </h2>
                     {filtroPais !== 'Todos' && (
                       <button
                         onClick={() => { setFiltroPais('Todos'); setVisibleCount(6); }}
-                        className="bg-[#e94560]/10 text-[#e94560] hover:bg-[#e94560] hover:text-white border border-[#e94560]/20 text-[9px] px-2 py-0.5 rounded-full font-bold transition-all"
+                        className="bg-[#656d4a]/10 text-[#656d4a] hover:bg-[#656d4a] hover:text-white border border-[#656d4a]/20 text-[9px] px-2 py-0.5 rounded-full font-bold transition-all"
                       >
                         Limpiar
                       </button>
@@ -286,8 +286,8 @@ export default function Home() {
                         key={cat}
                         onClick={() => { setFiltroCategoria(cat); setVisibleCount(6); }}
                         className={`px-2.5 py-1 rounded-full text-[9px] font-extrabold uppercase tracking-wider transition-all duration-300 ${isSelected
-                          ? 'bg-[#e94560] text-white shadow-md shadow-[#e94560]/20 scale-105'
-                          : 'bg-[#16162a]/60 hover:bg-[#16162a] text-gray-400 hover:text-white border border-[#2b2b46]/60 hover:border-[#e94560]/40'
+                          ? 'bg-[#656d4a] text-white shadow-md shadow-[#656d4a]/20 scale-105'
+                          : 'bg-[#1a1d15]/60 hover:bg-[#1a1d15] text-gray-400 hover:text-white border border-[#414833]/60 hover:border-[#656d4a]/40'
                         }`}
                       >
                         {cat === '*' ? '*' : cat}
@@ -306,7 +306,7 @@ export default function Home() {
                   value={busqueda}
                   onChange={(e) => { setBusqueda(e.target.value); setVisibleCount(6); }}
                   placeholder="Buscar por nombre, descripción o país..."
-                  className="w-full pl-9 pr-8 py-2.5 bg-[#121224]/80 border border-[#2b2b46]/50 rounded-xl text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#e94560]/50 focus:ring-1 focus:ring-[#e94560]/30 transition-all"
+                  className="w-full pl-9 pr-8 py-2.5 bg-[#121224]/80 border border-[#414833]/50 rounded-xl text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#656d4a]/50 focus:ring-1 focus:ring-[#656d4a]/30 transition-all"
                 />
                 {busqueda && (
                   <button onClick={() => { setBusqueda(''); setVisibleCount(6); }}
@@ -340,10 +340,10 @@ export default function Home() {
                     <div className="flex justify-center pt-2 pb-6">
                       <button
                         onClick={() => setVisibleCount((prev) => prev + 6)}
-                        className="group flex items-center gap-2 bg-[#16162a]/60 border border-[#e94560]/40 hover:border-[#e94560] hover:bg-[#e94560] text-white px-6 py-3 rounded-xl text-xs font-bold transition-all hover:scale-[1.02] active:scale-[0.98]"
+                        className="group flex items-center gap-2 bg-[#1a1d15]/60 border border-[#656d4a]/40 hover:border-[#656d4a] hover:bg-[#656d4a] text-white px-6 py-3 rounded-xl text-xs font-bold transition-all hover:scale-[1.02] active:scale-[0.98]"
                       >
                         Cargar más aventuras
-                        <Compass className="w-4 h-4 text-[#e94560] group-hover:text-white group-hover:rotate-180 transition-all duration-500" />
+                        <Compass className="w-4 h-4 text-[#656d4a] group-hover:text-white group-hover:rotate-180 transition-all duration-500" />
                       </button>
                     </div>
                   )}
@@ -359,12 +359,12 @@ export default function Home() {
       <Guias />
 
       {/* 4. Sección de Contacto / Footer */}
-      <section id="contacto" className="bg-[#0b0b14] border-t border-[#2b2b46]/50 py-16 px-6 relative z-10">
+      <section id="contacto" className="bg-[#0b0b14] border-t border-[#414833]/50 py-16 px-6 relative z-10">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12">
           {/* Logo y lema */}
           <div className="space-y-4">
             <div className="flex items-center gap-2.5">
-              <div className="w-10 h-10 rounded-xl bg-[#e94560] flex items-center justify-center font-bold text-white text-xl shadow-lg">
+              <div className="w-10 h-10 rounded-xl bg-[#656d4a] flex items-center justify-center font-bold text-white text-xl shadow-lg">
                 U
               </div>
               <span className="font-extrabold text-white text-lg tracking-wider">UNU-RAYMI</span>
@@ -376,7 +376,7 @@ export default function Home() {
 
           {/* Destinos */}
           <div className="space-y-4">
-            <h4 className="font-extrabold text-white uppercase text-xs tracking-widest text-[#e94560]">Destinos</h4>
+            <h4 className="font-extrabold text-white uppercase text-xs tracking-widest text-[#656d4a]">Destinos</h4>
             <ul className="space-y-2 text-sm text-gray-400">
               <li><button onClick={() => setFiltroPais('Perú')} className="hover:text-white transition-colors">Perú y Machupicchu</button></li>
               <li><button onClick={() => setFiltroPais('Colombia')} className="hover:text-white transition-colors">Colombia Cafetera</button></li>
@@ -386,24 +386,24 @@ export default function Home() {
 
           {/* Información de Contacto */}
           <div className="space-y-4">
-            <h4 className="font-extrabold text-white uppercase text-xs tracking-widest text-[#e94560]">Contacto</h4>
+            <h4 className="font-extrabold text-white uppercase text-xs tracking-widest text-[#656d4a]">Contacto</h4>
             <div className="space-y-2 text-sm text-gray-400">
               <div className="flex items-center gap-2">
-                <Mail className="w-4 h-4 text-[#e94560]" />
+                <Mail className="w-4 h-4 text-[#656d4a]" />
                 <span>contacto@unu-raymi.com</span>
               </div>
               <div className="flex items-center gap-2">
-                <Phone className="w-4 h-4 text-[#e94560]" />
+                <Phone className="w-4 h-4 text-[#656d4a]" />
                 <span>+51 987 654 321</span>
               </div>
               <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-[#e94560]" />
+                <MapPin className="w-4 h-4 text-[#656d4a]" />
                 <span>Cusco, Perú</span>
               </div>
             </div>
           </div>
         </div>
-        <div className="max-w-7xl mx-auto border-t border-[#2b2b46]/30 mt-12 pt-6 text-center text-xs text-gray-500">
+        <div className="max-w-7xl mx-auto border-t border-[#414833]/30 mt-12 pt-6 text-center text-xs text-gray-500">
           © {new Date().getFullYear()} Unu-Raymi Agencia de Viajes. Todos los derechos reservados.
         </div>
       </section>

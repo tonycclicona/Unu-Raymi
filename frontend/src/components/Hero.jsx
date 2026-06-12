@@ -44,7 +44,7 @@ export default function Hero() {
           <source src="/uploads/Background_Home_page.mp4" type="video/mp4" />
           Tu navegador no soporta elementos de video integrados.
         </video>
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0f0f1a] via-transparent to-black/40"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-[#12150e] via-transparent to-black/40"></div>
       </div>
 
       {/* Contenido del Hero con Parallax y desvanecimiento */}
@@ -55,12 +55,12 @@ export default function Hero() {
           opacity: textOpacity,
         }}
       >
-        <span className="text-[#e94560] font-extrabold uppercase tracking-widest text-xs md:text-sm bg-[#e94560]/10 border border-[#e94560]/20 px-4 py-2 rounded-full shadow-lg shadow-[#e94560]/5">
+        <span className="text-[#656d4a] font-extrabold uppercase tracking-widest text-xs md:text-sm bg-[#656d4a]/10 border border-[#656d4a]/20 px-4 py-2 rounded-full shadow-lg shadow-[#656d4a]/5">
           🏔️ Descubre los Andes y más allá
         </span>
         <h1 className="text-4xl md:text-7xl font-extrabold text-white tracking-tight leading-none drop-shadow-md">
           Aventuras Auténticas <br />
-          <span className="bg-gradient-to-r from-white via-gray-200 to-[#e94560] bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-white via-gray-200 to-[#656d4a] bg-clip-text text-transparent">
             en Sudamérica
           </span>
         </h1>
@@ -71,7 +71,7 @@ export default function Hero() {
         <div className="pt-6">
           <a
             href="#tours"
-            className="inline-flex items-center gap-2 bg-[#e94560] hover:bg-[#ff5c77] text-white px-8 py-4 rounded-xl font-bold shadow-lg shadow-[#e94560]/20 hover:shadow-[#e94560]/30 transition-all duration-300 group"
+            className="inline-flex items-center gap-2 bg-[#656d4a] hover:bg-[#7b855b] text-white px-8 py-4 rounded-xl font-bold shadow-lg shadow-[#656d4a]/20 hover:shadow-[#656d4a]/30 transition-all duration-300 group"
           >
             Ver Catálogo de Tours
             <ChevronDown className="w-5 h-5 group-hover:translate-y-1 transition-transform" />

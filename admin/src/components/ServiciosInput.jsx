@@ -35,12 +35,12 @@ export default function ServiciosInput({ label, items, onChange, placeholder = '
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          className="flex-1 bg-[#121224] border border-[#2b2b46] rounded-xl px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-[#e94560] focus:ring-1 focus:ring-[#e94560] transition-all text-sm"
+          className="flex-1 bg-[#121224] border border-[#414833] rounded-xl px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-[#656d4a] focus:ring-1 focus:ring-[#656d4a] transition-all text-sm"
         />
         <button
           type="button"
           onClick={addTag}
-          className="bg-[#e94560]/10 text-[#e94560] hover:bg-[#e94560] hover:text-white border border-[#e94560]/20 p-2.5 rounded-xl transition-all duration-200"
+          className="bg-[#656d4a]/10 text-[#656d4a] hover:bg-[#656d4a] hover:text-white border border-[#656d4a]/20 p-2.5 rounded-xl transition-all duration-200"
         >
           <Plus className="w-5 h-5" />
         </button>
@@ -52,13 +52,13 @@ export default function ServiciosInput({ label, items, onChange, placeholder = '
           items.map((item, index) => (
             <span
               key={index}
-              className="inline-flex items-center gap-1.5 bg-[#e94560]/10 text-white border border-[#e94560]/30 px-3 py-1.5 rounded-full text-xs font-medium"
+              className="inline-flex items-center gap-1.5 bg-[#656d4a]/10 text-white border border-[#656d4a]/30 px-3 py-1.5 rounded-full text-xs font-medium"
             >
               {item}
               <button
                 type="button"
                 onClick={() => removeTag(index)}
-                className="text-[#e94560] hover:text-white transition-colors"
+                className="text-[#656d4a] hover:text-white transition-colors"
               >
                 <X className="w-3.5 h-3.5" />
               </button>

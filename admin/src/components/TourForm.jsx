@@ -349,8 +349,8 @@ export default function TourForm({ initialData }) {
 
       {/* BLOQUE 1: INFORMACIÓN BÁSICA DEL TOUR (ESTÁTICA) */}
       <div className="glass-card p-6 rounded-2xl space-y-6">
-        <h2 className="text-lg font-bold text-white flex items-center gap-2 border-b border-[#2b2b46] pb-3">
-          <Compass className="w-5 h-5 text-[#e94560]" />
+        <h2 className="text-lg font-bold text-white flex items-center gap-2 border-b border-[#414833] pb-3">
+          <Compass className="w-5 h-5 text-[#656d4a]" />
           Información Básica del Tour
         </h2>
 
@@ -361,7 +361,7 @@ export default function TourForm({ initialData }) {
               type="text"
               {...register('nombre', { required: 'El nombre es obligatorio' })}
               onChange={handleNombreChange}
-              className="w-full bg-[#121224] border border-[#2b2b46] rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-[#e94560] text-sm"
+              className="w-full bg-[#121224] border border-[#414833] rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-[#656d4a] text-sm"
               placeholder="Ej. Ascenso al Volcán Villarrica Activo"
             />
             {errors.nombre && <p className="text-xs text-red-400">{errors.nombre.message}</p>}
@@ -373,7 +373,7 @@ export default function TourForm({ initialData }) {
               type="text"
               {...register('slug', { required: 'El slug es obligatorio' })}
               disabled={isEdit}
-              className="w-full bg-[#121224] border border-[#2b2b46] rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-[#e94560] text-sm disabled:opacity-50"
+              className="w-full bg-[#121224] border border-[#414833] rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-[#656d4a] text-sm disabled:opacity-50"
               placeholder="ej-ascenso-al-volcan-villarrica"
             />
           </div>
@@ -386,7 +386,7 @@ export default function TourForm({ initialData }) {
                 setSelectedPais(e.target.value);
                 setValue('ciudad', SUDAMERICA_GEOGRAPHY[e.target.value][0]);
               }}
-              className="w-full bg-[#121224] border border-[#2b2b46] rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-[#e94560] text-sm"
+              className="w-full bg-[#121224] border border-[#414833] rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-[#656d4a] text-sm"
             >
               {Object.keys(SUDAMERICA_GEOGRAPHY).map(pais => (
                 <option key={pais} value={pais}>{pais}</option>
@@ -400,7 +400,7 @@ export default function TourForm({ initialData }) {
             <label className="block text-sm font-medium text-gray-300">Ciudad Destino *</label>
             <select
               {...register('ciudad', { required: 'La ciudad es obligatoria' })}
-              className="w-full bg-[#121224] border border-[#2b2b46] rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-[#e94560] text-sm"
+              className="w-full bg-[#121224] border border-[#414833] rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-[#656d4a] text-sm"
             >
               {SUDAMERICA_GEOGRAPHY[selectedPais]?.map(ciudad => (
                 <option key={ciudad} value={ciudad}>{ciudad}</option>
@@ -412,7 +412,7 @@ export default function TourForm({ initialData }) {
             <label className="block text-sm font-medium text-gray-300">Categoría del Tour *</label>
             <select
               {...register('categoria', { required: 'La categoría es obligatoria' })}
-              className="w-full bg-[#121224] border border-[#2b2b46] rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-[#e94560] text-sm"
+              className="w-full bg-[#121224] border border-[#414833] rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-[#656d4a] text-sm"
             >
               <option value="Trekking">Trekking</option>
               <option value="Full Days">Full Days</option>
@@ -426,7 +426,7 @@ export default function TourForm({ initialData }) {
           <textarea
             rows="4"
             {...register('descripcion', { required: 'La descripción es obligatoria' })}
-            className="w-full bg-[#121224] border border-[#2b2b46] rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-[#e94560] text-sm"
+            className="w-full bg-[#121224] border border-[#414833] rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-[#656d4a] text-sm"
             placeholder="Vive la experiencia inigualable de subir a pie hasta el cráter de un volcán activo..."
           ></textarea>
         </div>
@@ -438,10 +438,10 @@ export default function TourForm({ initialData }) {
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => { e.preventDefault(); if (e.dataTransfer.files) handleFiles(e.dataTransfer.files); }}
             onClick={() => fileInputRef.current?.click()}
-            className="border-2 border-dashed border-[#2b2b46] hover:border-[#e94560] bg-[#121224]/30 hover:bg-[#e94560]/5 rounded-2xl p-8 flex flex-col items-center justify-center gap-3 cursor-pointer transition-all duration-300 group"
+            className="border-2 border-dashed border-[#414833] hover:border-[#656d4a] bg-[#121224]/30 hover:bg-[#656d4a]/5 rounded-2xl p-8 flex flex-col items-center justify-center gap-3 cursor-pointer transition-all duration-300 group"
           >
             <input type="file" ref={fileInputRef} multiple onChange={(e) => handleFiles(e.target.files)} className="hidden" accept="image/*" />
-            <div className="w-12 h-12 bg-white/[0.03] group-hover:bg-[#e94560]/10 rounded-full flex items-center justify-center border border-white/5 group-hover:border-[#e94560]/20 text-gray-400 group-hover:text-[#e94560]">
+            <div className="w-12 h-12 bg-white/[0.03] group-hover:bg-[#656d4a]/10 rounded-full flex items-center justify-center border border-white/5 group-hover:border-[#656d4a]/20 text-gray-400 group-hover:text-[#656d4a]">
               <UploadCloud className="w-6 h-6 animate-pulse" />
             </div>
             <div className="text-center">
@@ -451,13 +451,13 @@ export default function TourForm({ initialData }) {
             <div className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Optimizado automáticamente a .webp al 80%</div>
           </div>
 
-          {uploading && <div className="text-xs text-[#e94560] font-bold text-center animate-pulse">Procesando y subiendo archivos...</div>}
+          {uploading && <div className="text-xs text-[#656d4a] font-bold text-center animate-pulse">Procesando y subiendo archivos...</div>}
 
           {uploadedImages.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3">
               {uploadedImages.map((img, index) => (
-                <div key={index} className="flex gap-4 bg-[#121224] border border-[#2b2b46]/60 p-3 rounded-xl relative">
-                  <div className="w-16 h-16 bg-black/40 rounded-lg overflow-hidden border border-[#2b2b46] flex-shrink-0">
+                <div key={index} className="flex gap-4 bg-[#121224] border border-[#414833]/60 p-3 rounded-xl relative">
+                  <div className="w-16 h-16 bg-black/40 rounded-lg overflow-hidden border border-[#414833] flex-shrink-0">
                     <img src={`${API_ASSETS_URL}${img.url}`} alt="Preview" className="w-full h-full object-cover" onError={(e) => { e.target.src = img.url; }} />
                   </div>
                   <div className="flex-1 flex flex-col justify-between">
@@ -470,7 +470,7 @@ export default function TourForm({ initialData }) {
                         copy[index].altText = e.target.value;
                         setUploadedImages(copy);
                       }}
-                      className="bg-[#0f0f1a] border border-[#2b2b46] rounded-lg px-2 py-1 text-xs text-white w-full focus:outline-none"
+                      className="bg-[#12150e] border border-[#414833] rounded-lg px-2 py-1 text-xs text-white w-full focus:outline-none"
                     />
                     <div className="flex justify-between items-center mt-1">
                       <div className="flex gap-1">
@@ -489,15 +489,15 @@ export default function TourForm({ initialData }) {
 
       {/* BLOQUE 2: VARIANTES DEL TOUR ENCAPSULADAS */}
       <div className="glass-card p-6 rounded-2xl space-y-6">
-        <div className="flex items-center justify-between border-b border-[#2b2b46] pb-3">
+        <div className="flex items-center justify-between border-b border-[#414833] pb-3">
           <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            <Layers className="w-5 h-5 text-[#e94560]" />
+            <Layers className="w-5 h-5 text-[#656d4a]" />
             Configuración de Variantes del Tour
           </h2>
           <button
             type="button"
             onClick={handleAddVariant}
-            className="bg-[#e94560]/10 text-[#e94560] hover:bg-[#e94560] hover:text-white border border-[#e94560]/20 px-4 py-2 rounded-xl transition-all text-xs font-bold flex items-center gap-1.5"
+            className="bg-[#656d4a]/10 text-[#656d4a] hover:bg-[#656d4a] hover:text-white border border-[#656d4a]/20 px-4 py-2 rounded-xl transition-all text-xs font-bold flex items-center gap-1.5"
           >
             <Plus className="w-4 h-4" />
             Agregar Nueva Variante
@@ -505,54 +505,54 @@ export default function TourForm({ initialData }) {
         </div>
 
         {variantes.length === 0 ? (
-          <div className="bg-[#121224]/30 border border-[#2b2b46]/50 rounded-2xl p-6 text-center text-xs text-gray-500 italic">
+          <div className="bg-[#121224]/30 border border-[#414833]/50 rounded-2xl p-6 text-center text-xs text-gray-500 italic">
             No has agregado ninguna variante. Haz clic en "Agregar Nueva Variante" para configurar los precios, calendarios y servicios por cada paquete de días.
           </div>
         ) : (
           <div className="space-y-8">
             {variantes.map((v, vIdx) => (
-              <div key={vIdx} className="bg-[#121224]/40 border-2 border-[#2b2b46] p-6 rounded-2xl space-y-6 relative border-t-[#e94560]">
-                <div className="flex justify-between items-center border-b border-[#2b2b46] pb-2">
-                  <span className="text-xs font-black uppercase text-[#e94560] tracking-widest">Configuración Completa: Variante {v.duracion_dias} Día(s)</span>
+              <div key={vIdx} className="bg-[#121224]/40 border-2 border-[#414833] p-6 rounded-2xl space-y-6 relative border-t-[#656d4a]">
+                <div className="flex justify-between items-center border-b border-[#414833] pb-2">
+                  <span className="text-xs font-black uppercase text-[#656d4a] tracking-widest">Configuración Completa: Variante {v.duracion_dias} Día(s)</span>
                   <button type="button" onClick={() => handleRemoveVariant(vIdx)} className="text-gray-500 hover:text-red-400 p-1"><Trash2 className="w-4.5 h-4.5" /></button>
                 </div>
 
                 {/* Sub-Sección A: Precios y Logística */}
                 <div className="space-y-3">
-                  <h4 className="text-xs font-bold text-gray-300 flex items-center gap-1.5"><DollarSign className="w-4 h-4 text-[#e94560]" /> Precios y Logística de la Variante</h4>
+                  <h4 className="text-xs font-bold text-gray-300 flex items-center gap-1.5"><DollarSign className="w-4 h-4 text-[#656d4a]" /> Precios y Logística de la Variante</h4>
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
                       <label className="block text-[11px] font-medium text-gray-400 mb-1">Duración (Días) *</label>
-                      <input type="number" min="1" value={v.duracion_dias} onChange={(e) => handleUpdateVariantField(vIdx, 'duracion_dias', parseInt(e.target.value) || 1)} className="w-full bg-[#0f0f1a] border border-[#2b2b46] rounded-xl px-3 py-2 text-white text-xs focus:border-[#e94560] outline-none" required />
+                      <input type="number" min="1" value={v.duracion_dias} onChange={(e) => handleUpdateVariantField(vIdx, 'duracion_dias', parseInt(e.target.value) || 1)} className="w-full bg-[#12150e] border border-[#414833] rounded-xl px-3 py-2 text-white text-xs focus:border-[#656d4a] outline-none" required />
                     </div>
                     <div>
                       <label className="block text-[11px] font-medium text-gray-400 mb-1">Precio Adulto (USD) *</label>
-                      <input type="number" step="0.01" min="0" value={v.precio_adulto} onChange={(e) => handleUpdateVariantField(vIdx, 'precio_adulto', parseFloat(e.target.value) || 0)} className="w-full bg-[#0f0f1a] border border-[#2b2b46] rounded-xl px-3 py-2 text-white text-xs focus:border-[#e94560] outline-none" required />
+                      <input type="number" step="0.01" min="0" value={v.precio_adulto} onChange={(e) => handleUpdateVariantField(vIdx, 'precio_adulto', parseFloat(e.target.value) || 0)} className="w-full bg-[#12150e] border border-[#414833] rounded-xl px-3 py-2 text-white text-xs focus:border-[#656d4a] outline-none" required />
                     </div>
                     <div>
                       <label className="block text-[11px] font-medium text-gray-400 mb-1">Precio Niño (USD) *</label>
-                      <input type="number" step="0.01" min="0" value={v.precio_nino} onChange={(e) => handleUpdateVariantField(vIdx, 'precio_nino', parseFloat(e.target.value) || 0)} className="w-full bg-[#0f0f1a] border border-[#2b2b46] rounded-xl px-3 py-2 text-white text-xs focus:border-[#e94560] outline-none" required />
+                      <input type="number" step="0.01" min="0" value={v.precio_nino} onChange={(e) => handleUpdateVariantField(vIdx, 'precio_nino', parseFloat(e.target.value) || 0)} className="w-full bg-[#12150e] border border-[#414833] rounded-xl px-3 py-2 text-white text-xs focus:border-[#656d4a] outline-none" required />
                     </div>
                     <div>
                       <label className="block text-[11px] font-medium text-gray-400 mb-1">Cupos Disponibles *</label>
-                      <input type="number" min="1" value={v.cupos_disponibles} onChange={(e) => handleUpdateVariantField(vIdx, 'cupos_disponibles', parseInt(e.target.value) || 1)} className="w-full bg-[#0f0f1a] border border-[#2b2b46] rounded-xl px-3 py-2 text-white text-xs focus:border-[#e94560] outline-none" required />
+                      <input type="number" min="1" value={v.cupos_disponibles} onChange={(e) => handleUpdateVariantField(vIdx, 'cupos_disponibles', parseInt(e.target.value) || 1)} className="w-full bg-[#12150e] border border-[#414833] rounded-xl px-3 py-2 text-white text-xs focus:border-[#656d4a] outline-none" required />
                     </div>
                   </div>
                 </div>
 
                 {/* Sub-Sección B: Calendario de Fechas Disponibles para ESTA variante */}
-                <div className="space-y-3 bg-[#0f0f1a]/40 p-4 rounded-xl border border-[#2b2b46]">
-                  <h4 className="text-xs font-bold text-gray-300 flex items-center gap-1.5"><Calendar className="w-4 h-4 text-[#e94560]" /> Calendario de Fechas Disponibles</h4>
+                <div className="space-y-3 bg-[#12150e]/40 p-4 rounded-xl border border-[#414833]">
+                  <h4 className="text-xs font-bold text-gray-300 flex items-center gap-1.5"><Calendar className="w-4 h-4 text-[#656d4a]" /> Calendario de Fechas Disponibles</h4>
                   <div className="flex gap-3 items-end max-w-md">
                     <div className="flex-1">
                       <input
                         type="date"
                         value={variantTempDates[vIdx] || ''}
                         onChange={(e) => setVariantTempDates(prev => ({ ...prev, [vIdx]: e.target.value }))}
-                        className="w-full bg-[#121224] border border-[#2b2b46] rounded-xl px-3 py-1.5 text-white text-xs focus:outline-none"
+                        className="w-full bg-[#121224] border border-[#414833] rounded-xl px-3 py-1.5 text-white text-xs focus:outline-none"
                       />
                     </div>
-                    <button type="button" onClick={() => handleAddDateToVariant(vIdx)} className="bg-[#e94560]/10 text-[#e94560] border border-[#e94560]/20 px-3 py-1.5 rounded-xl text-xs font-bold hover:bg-[#e94560] hover:text-white transition-all">
+                    <button type="button" onClick={() => handleAddDateToVariant(vIdx)} className="bg-[#656d4a]/10 text-[#656d4a] border border-[#656d4a]/20 px-3 py-1.5 rounded-xl text-xs font-bold hover:bg-[#656d4a] hover:text-white transition-all">
                       + Añadir Fecha
                     </button>
                   </div>
@@ -561,9 +561,9 @@ export default function TourForm({ initialData }) {
                       <span className="text-[11px] text-gray-500 italic">No hay fechas asignadas a esta duración.</span>
                     ) : (
                       v.fechas_disponibles.map(f => (
-                        <span key={f} className="inline-flex items-center gap-1 bg-[#e94560]/10 border border-[#e94560]/30 text-white px-2 py-1 rounded-full text-[11px] font-medium">
+                        <span key={f} className="inline-flex items-center gap-1 bg-[#656d4a]/10 border border-[#656d4a]/30 text-white px-2 py-1 rounded-full text-[11px] font-medium">
                           {f}
-                          <button type="button" onClick={() => handleRemoveDateFromVariant(vIdx, f)} className="text-[#e94560] ml-1"><X className="w-3 h-3" /></button>
+                          <button type="button" onClick={() => handleRemoveDateFromVariant(vIdx, f)} className="text-[#656d4a] ml-1"><X className="w-3 h-3" /></button>
                         </span>
                       ))
                     )}
@@ -572,7 +572,7 @@ export default function TourForm({ initialData }) {
 
                 {/* Sub-Sección C: Plan Taxonómico de Servicios Incluidos para ESTA variante */}
                 <div className="space-y-3">
-                  <h4 className="text-xs font-bold text-gray-300 flex items-center gap-1.5"><Sparkles className="w-4 h-4 text-[#e94560]" /> Plan Taxonómico: Asignación de Servicios Incluidos</h4>
+                  <h4 className="text-xs font-bold text-gray-300 flex items-center gap-1.5"><Sparkles className="w-4 h-4 text-[#656d4a]" /> Plan Taxonómico: Asignación de Servicios Incluidos</h4>
                   <div className="space-y-2">
                     {Object.keys(PREDEFINED_TAXONOMY).map((catId) => {
                       const meta = CATEGORY_META[catId];
@@ -584,7 +584,7 @@ export default function TourForm({ initialData }) {
                       const customItems = (v.servicios_incluidos[catId] || []).filter(x => !PREDEFINED_TAXONOMY[catId].includes(x));
 
                       return (
-                        <div key={catId} className="border border-[#2b2b46]/60 rounded-xl overflow-hidden bg-[#121224]/20">
+                        <div key={catId} className="border border-[#414833]/60 rounded-xl overflow-hidden bg-[#121224]/20">
                           <button
                             type="button"
                             onClick={() => setActiveAccordion(prev => ({ ...prev, [accordionKey]: !prev[accordionKey] }))}
@@ -598,13 +598,13 @@ export default function TourForm({ initialData }) {
                           </button>
 
                           {isOpen && (
-                            <div className="p-4 bg-[#0f0f1a]/30 border-t border-[#2b2b46]/30 space-y-3">
+                            <div className="p-4 bg-[#12150e]/30 border-t border-[#414833]/30 space-y-3">
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                                 {PREDEFINED_TAXONOMY[catId].map((item) => {
                                   const isChecked = (v.servicios_incluidos[catId] || []).includes(item);
                                   return (
-                                    <label key={item} className={`flex items-start gap-2.5 p-2.5 rounded-xl border cursor-pointer text-[11px] ${isChecked ? 'bg-[#e94560]/5 border-[#e94560]/30 text-white' : 'bg-[#0f0f1a]/40 border-[#2b2b46]/40 text-gray-400'}`}>
-                                      <input type="checkbox" checked={isChecked} onChange={() => handleTaxonomyCheckboxChange(vIdx, catId, item)} className="mt-0.5 w-3.5 h-3.5 accent-[#e94560]" />
+                                    <label key={item} className={`flex items-start gap-2.5 p-2.5 rounded-xl border cursor-pointer text-[11px] ${isChecked ? 'bg-[#656d4a]/5 border-[#656d4a]/30 text-white' : 'bg-[#12150e]/40 border-[#414833]/40 text-gray-400'}`}>
+                                      <input type="checkbox" checked={isChecked} onChange={() => handleTaxonomyCheckboxChange(vIdx, catId, item)} className="mt-0.5 w-3.5 h-3.5 accent-[#656d4a]" />
                                       <span>{item}</span>
                                     </label>
                                   );
@@ -614,9 +614,9 @@ export default function TourForm({ initialData }) {
                               {customItems.length > 0 && (
                                 <div className="flex flex-wrap gap-1.5 pt-1">
                                   {customItems.map(item => (
-                                    <span key={item} className="inline-flex items-center gap-1 bg-[#e94560]/10 text-white border border-[#e94560]/30 px-2 py-1 rounded-full text-[11px]">
+                                    <span key={item} className="inline-flex items-center gap-1 bg-[#656d4a]/10 text-white border border-[#656d4a]/30 px-2 py-1 rounded-full text-[11px]">
                                       {item}
-                                      <button type="button" onClick={() => handleRemoveCustomServiceFromVariant(vIdx, catId, item)} className="text-[#e94560]"><X className="w-3 h-3" /></button>
+                                      <button type="button" onClick={() => handleRemoveCustomServiceFromVariant(vIdx, catId, item)} className="text-[#656d4a]"><X className="w-3 h-3" /></button>
                                     </span>
                                   ))}
                                 </div>
@@ -628,9 +628,9 @@ export default function TourForm({ initialData }) {
                                   placeholder="Personalizado..."
                                   value={variantCustomInputs[`${vIdx}-${catId}`] || ''}
                                   onChange={(e) => setVariantCustomInputs(prev => ({ ...prev, [`${vIdx}-${catId}`]: e.target.value }))}
-                                  className="w-full bg-[#0f0f1a] border border-[#2b2b46] rounded-lg px-2.5 py-1 text-white text-xs outline-none"
+                                  className="w-full bg-[#12150e] border border-[#414833] rounded-lg px-2.5 py-1 text-white text-xs outline-none"
                                 />
-                                <button type="button" onClick={() => handleAddCustomServiceToVariant(vIdx, catId)} className="bg-white/5 border border-[#2b2b46] px-2.5 py-1 rounded-lg text-[11px] text-white">+</button>
+                                <button type="button" onClick={() => handleAddCustomServiceToVariant(vIdx, catId)} className="bg-white/5 border border-[#414833] px-2.5 py-1 rounded-lg text-[11px] text-white">+</button>
                               </div>
                             </div>
                           )}
@@ -659,7 +659,7 @@ export default function TourForm({ initialData }) {
                     value={v.itinerario}
                     onChange={(e) => handleUpdateVariantField(vIdx, 'itinerario', e.target.value)}
                     placeholder="Describe el itinerario día a día detalladamente para esta variante de tiempo..."
-                    className="w-full bg-[#0f0f1a] border border-[#2b2b46] rounded-xl px-3 py-2 text-white text-xs focus:border-[#e94560] outline-none"
+                    className="w-full bg-[#12150e] border border-[#414833] rounded-xl px-3 py-2 text-white text-xs focus:border-[#656d4a] outline-none"
                     required
                   />
                 </div>
@@ -678,7 +678,7 @@ export default function TourForm({ initialData }) {
           </div>
           <label className="relative inline-flex items-center cursor-pointer">
             <input type="checkbox" {...register('activo')} className="sr-only peer" />
-            <div className="w-11 h-6 bg-[#121224] border border-[#2b2b46] rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-gray-400 after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#e94560] peer-checked:after:bg-white"></div>
+            <div className="w-11 h-6 bg-[#121224] border border-[#414833] rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-gray-400 after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#656d4a] peer-checked:after:bg-white"></div>
           </label>
         </div>
 
@@ -689,7 +689,7 @@ export default function TourForm({ initialData }) {
           </div>
           <label className="relative inline-flex items-center cursor-pointer">
             <input type="checkbox" {...register('destacado')} className="sr-only peer" />
-            <div className="w-11 h-6 bg-[#121224] border border-[#2b2b46] rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-gray-400 after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#e94560] peer-checked:after:bg-white"></div>
+            <div className="w-11 h-6 bg-[#121224] border border-[#414833] rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-gray-400 after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#656d4a] peer-checked:after:bg-white"></div>
           </label>
         </div>
       </div>
@@ -699,7 +699,7 @@ export default function TourForm({ initialData }) {
         <button
           type="button"
           onClick={() => router.push('/tours')}
-          className="flex items-center gap-2 border border-[#2b2b46] hover:bg-white/5 text-gray-300 px-6 py-3 rounded-xl transition-all text-sm font-semibold"
+          className="flex items-center gap-2 border border-[#414833] hover:bg-white/5 text-gray-300 px-6 py-3 rounded-xl transition-all text-sm font-semibold"
         >
           <ArrowLeft className="w-4 h-4" />
           Cancelar
@@ -708,7 +708,7 @@ export default function TourForm({ initialData }) {
         <button
           type="submit"
           disabled={loading || uploading}
-          className="flex items-center gap-2 bg-[#e94560] hover:bg-[#ff5c77] text-white px-8 py-3 rounded-xl font-bold shadow-lg transition-all text-sm disabled:opacity-50"
+          className="flex items-center gap-2 bg-[#656d4a] hover:bg-[#7b855b] text-white px-8 py-3 rounded-xl font-bold shadow-lg transition-all text-sm disabled:opacity-50"
         >
           <Save className="w-4 h-4" />
           {loading ? 'Guardando...' : 'Guardar Tour'}

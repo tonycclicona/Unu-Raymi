@@ -36,7 +36,7 @@ export default function TourCard({ tour, onReservar }) {
   const currentImage = imagenes[currentImageIndex]?.url;
 
   return (
-    <div className="bg-[#16162a]/40 border border-[#2b2b46]/50 rounded-2xl overflow-hidden flex flex-col sm:flex-row group hover:border-[#e94560]/30 transition-all duration-300 shadow-md">
+    <div className="bg-[#1a1d15]/40 border border-[#414833]/50 rounded-2xl overflow-hidden flex flex-col sm:flex-row group hover:border-[#656d4a]/30 transition-all duration-300 shadow-md">
       {/* Imagen */}
       <div className="w-full sm:w-2/5 h-52 sm:h-auto relative overflow-hidden bg-[#121224] flex-shrink-0">
         {currentImage ? (
@@ -54,11 +54,11 @@ export default function TourCard({ tour, onReservar }) {
           </div>
         )}
         <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
-          <span className="bg-[#0f0f1a]/80 backdrop-blur-md border border-white/10 px-2.5 py-1 rounded-full text-[9px] font-extrabold text-[#e94560] uppercase tracking-wider">
+          <span className="bg-[#12150e]/80 backdrop-blur-md border border-white/10 px-2.5 py-1 rounded-full text-[9px] font-extrabold text-[#656d4a] uppercase tracking-wider">
             {tour.pais}
           </span>
           {tour.ciudad && (
-            <span className="bg-[#121224]/90 backdrop-blur-md border border-[#2b2b46]/50 px-2.5 py-1 rounded-full text-[9px] font-bold text-gray-300 uppercase tracking-wider">
+            <span className="bg-[#121224]/90 backdrop-blur-md border border-[#414833]/50 px-2.5 py-1 rounded-full text-[9px] font-bold text-gray-300 uppercase tracking-wider">
               {tour.ciudad}
             </span>
           )}
@@ -71,7 +71,7 @@ export default function TourCard({ tour, onReservar }) {
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[10px] text-gray-400">
             {hasVariants ? (
               <div className="flex flex-wrap gap-1.5 items-center">
-                <Calendar className="w-3.5 h-3.5 text-[#e94560]" />
+                <Calendar className="w-3.5 h-3.5 text-[#656d4a]" />
                 {tour.variantes.map((v) => {
                   const isSelected = selectedDuration === v.duracion_dias;
                   return (
@@ -84,8 +84,8 @@ export default function TourCard({ tour, onReservar }) {
                       }}
                       className={`px-2.5 py-0.5 rounded-full text-[9px] font-extrabold transition-all border ${
                         isSelected
-                          ? 'bg-[#e94560] text-white border-transparent'
-                          : 'bg-[#121224]/80 hover:bg-[#2b2b46]/50 text-gray-400 hover:text-white border-[#2b2b46]'
+                          ? 'bg-[#656d4a] text-white border-transparent'
+                          : 'bg-[#121224]/80 hover:bg-[#414833]/50 text-gray-400 hover:text-white border-[#414833]'
                       }`}
                     >
                       {v.duracion_dias} {v.duracion_dias === 1 ? 'Día' : 'Días'}
@@ -95,7 +95,7 @@ export default function TourCard({ tour, onReservar }) {
               </div>
             ) : (
               <span className="flex items-center gap-1">
-                <Calendar className="w-3.5 h-3.5 text-[#e94560]" />
+                <Calendar className="w-3.5 h-3.5 text-[#656d4a]" />
                 {displayDuration} {displayDuration === 1 ? 'Día' : 'Días'}
               </span>
             )}
@@ -104,13 +104,13 @@ export default function TourCard({ tour, onReservar }) {
               {displayCupos} Cupos libres
             </span>
             {tour.categoria && (
-              <span className="bg-[#e94560]/10 text-[#e94560] border border-[#e94560]/20 px-2 py-0.5 rounded-full text-[8px] font-extrabold uppercase tracking-wider">
+              <span className="bg-[#656d4a]/10 text-[#656d4a] border border-[#656d4a]/20 px-2 py-0.5 rounded-full text-[8px] font-extrabold uppercase tracking-wider">
                 {tour.categoria}
               </span>
             )}
           </div>
 
-          <h3 className="font-extrabold text-white text-base sm:text-lg leading-snug group-hover:text-[#e94560] transition-colors line-clamp-2">
+          <h3 className="font-extrabold text-white text-base sm:text-lg leading-snug group-hover:text-[#656d4a] transition-colors line-clamp-2">
             {tour.nombre}
           </h3>
 
@@ -120,7 +120,7 @@ export default function TourCard({ tour, onReservar }) {
         </div>
 
         {/* Footer Tarjeta */}
-        <div className="flex items-center justify-between border-t border-[#2b2b46]/50 pt-3 gap-3">
+        <div className="flex items-center justify-between border-t border-[#414833]/50 pt-3 gap-3">
           <div>
             <span className="text-[10px] text-gray-500 block uppercase font-bold tracking-wider">Desde</span>
             <span className="text-lg font-black text-white flex items-center">
@@ -131,7 +131,7 @@ export default function TourCard({ tour, onReservar }) {
 
           <button
             onClick={() => onReservar(tour, displayDuration)}
-            className="flex items-center gap-1.5 bg-[#e94560] hover:bg-[#ff5c77] text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-lg shadow-[#e94560]/10 hover:shadow-[#e94560]/20 transition-all duration-300 group/btn whitespace-nowrap"
+            className="flex items-center gap-1.5 bg-[#656d4a] hover:bg-[#7b855b] text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-lg shadow-[#656d4a]/10 hover:shadow-[#656d4a]/20 transition-all duration-300 group/btn whitespace-nowrap"
           >
             Reservar
             <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-1 transition-transform" />

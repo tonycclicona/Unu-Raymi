@@ -25,14 +25,14 @@ export default function ReservasPage() {
         </div>
 
         {/* Filtros */}
-        <div className="flex bg-[#16162a]/55 border border-[#2b2b46]/50 p-1 rounded-xl gap-1">
+        <div className="flex bg-[#1a1d15]/55 border border-[#414833]/50 p-1 rounded-xl gap-1">
           {['ALL', 'PENDING', 'PAID', 'CANCELLED'].map((estado) => (
             <button
               key={estado}
               onClick={() => setFiltro(estado)}
               className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
                 filtro === estado
-                  ? 'bg-[#e94560] text-white shadow-lg shadow-[#e94560]/10'
+                  ? 'bg-[#656d4a] text-white shadow-lg shadow-[#656d4a]/10'
                   : 'text-gray-400 hover:text-white'
               }`}
             >
@@ -69,7 +69,7 @@ export default function ReservasPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm text-gray-300">
               <thead>
-                <tr className="border-b border-[#2b2b46] text-gray-400 text-xs font-semibold uppercase">
+                <tr className="border-b border-[#414833] text-gray-400 text-xs font-semibold uppercase">
                   <th className="py-3.5 px-4">Referencia</th>
                   <th className="py-3.5 px-4">Titular</th>
                   <th className="py-3.5 px-4">Tour / Viaje</th>
@@ -79,7 +79,7 @@ export default function ReservasPage() {
                   <th className="py-3.5 px-4 text-right">Comprobante</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#2b2b46]/50">
+              <tbody className="divide-y divide-[#414833]/50">
                 {filteredReservas.map((reserva) => (
                   <tr key={reserva.id} className="hover:bg-white/[0.01] transition-colors">
                     <td className="py-4 px-4 font-mono text-xs text-gray-400">
@@ -95,7 +95,7 @@ export default function ReservasPage() {
                     <td className="py-4 px-4">
                       <div className="text-white">{reserva.tour?.nombre || 'Tour cargando...'}</div>
                       <div className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
-                        <Calendar className="w-3.5 h-3.5 text-[#e94560]" />
+                        <Calendar className="w-3.5 h-3.5 text-[#656d4a]" />
                         {new Date(reserva.fechaViaje).toLocaleDateString('es-PE')}
                       </div>
                     </td>
@@ -117,7 +117,7 @@ export default function ReservasPage() {
                           href={`${API_BASE_URL}/reservas/${reserva.id}/invoice?token=${reserva.tokenSeguridad}`}
                           target="_blank"
                           rel="noreferrer"
-                          className="inline-flex items-center gap-1.5 bg-[#e94560]/10 hover:bg-[#e94560] text-[#e94560] hover:text-white border border-[#e94560]/20 hover:border-transparent px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200"
+                          className="inline-flex items-center gap-1.5 bg-[#656d4a]/10 hover:bg-[#656d4a] text-[#656d4a] hover:text-white border border-[#656d4a]/20 hover:border-transparent px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200"
                         >
                           <Download className="w-3.5 h-3.5" />
                           PDF
