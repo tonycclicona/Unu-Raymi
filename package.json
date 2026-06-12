@@ -3,16 +3,16 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "install:backend": "npx -y pnpm install --prefix backend",
-    "build:backend": "npx -y pnpm run build --prefix backend",
-    "start:backend": "npx -y pnpm run start --prefix backend",
+    "install:backend": "npm install --prefix backend",
+    "build:backend": "npm run build --prefix backend",
+    "start:backend": "npm run start --prefix backend",
 
-    "install:admin": "npx -y pnpm install --prefix admin",
-    "build:admin": "npx -y pnpm run build --prefix admin",
-    "start:admin": "npx -y pnpm run start --prefix admin -- -p $PORT",
+    "install:admin": "npm install --prefix admin",
+    "build:admin": "npm run build --prefix admin",
+    "start:admin": "npm run start --prefix admin -- -p $PORT",
 
-    "install:frontend": "npx -y pnpm install --prefix frontend",
-    "build:frontend": "npx -y pnpm run build --prefix frontend",
-    "start:frontend": "npx -y pnpm run start --prefix frontend -- -p $PORT"
+    "install:frontend": "npm install --prefix frontend",
+    "build:frontend": "npm run build --prefix frontend",
+    "start:frontend": "npm run start --prefix frontend -- -p $PORT"
   }
 }
