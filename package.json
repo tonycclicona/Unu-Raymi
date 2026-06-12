@@ -4,16 +4,16 @@
   "private": true,
   "packageManager": "pnpm@11.5.3",
   "scripts": {
-    "install:backend": "pnpm install --prefix backend",
-    "build:backend": "pnpm run build --prefix backend",
-    "start:backend": "pnpm run start --prefix backend",
+    "install:backend": "npx -y pnpm install --prefix backend",
+    "build:backend": "npx -y pnpm run build --prefix backend",
+    "start:backend": "npx -y pnpm run start --prefix backend",
 
-    "install:admin": "pnpm install --prefix admin",
-    "build:admin": "pnpm run build --prefix admin",
-    "start:admin": "pnpm run start --prefix admin -- -p $PORT",
+    "install:admin": "npx -y pnpm install --prefix admin",
+    "build:admin": "npx -y pnpm run build --prefix admin",
+    "start:admin": "npx -y pnpm run start --prefix admin -- -p $PORT",
 
-    "install:frontend": "pnpm install --prefix frontend",
-    "build:frontend": "pnpm run build --prefix frontend",
-    "start:frontend": "pnpm run start --prefix frontend -- -p $PORT"
+    "install:frontend": "npx -y pnpm install --prefix frontend",
+    "build:frontend": "npx -y pnpm run build --prefix frontend",
+    "start:frontend": "npx -y pnpm run start --prefix frontend -- -p $PORT"
   }
 }
