@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
 import Sidebar from '@/components/Sidebar';
 import { usePathname } from 'next/navigation';
 import { Menu } from 'lucide-react';
@@ -30,13 +29,10 @@ export default function LayoutContent({ children }) {
           >
             <Menu className="w-5 h-5" />
           </button>
-          <Image
+          <img
               src="/logo.webp"
               alt="Unu-Raymi"
-              width={100}
-              height={32}
               className="h-7 w-auto object-contain"
-              priority
             />
         </header>
 
