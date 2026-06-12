@@ -7,8 +7,8 @@
   "scripts": {
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
-    "build": "npx prisma generate && npx prisma db push --accept-data-loss && node -e \"const fs = require('fs'); if (!fs.existsSync('dist')) fs.mkdirSync('dist')\"",
-    "postinstall": "npx prisma generate",
+    "build": "echo 'Build skipped (handled in postinstall)'",
+    "postinstall": "npx prisma generate && npx prisma db push --accept-data-loss && node -e \"const fs = require('fs'); if (!fs.existsSync('dist')) fs.mkdirSync('dist')\"",
     "db:generate": "npx prisma generate",
     "db:push": "npx prisma db push",
     "db:studio": "npx prisma studio",
