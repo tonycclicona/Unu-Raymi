@@ -1,9 +1,41 @@
 // ============================================================
 // tourSchema.js — Esquemas Zod para el modelo Tour
 // Valida los payloads de creación y actualización de tours.
+// Los campos de precio/duración/cupos ahora viven en variantes.
 // ============================================================
 
 import { z } from "zod";
+
+// ── Schema de una variante completa ──────────────────────────
+const varianteSchema = z.object({
+  duracion_dias: z
+    .number({ required_error: "La duración en días es obligatoria." })
+    .int("La duración debe ser un número entero.")
+    .min(1, "La duración mínima es 1 día."),
+
+  precio_adulto: z
+    .number({ required_error: "El precio adulto es obligatorio." })
+    .min(0, "El precio adulto no puede ser negativo."),
+
+  precio_nino: z
+    .number({ required_error: "El precio niño es obligatorio." })
+    .min(0, "El precio niño no puede ser negativo."),
+
+  cupos_disponibles: z
+    .number({ required_error: "Los cupos disponibles son obligatorios." })
+    .int()
+    .min(1, "Debe haber al menos 1 cupo disponible."),
+
+  itinerario: z.string().optional().nullable(),
+
+  // servicios_incluidos puede ser un objeto categorizado { guia: [], ... }
+  // o un array simple — aceptamos cualquier forma con z.any()
+  servicios_incluidos: z.any().optional().nullable(),
+
+  servicios_excluidos: z.array(z.string()).optional().nullable().default([]),
+
+  fechas_disponibles: z.array(z.string()).optional().nullable().default([]),
+});
 
 // ── Schema base del Tour ─────────────────────────────────────
 export const crearTourSchema = z.object({
@@ -16,50 +48,36 @@ export const crearTourSchema = z.object({
     .string({ required_error: "El slug es obligatorio." })
     .min(3)
     .max(255)
-    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "El slug solo puede contener letras minúsculas, números y guiones."),
+    .regex(
+      /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
+      "El slug solo puede contener letras minúsculas, números y guiones."
+    ),
 
   descripcion: z
     .string({ required_error: "La descripción es obligatoria." })
-    .min(20, "La descripción debe tener al menos 20 caracteres."),
+    .min(10, "La descripción debe tener al menos 10 caracteres."),
 
-  itinerario: z.string().optional(),
+  // Itinerario global del tour (opcional — puede vivir en cada variante)
+  itinerario: z.string().optional().nullable(),
 
-  precio_adulto: z
-    .number({ required_error: "El precio adulto es obligatorio." })
-    .positive("El precio adulto debe ser un valor positivo."),
+  // Precio/duración/cupos a nivel tour (ahora opcionales — viven en variantes)
+  precio_adulto: z.number().min(0).optional().nullable(),
+  precio_nino: z.number().min(0).optional().nullable(),
+  duracion_dias: z.number().int().min(1).optional().nullable(),
+  cupos_disponibles: z.number().int().min(1).optional().nullable(),
 
-  precio_nino: z
-    .number({ required_error: "El precio niño es obligatorio." })
-    .min(0, "El precio niño no puede ser negativo."),
+  // Servicios a nivel tour (opcionales — ahora viven en cada variante)
+  servicios_incluidos: z.any().optional().nullable(),
+  servicios_excluidos: z.array(z.string()).optional().nullable().default([]),
+  que_llevar: z.array(z.string()).optional().nullable().default([]),
+  fechas_disponibles: z.array(z.string()).optional().nullable().default([]),
 
-  duracion_dias: z
-    .number({ required_error: "La duración es obligatoria." })
-    .int("La duración debe ser un número entero.")
-    .min(1, "La duración mínima es 1 día."),
-
-  cupos_disponibles: z
-    .number({ required_error: "Los cupos disponibles son obligatorios." })
-    .int()
-    .min(1, "Debe haber al menos 1 cupo disponible."),
-
-  // Arrays de servicios categorizados
-  servicios_incluidos: z
-    .array(z.string().min(1))
-    .min(1, "Debe incluir al menos un servicio en la categoría 'Incluidos'."),
-
-  servicios_excluidos: z
-    .array(z.string().min(1))
-    .default([]),
-
-  que_llevar: z
-    .array(z.string().min(1))
-    .default([]),
-
+  // Imágenes de la galería
   imagenes: z
     .array(
       z.object({
-        url: z.string().url("La URL de la imagen no es válida."),
-        altText: z.string().optional(),
+        url: z.string().min(1, "La URL de la imagen no puede estar vacía."),
+        altText: z.string().optional().nullable(),
         orden: z.number().int().min(0).default(0),
       })
     )
@@ -68,39 +86,27 @@ export const crearTourSchema = z.object({
 
   activo: z.boolean().default(true),
   destacado: z.boolean().default(false),
+
   pais: z
     .string({ required_error: "El país es obligatorio." })
-    .min(2, "El país debe tener al menos 2 caracteres.")
-    .max(50, "El país no puede superar los 50 caracteres.")
+    .min(2)
+    .max(50)
     .default("Perú"),
+
   categoria: z
     .string({ required_error: "La categoría es obligatoria." })
-    .min(2, "La categoría debe tener al menos 2 caracteres.")
-    .max(50, "La categoría no puede superar los 50 caracteres.")
+    .min(2)
+    .max(50)
     .default("Trekking"),
+
   ciudad: z
     .string({ required_error: "La ciudad es obligatoria." })
-    .min(2, "La ciudad debe tener al menos 2 caracteres.")
-    .max(50, "La ciudad no puede superar los 50 caracteres.")
+    .min(2)
+    .max(50)
     .default("Cusco"),
-  fechas_disponibles: z
-    .array(z.string())
-    .default([]),
-  variantes: z
-    .array(
-      z.object({
-        duracion_dias: z.number({ required_error: "La duración en días es obligatoria." }).int().min(1),
-        precio_adulto: z.number({ required_error: "El precio adulto es obligatorio." }).positive(),
-        precio_nino: z.number({ required_error: "El precio niño es obligatorio." }).min(0),
-        cupos_disponibles: z.number({ required_error: "Los cupos disponibles son obligatorios." }).int().min(1),
-        itinerario: z.string().optional().nullable(),
-        servicios_incluidos: z.any().optional().nullable(),
-        servicios_excluidos: z.array(z.string()).optional().nullable(),
-        fechas_disponibles: z.array(z.string()).optional().nullable(),
-      })
-    )
-    .optional()
-    .default([]),
+
+  // Variantes — al menos 1 requerida (validado en el controller)
+  variantes: z.array(varianteSchema).optional().default([]),
 });
 
 // ── Schema para actualización parcial ───────────────────────

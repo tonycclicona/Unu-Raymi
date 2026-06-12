@@ -149,6 +149,14 @@ export const crearTour = async (req, res, next) => {
       variantes,
     } = req.body;
 
+    // Si no se envían a nivel raíz, tomamos del primer variante (si existe) para no romper constraints de la BD
+    const primerVariante = (variantes && variantes.length > 0) ? variantes[0] : null;
+    const finalPrecioAdulto = precio_adulto ?? primerVariante?.precio_adulto ?? 0;
+    const finalPrecioNino = precio_nino ?? primerVariante?.precio_nino ?? 0;
+    const finalDuracionDias = duracion_dias ?? primerVariante?.duracion_dias ?? 1;
+    const finalCuposDisponibles = cupos_disponibles ?? primerVariante?.cupos_disponibles ?? 0;
+    const finalServiciosIncluidos = servicios_incluidos ?? primerVariante?.servicios_incluidos ?? [];
+
     // Verificar slug duplicado
     const slugExistente = await prisma.tour.findUnique({ where: { slug } });
     if (slugExistente) {
@@ -164,15 +172,15 @@ export const crearTour = async (req, res, next) => {
         slug,
         descripcion,
         itinerario,
-        precio_adulto,
-        precio_nino,
-        duracion_dias,
-        cupos_disponibles,
+        precio_adulto: finalPrecioAdulto,
+        precio_nino: finalPrecioNino,
+        duracion_dias: finalDuracionDias,
+        cupos_disponibles: finalCuposDisponibles,
         pais,
         categoria,
         ciudad,
         // Serializar arrays → JSON string para MySQL
-        servicios_incluidos: serializarArray(servicios_incluidos),
+        servicios_incluidos: serializarArray(finalServiciosIncluidos),
         servicios_excluidos: serializarArray(servicios_excluidos),
         que_llevar: serializarArray(que_llevar),
         fechas_disponibles: serializarArray(fechas_disponibles),
@@ -231,6 +239,19 @@ export const actualizarTour = async (req, res, next) => {
 
     // Preparar datos de actualización
     const dataActualizar = { ...data };
+
+    // Si se envían variantes, también sincronizamos los campos a nivel raíz para mantener la coherencia en la BD
+    if (data.variantes !== undefined && data.variantes.length > 0) {
+      const primerVariante = data.variantes[0];
+      dataActualizar.precio_adulto = data.precio_adulto ?? parseFloat(primerVariante.precio_adulto) ?? 0;
+      dataActualizar.precio_nino = data.precio_nino ?? parseFloat(primerVariante.precio_nino) ?? 0;
+      dataActualizar.duracion_dias = data.duracion_dias ?? parseInt(primerVariante.duracion_dias, 10) ?? 1;
+      dataActualizar.cupos_disponibles = data.cupos_disponibles ?? parseInt(primerVariante.cupos_disponibles, 10) ?? 0;
+      
+      if (data.servicios_incluidos === undefined) {
+        dataActualizar.servicios_incluidos = serializarArray(primerVariante.servicios_incluidos);
+      }
+    }
 
     // Serializar arrays si están presentes
     if (data.servicios_incluidos !== undefined) {
