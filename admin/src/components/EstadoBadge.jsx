@@ -16,7 +16,7 @@ export default function EstadoBadge({ estado }) {
 
   const current = configs[estado] || {
     text: estado,
-    classes: 'bg-gray-500/10 text-gray-400 border border-gray-500/20',
+    classes: 'bg-gray-500/10 text-[#6c7a7c] border border-gray-500/20',
   };
 
   return (

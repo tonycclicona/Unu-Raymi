@@ -20,7 +20,7 @@ export default function EditarTourPage({ params }) {
 
   if (!tour) {
     return (
-      <div className="py-8 text-center text-gray-500 text-sm">
+      <div className="py-8 text-center text-[#6c7a7c]/80 text-sm">
         Cargando información del tour...
       </div>
     );
@@ -35,8 +35,8 @@ export default function EditarTourPage({ params }) {
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-extrabold text-white tracking-tight">Editar Tour</h1>
-        <p className="text-gray-400 mt-1 text-sm">Modifica los detalles y servicios de la aventura.</p>
+        <h1 className="text-3xl font-extrabold text-[#4a5759] tracking-tight">Editar Tour</h1>
+        <p className="text-[#6c7a7c] mt-1 text-sm">Modifica los detalles y servicios de la aventura.</p>
       </div>
 
       {/* Formulario */}

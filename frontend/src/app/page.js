@@ -121,20 +121,20 @@ export default function Home() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#12150e] relative">
+    <div className="flex flex-col min-h-screen bg-[#f7e1d7] relative">
       <Navbar />
 
       {/* 1. Hero con Dynamic Reveal */}
       <Hero />
 
       {/* 2. Sección Tours — Layout Responsivo */}
-      <section id="tours" className="w-full border-t border-[#414833]/50 bg-[#0c0c14] relative z-10 scroll-mt-16">
+      <section id="tours" className="w-full border-t border-[#b0c4b1]/50 bg-[#0c0c14] relative z-10 scroll-mt-16">
 
         {/* ── MOBILE LAYOUT ── */}
         <div className="flex flex-col md:hidden">
 
           {/* Mapa compacto en mobile */}
-          <div className="w-full h-[230px] p-3 flex items-center justify-center border-b border-[#414833]/40">
+          <div className="w-full h-[230px] p-3 flex items-center justify-center border-b border-[#b0c4b1]/40">
             <MapaSudamerica
               filtroPais={filtroPais}
               setFiltroPais={(p) => {
@@ -145,18 +145,18 @@ export default function Home() {
           </div>
 
           {/* Header catálogo mobile */}
-          <div className="p-4 border-b border-[#414833]/40 bg-[#0e0e1a]/90 backdrop-blur-md space-y-3 sticky top-[52px] z-10">
+          <div className="p-4 border-b border-[#b0c4b1]/40 bg-[#0e0e1a]/90 backdrop-blur-md space-y-3 sticky top-[52px] z-10">
             <div className="flex items-center justify-between">
-              <h2 className="text-sm font-black text-white flex items-center gap-1.5">
-                <Compass className="w-4 h-4 text-[#656d4a]" />
+              <h2 className="text-sm font-black text-[#4a5759] flex items-center gap-1.5">
+                <Compass className="w-4 h-4 text-[#4a5759]" />
                 Tours en {filtroPais === 'Todos' ? 'Sudamérica' : filtroPais}
               </h2>
               <div className="flex items-center gap-2">
-                <span className="text-[9px] text-gray-400">{filteredTours.length} {filteredTours.length === 1 ? 'result.' : 'results.'}</span>
+                <span className="text-[9px] text-[#6c7a7c]">{filteredTours.length} {filteredTours.length === 1 ? 'result.' : 'results.'}</span>
                 {filtroPais !== 'Todos' && (
                   <button
                     onClick={() => { setFiltroPais('Todos'); setVisibleCount(6); }}
-                    className="bg-[#656d4a]/10 text-[#656d4a] border border-[#656d4a]/20 text-[9px] px-2 py-0.5 rounded-full font-bold"
+                    className="bg-[#4a5759]/10 text-[#4a5759] border border-[#4a5759]/20 text-[9px] px-2 py-0.5 rounded-full font-bold"
                   >
                     ✕ Limpiar
                   </button>
@@ -173,8 +173,8 @@ export default function Home() {
                     key={cat}
                     onClick={() => { setFiltroCategoria(cat); setVisibleCount(6); }}
                     className={`flex-shrink-0 px-3 py-1.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider transition-all ${isSelected
-                      ? 'bg-[#656d4a] text-white shadow-md shadow-[#656d4a]/20'
-                      : 'bg-[#1a1d15]/60 text-gray-400 border border-[#414833]/60'
+                      ? 'bg-[#4a5759] text-white shadow-md shadow-[#4a5759]/20'
+                      : 'bg-[#ffffff]/60 text-[#6c7a7c] border border-[#b0c4b1]/60'
                     }`}
                   >
                     {cat === '*' ? 'Todos' : cat}
@@ -186,18 +186,18 @@ export default function Home() {
             {/* Búsqueda */}
             <div className="relative">
               <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-3.5 w-3.5 text-gray-500" />
+                <Search className="h-3.5 w-3.5 text-[#6c7a7c]/80" />
               </span>
               <input
                 type="text"
                 value={busqueda}
                 onChange={(e) => { setBusqueda(e.target.value); setVisibleCount(6); }}
                 placeholder="Buscar tours..."
-                className="w-full pl-9 pr-8 py-2.5 bg-[#121224]/80 border border-[#414833]/50 rounded-xl text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#656d4a]/50"
+                className="w-full pl-9 pr-8 py-2.5 bg-white/80 border border-[#b0c4b1]/50 rounded-xl text-xs text-[#4a5759] placeholder-gray-500 focus:outline-none focus:border-[#4a5759]/50"
               />
               {busqueda && (
                 <button onClick={() => { setBusqueda(''); setVisibleCount(6); }}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500">
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-[#6c7a7c]/80">
                   <X className="h-3.5 w-3.5" />
                 </button>
               )}
@@ -209,8 +209,8 @@ export default function Home() {
             {filteredTours.length === 0 ? (
               <div className="py-16 flex flex-col items-center justify-center text-center space-y-3">
                 <HelpCircle className="w-10 h-10 text-gray-600" />
-                <h4 className="text-white font-bold text-sm">No hay tours en esta región</h4>
-                <p className="text-xs text-gray-500 max-w-xs leading-relaxed">
+                <h4 className="text-[#4a5759] font-bold text-sm">No hay tours en esta región</h4>
+                <p className="text-xs text-[#6c7a7c]/80 max-w-xs leading-relaxed">
                   Selecciona otro país en el mapa.
                 </p>
               </div>
@@ -227,10 +227,10 @@ export default function Home() {
                   <div className="flex justify-center pt-2 pb-4">
                     <button
                       onClick={() => setVisibleCount((prev) => prev + 6)}
-                      className="group flex items-center gap-2 bg-[#1a1d15]/60 border border-[#656d4a]/40 hover:border-[#656d4a] hover:bg-[#656d4a] text-white px-6 py-3 rounded-xl text-xs font-bold transition-all"
+                      className="group flex items-center gap-2 bg-[#ffffff]/60 border border-[#4a5759]/40 hover:border-[#4a5759] hover:bg-[#4a5759] text-white px-6 py-3 rounded-xl text-xs font-bold transition-all"
                     >
                       Cargar más aventuras
-                      <Compass className="w-4 h-4 text-[#656d4a] group-hover:text-white group-hover:rotate-180 transition-all duration-500" />
+                      <Compass className="w-4 h-4 text-[#4a5759] group-hover:text-[#4a5759] group-hover:rotate-180 transition-all duration-500" />
                     </button>
                   </div>
                 )}
@@ -243,7 +243,7 @@ export default function Home() {
         <div className="hidden md:flex flex-row h-screen">
 
           {/* Columna Izquierda: Mapa */}
-          <div className="w-[55%] h-full p-8 flex items-center justify-center border-r border-[#414833]/40">
+          <div className="w-[55%] h-full p-8 flex items-center justify-center border-r border-[#b0c4b1]/40">
             <MapaSudamerica
               filtroPais={filtroPais}
               setFiltroPais={(p) => {
@@ -256,24 +256,24 @@ export default function Home() {
           {/* Columna Derecha: Listado Desplazable */}
           <div className="w-[45%] h-full flex flex-col">
             {/* Header del catálogo */}
-            <div className="p-6 border-b border-[#414833]/40 bg-[#0e0e1a]/80 backdrop-blur-md space-y-4">
+            <div className="p-6 border-b border-[#b0c4b1]/40 bg-[#0e0e1a]/80 backdrop-blur-md space-y-4">
               <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-sm sm:text-base font-black text-white flex items-center gap-1.5">
-                      <Compass className="w-4 h-4 text-[#656d4a]" />
+                    <h2 className="text-sm sm:text-base font-black text-[#4a5759] flex items-center gap-1.5">
+                      <Compass className="w-4 h-4 text-[#4a5759]" />
                       Tours en {filtroPais === 'Todos' ? 'Sudamérica' : filtroPais}
                     </h2>
                     {filtroPais !== 'Todos' && (
                       <button
                         onClick={() => { setFiltroPais('Todos'); setVisibleCount(6); }}
-                        className="bg-[#656d4a]/10 text-[#656d4a] hover:bg-[#656d4a] hover:text-white border border-[#656d4a]/20 text-[9px] px-2 py-0.5 rounded-full font-bold transition-all"
+                        className="bg-[#4a5759]/10 text-[#4a5759] hover:bg-[#4a5759] hover:text-[#4a5759] border border-[#4a5759]/20 text-[9px] px-2 py-0.5 rounded-full font-bold transition-all"
                       >
                         Limpiar
                       </button>
                     )}
                   </div>
-                  <p className="text-[10px] text-gray-400 mt-0.5">
+                  <p className="text-[10px] text-[#6c7a7c] mt-0.5">
                     {filteredTours.length} {filteredTours.length === 1 ? 'aventura encontrada' : 'aventuras encontradas'}
                   </p>
                 </div>
@@ -286,8 +286,8 @@ export default function Home() {
                         key={cat}
                         onClick={() => { setFiltroCategoria(cat); setVisibleCount(6); }}
                         className={`px-2.5 py-1 rounded-full text-[9px] font-extrabold uppercase tracking-wider transition-all duration-300 ${isSelected
-                          ? 'bg-[#656d4a] text-white shadow-md shadow-[#656d4a]/20 scale-105'
-                          : 'bg-[#1a1d15]/60 hover:bg-[#1a1d15] text-gray-400 hover:text-white border border-[#414833]/60 hover:border-[#656d4a]/40'
+                          ? 'bg-[#4a5759] text-white shadow-md shadow-[#4a5759]/20 scale-105'
+                          : 'bg-[#ffffff]/60 hover:bg-[#ffffff] text-[#6c7a7c] hover:text-[#4a5759] border border-[#b0c4b1]/60 hover:border-[#4a5759]/40'
                         }`}
                       >
                         {cat === '*' ? '*' : cat}
@@ -299,18 +299,18 @@ export default function Home() {
 
               <div className="relative">
                 <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Search className="h-3.5 w-3.5 text-gray-500" />
+                  <Search className="h-3.5 w-3.5 text-[#6c7a7c]/80" />
                 </span>
                 <input
                   type="text"
                   value={busqueda}
                   onChange={(e) => { setBusqueda(e.target.value); setVisibleCount(6); }}
                   placeholder="Buscar por nombre, descripción o país..."
-                  className="w-full pl-9 pr-8 py-2.5 bg-[#121224]/80 border border-[#414833]/50 rounded-xl text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#656d4a]/50 focus:ring-1 focus:ring-[#656d4a]/30 transition-all"
+                  className="w-full pl-9 pr-8 py-2.5 bg-white/80 border border-[#b0c4b1]/50 rounded-xl text-xs text-[#4a5759] placeholder-gray-500 focus:outline-none focus:border-[#4a5759]/50 focus:ring-1 focus:ring-[#4a5759]/30 transition-all"
                 />
                 {busqueda && (
                   <button onClick={() => { setBusqueda(''); setVisibleCount(6); }}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-white">
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-[#6c7a7c]/80 hover:text-[#4a5759]">
                     <X className="h-3.5 w-3.5" />
                   </button>
                 )}
@@ -322,8 +322,8 @@ export default function Home() {
               {filteredTours.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-center space-y-3">
                   <HelpCircle className="w-12 h-12 text-gray-600" />
-                  <h4 className="text-white font-bold text-sm">No hay tours en esta región</h4>
-                  <p className="text-xs text-gray-500 max-w-xs leading-relaxed">
+                  <h4 className="text-[#4a5759] font-bold text-sm">No hay tours en esta región</h4>
+                  <p className="text-xs text-[#6c7a7c]/80 max-w-xs leading-relaxed">
                     Pronto agregaremos nuevas expediciones para {filtroPais}. Selecciona otro país en el mapa.
                   </p>
                 </div>
@@ -340,10 +340,10 @@ export default function Home() {
                     <div className="flex justify-center pt-2 pb-6">
                       <button
                         onClick={() => setVisibleCount((prev) => prev + 6)}
-                        className="group flex items-center gap-2 bg-[#1a1d15]/60 border border-[#656d4a]/40 hover:border-[#656d4a] hover:bg-[#656d4a] text-white px-6 py-3 rounded-xl text-xs font-bold transition-all hover:scale-[1.02] active:scale-[0.98]"
+                        className="group flex items-center gap-2 bg-[#ffffff]/60 border border-[#4a5759]/40 hover:border-[#4a5759] hover:bg-[#4a5759] text-white px-6 py-3 rounded-xl text-xs font-bold transition-all hover:scale-[1.02] active:scale-[0.98]"
                       >
                         Cargar más aventuras
-                        <Compass className="w-4 h-4 text-[#656d4a] group-hover:text-white group-hover:rotate-180 transition-all duration-500" />
+                        <Compass className="w-4 h-4 text-[#4a5759] group-hover:text-[#4a5759] group-hover:rotate-180 transition-all duration-500" />
                       </button>
                     </div>
                   )}
@@ -359,51 +359,51 @@ export default function Home() {
       <Guias />
 
       {/* 4. Sección de Contacto / Footer */}
-      <section id="contacto" className="bg-[#0b0b14] border-t border-[#414833]/50 py-16 px-6 relative z-10">
+      <section id="contacto" className="bg-[#0b0b14] border-t border-[#b0c4b1]/50 py-16 px-6 relative z-10">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12">
           {/* Logo y lema */}
           <div className="space-y-4">
             <div className="flex items-center gap-2.5">
-              <div className="w-10 h-10 rounded-xl bg-[#656d4a] flex items-center justify-center font-bold text-white text-xl shadow-lg">
+              <div className="w-10 h-10 rounded-xl bg-[#4a5759] flex items-center justify-center font-bold text-[#4a5759] text-xl shadow-lg">
                 U
               </div>
-              <span className="font-extrabold text-white text-lg tracking-wider">UNU-RAYMI</span>
+              <span className="font-extrabold text-[#4a5759] text-lg tracking-wider">UNU-RAYMI</span>
             </div>
-            <p className="text-gray-400 text-sm leading-relaxed max-w-sm">
+            <p className="text-[#6c7a7c] text-sm leading-relaxed max-w-sm">
               Agencia de viajes dedicada a crear trekking personalizados de lujo y expediciones culturales por los andes sudamericanos.
             </p>
           </div>
 
           {/* Destinos */}
           <div className="space-y-4">
-            <h4 className="font-extrabold text-white uppercase text-xs tracking-widest text-[#656d4a]">Destinos</h4>
-            <ul className="space-y-2 text-sm text-gray-400">
-              <li><button onClick={() => setFiltroPais('Perú')} className="hover:text-white transition-colors">Perú y Machupicchu</button></li>
-              <li><button onClick={() => setFiltroPais('Colombia')} className="hover:text-white transition-colors">Colombia Cafetera</button></li>
-              <li><button onClick={() => setFiltroPais('Chile')} className="hover:text-white transition-colors">Chile y Lagos Patagónicos</button></li>
+            <h4 className="font-extrabold text-[#4a5759] uppercase text-xs tracking-widest text-[#4a5759]">Destinos</h4>
+            <ul className="space-y-2 text-sm text-[#6c7a7c]">
+              <li><button onClick={() => setFiltroPais('Perú')} className="hover:text-[#4a5759] transition-colors">Perú y Machupicchu</button></li>
+              <li><button onClick={() => setFiltroPais('Colombia')} className="hover:text-[#4a5759] transition-colors">Colombia Cafetera</button></li>
+              <li><button onClick={() => setFiltroPais('Chile')} className="hover:text-[#4a5759] transition-colors">Chile y Lagos Patagónicos</button></li>
             </ul>
           </div>
 
           {/* Información de Contacto */}
           <div className="space-y-4">
-            <h4 className="font-extrabold text-white uppercase text-xs tracking-widest text-[#656d4a]">Contacto</h4>
-            <div className="space-y-2 text-sm text-gray-400">
+            <h4 className="font-extrabold text-[#4a5759] uppercase text-xs tracking-widest text-[#4a5759]">Contacto</h4>
+            <div className="space-y-2 text-sm text-[#6c7a7c]">
               <div className="flex items-center gap-2">
-                <Mail className="w-4 h-4 text-[#656d4a]" />
+                <Mail className="w-4 h-4 text-[#4a5759]" />
                 <span>contacto@unu-raymi.com</span>
               </div>
               <div className="flex items-center gap-2">
-                <Phone className="w-4 h-4 text-[#656d4a]" />
+                <Phone className="w-4 h-4 text-[#4a5759]" />
                 <span>+51 987 654 321</span>
               </div>
               <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-[#656d4a]" />
+                <MapPin className="w-4 h-4 text-[#4a5759]" />
                 <span>Cusco, Perú</span>
               </div>
             </div>
           </div>
         </div>
-        <div className="max-w-7xl mx-auto border-t border-[#414833]/30 mt-12 pt-6 text-center text-xs text-gray-500">
+        <div className="max-w-7xl mx-auto border-t border-[#b0c4b1]/30 mt-12 pt-6 text-center text-xs text-[#6c7a7c]/80">
           © {new Date().getFullYear()} Unu-Raymi Agencia de Viajes. Todos los derechos reservados.
         </div>
       </section>

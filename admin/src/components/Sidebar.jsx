@@ -37,13 +37,13 @@ export default function Sidebar({ isOpen = false, onClose = () => {} }) {
 
       {/* Sidebar */}
       <aside
-        className={`fixed md:static inset-y-0 left-0 z-50 w-64 bg-[#151811] border-r border-[#414833] flex flex-col h-screen
+        className={`fixed md:static inset-y-0 left-0 z-50 w-64 bg-[#dedbd2] border-r border-[#b0c4b1] flex flex-col h-screen
           transition-transform duration-300 ease-in-out
           ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
         `}
       >
         {/* Header */}
-        <div className="p-5 border-b border-[#414833] flex items-center justify-between gap-3">
+        <div className="p-5 border-b border-[#b0c4b1] flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <img
               src="/logo.webp"
@@ -54,7 +54,7 @@ export default function Sidebar({ isOpen = false, onClose = () => {} }) {
           {/* Close button — mobile only */}
           <button
             onClick={onClose}
-            className="md:hidden text-gray-400 hover:text-white p-1.5 rounded-lg hover:bg-white/5 transition-all"
+            className="md:hidden text-[#6c7a7c] hover:text-[#4a5759] p-1.5 rounded-lg hover:bg-black/5 transition-all"
             aria-label="Cerrar menú"
           >
             <X className="w-5 h-5" />
@@ -73,12 +73,12 @@ export default function Sidebar({ isOpen = false, onClose = () => {} }) {
                 onClick={handleNavClick}
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
                   isActive
-                    ? 'bg-[#656d4a] text-white shadow-lg shadow-[#656d4a]/20 font-medium'
-                    : 'text-gray-400 hover:bg-[#1a1d15] hover:text-white'
+                    ? 'bg-[#4a5759] text-[#f7e1d7] shadow-lg shadow-[#4a5759]/20 font-medium'
+                    : 'text-[#6c7a7c] hover:bg-[#ffffff] hover:text-[#4a5759]'
                 }`}
               >
                 <Icon className={`w-5 h-5 transition-transform duration-200 group-hover:scale-110 ${
-                  isActive ? 'text-white' : 'text-gray-400 group-hover:text-white'
+                  isActive ? 'text-[#4a5759]' : 'text-[#6c7a7c] group-hover:text-[#4a5759]'
                 }`} />
                 {item.name}
               </Link>
@@ -86,10 +86,10 @@ export default function Sidebar({ isOpen = false, onClose = () => {} }) {
           })}
         </nav>
 
-        <div className="p-4 border-t border-[#414833]">
+        <div className="p-4 border-t border-[#b0c4b1]">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-3 text-gray-400 hover:bg-red-500/10 hover:text-red-400 rounded-xl transition-all duration-200 group"
+            className="w-full flex items-center gap-3 px-4 py-3 text-[#6c7a7c] hover:bg-red-500/10 hover:text-red-400 rounded-xl transition-all duration-200 group"
           >
             <LogOut className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             Cerrar Sesión

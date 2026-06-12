@@ -34,7 +34,7 @@ export default function Guias() {
   ];
 
   return (
-    <section id="guias" className="py-16 md:py-24 px-6 flex items-center bg-[#0c0c14] border-t border-[#414833]/30 relative overflow-hidden scroll-mt-16 md:scroll-mt-20">
+    <section id="guias" className="py-16 md:py-24 px-6 flex items-center bg-[#0c0c14] border-t border-[#b0c4b1]/30 relative overflow-hidden scroll-mt-16 md:scroll-mt-20">
       {/* Luz ambiental */}
       <div className="absolute bottom-1/4 left-1/4 w-[350px] h-[350px] bg-purple-500/5 rounded-full filter blur-[100px] pointer-events-none -z-10"></div>
 
@@ -42,13 +42,13 @@ export default function Guias() {
         
         {/* Encabezado */}
         <div className="text-center space-y-3">
-          <span className="text-[10px] text-[#656d4a] font-extrabold uppercase tracking-widest bg-[#656d4a]/10 border border-[#656d4a]/20 px-4 py-1.5 rounded-full inline-block shadow-lg">
+          <span className="text-[10px] text-[#4a5759] font-extrabold uppercase tracking-widest bg-[#4a5759]/10 border border-[#4a5759]/20 px-4 py-1.5 rounded-full inline-block shadow-lg">
             About Us / Expertos
           </span>
-          <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight">
+          <h2 className="text-3xl md:text-5xl font-black text-[#4a5759] tracking-tight">
             El Alma de Unu-Raymi
           </h2>
-          <p className="text-sm text-gray-400 max-w-xl mx-auto leading-relaxed">
+          <p className="text-sm text-[#6c7a7c] max-w-xl mx-auto leading-relaxed">
             Te presentamos a nuestros líderes y guías de expedición. Profesionales certificados con capacitaciones internacionales en primeros auxilios y rescate.
           </p>
         </div>
@@ -58,7 +58,7 @@ export default function Guias() {
           {guias.map((guia) => (
             <div
               key={guia.id}
-              className="relative h-[400px] md:h-[420px] rounded-3xl overflow-hidden border border-[#414833]/50 group bg-[#1a1d15]/20 shadow-xl"
+              className="relative h-[400px] md:h-[420px] rounded-3xl overflow-hidden border border-[#b0c4b1]/50 group bg-[#ffffff]/20 shadow-xl"
             >
               {/* Foto de fondo (.webp optimizada desde Unsplash) */}
               <img
@@ -71,28 +71,28 @@ export default function Guias() {
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent transition-opacity duration-300 group-hover:opacity-90"></div>
 
               {/* Panel Desplizable Dinámico desde Abajo (Hover animado) */}
-              <div className="absolute bottom-0 left-0 right-0 p-5 md:p-6 bg-gradient-to-t from-[#12150e]/95 via-[#12150e]/90 to-transparent border-t border-white/5 translate-y-[calc(100%-85px)] md:translate-y-[calc(100%-85px)] group-hover:translate-y-0 transition-transform duration-500 ease-out">
+              <div className="absolute bottom-0 left-0 right-0 p-5 md:p-6 bg-gradient-to-t from-[#f7e1d7]/95 via-[#f7e1d7]/90 to-transparent border-t border-black/5 translate-y-[calc(100%-85px)] md:translate-y-[calc(100%-85px)] group-hover:translate-y-0 transition-transform duration-500 ease-out">
                 
                 {/* Cabecera del Panel (Siempre visible) */}
                 <div className="space-y-1.5 pb-4">
-                  <h4 className="text-lg font-black text-white leading-tight">
+                  <h4 className="text-lg font-black text-[#4a5759] leading-tight">
                     {guia.nombre}
                   </h4>
-                  <div className="flex items-center gap-1.5 text-xs text-[#656d4a] font-bold">
+                  <div className="flex items-center gap-1.5 text-xs text-[#4a5759] font-bold">
                     <Sparkles className="w-3.5 h-3.5" />
                     <span>{guia.rol}</span>
                   </div>
                 </div>
 
                 {/* Detalles extra que se revelan al hacer Hover */}
-                <div className="space-y-4 pt-3 border-t border-[#414833]/50">
+                <div className="space-y-4 pt-3 border-t border-[#b0c4b1]/50">
                   
                   {/* Idiomas */}
                   <div className="flex items-start gap-2.5">
                     <Languages className="w-4.5 h-4.5 text-indigo-400 mt-0.5 flex-shrink-0" />
                     <div className="space-y-0.5">
-                      <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block">Idiomas</span>
-                      <span className="text-xs text-gray-300 font-medium">{guia.idiomas}</span>
+                      <span className="text-[10px] text-[#6c7a7c]/80 font-bold uppercase tracking-wider block">Idiomas</span>
+                      <span className="text-xs text-[#4a5759] font-medium">{guia.idiomas}</span>
                     </div>
                   </div>
 
@@ -100,13 +100,13 @@ export default function Guias() {
                   <div className="flex items-start gap-2.5">
                     <Award className="w-4.5 h-4.5 text-emerald-400 mt-0.5 flex-shrink-0" />
                     <div className="space-y-0.5">
-                      <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block">Experiencia</span>
-                      <span className="text-xs text-gray-300 font-medium">{guia.experiencia}</span>
+                      <span className="text-[10px] text-[#6c7a7c]/80 font-bold uppercase tracking-wider block">Experiencia</span>
+                      <span className="text-xs text-[#4a5759] font-medium">{guia.experiencia}</span>
                     </div>
                   </div>
 
                   {/* Descripción / Bio */}
-                  <p className="text-[11px] text-gray-400 leading-relaxed font-normal pt-1 border-t border-[#414833]/30">
+                  <p className="text-[11px] text-[#6c7a7c] leading-relaxed font-normal pt-1 border-t border-[#b0c4b1]/30">
                     {guia.descripcion}
                   </p>
 

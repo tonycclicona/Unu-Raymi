@@ -27,7 +27,7 @@ export default function Navbar() {
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-[background-color,backdrop-filter,padding,border-color,box-shadow] duration-500 ease-in-out ${isScrolled
-        ? 'bg-white/50 py-1.5 md:py-2'
+        ? 'bg-black/50 py-1.5 md:py-2'
         : 'bg-white/80 py-2 md:py-5'
         }`}
     >
@@ -87,7 +87,7 @@ export default function Navbar() {
         <div className="hidden md:flex items-center justify-center flex-grow mx-4">
           <svg
             viewBox="0 0 200 50"
-            className="w-full h-12 text-gray-700 hover:text-[#656d4a] transition-colors duration-500"
+            className="w-full h-12 text-gray-700 hover:text-[#4a5759] transition-colors duration-500"
             fill="none"
             stroke="currentColor"
             strokeWidth="1.5"
@@ -128,14 +128,14 @@ export default function Navbar() {
             <a
               key={item.label}
               href={item.href}
-              className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors relative after:content-[''] after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-[2px] after:bg-[#656d4a] after:transition-all hover:after:w-full"
+              className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors relative after:content-[''] after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-[2px] after:bg-[#4a5759] after:transition-all hover:after:w-full"
             >
               {item.label}
             </a>
           ))}
           <a
             href="#tours"
-            className="bg-[#656d4a] hover:bg-[#7b855b] text-white px-5 py-2.5 rounded-xl font-semibold shadow-lg shadow-[#656d4a]/20 hover:shadow-[#656d4a]/30 transition-all duration-300 text-sm"
+            className="bg-[#4a5759] hover:bg-[#384244] text-white px-5 py-2.5 rounded-xl font-semibold shadow-lg shadow-[#4a5759]/20 hover:shadow-[#4a5759]/30 transition-all duration-300 text-sm"
           >
             Explorar Ahora
           </a>
@@ -167,7 +167,7 @@ export default function Navbar() {
           <a
             href="#tours"
             onClick={() => setIsOpen(false)}
-            className="block text-center bg-[#656d4a] hover:bg-[#7b855b] text-white py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-[#656d4a]/20"
+            className="block text-center bg-[#4a5759] hover:bg-[#384244] text-white py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-[#4a5759]/20"
           >
             Explorar Ahora
           </a>

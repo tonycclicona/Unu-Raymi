@@ -44,7 +44,7 @@ export default function Hero() {
           <source src="/uploads/Background_Home_page.mp4" type="video/mp4" />
           Tu navegador no soporta elementos de video integrados.
         </video>
-        <div className="absolute inset-0 bg-gradient-to-t from-[#12150e] via-transparent to-black/40"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-[#f7e1d7] via-transparent to-black/40"></div>
       </div>
 
       {/* Contenido del Hero con Parallax y desvanecimiento */}
@@ -55,23 +55,23 @@ export default function Hero() {
           opacity: textOpacity,
         }}
       >
-        <span className="text-[#656d4a] font-extrabold uppercase tracking-widest text-xs md:text-sm bg-[#656d4a]/10 border border-[#656d4a]/20 px-4 py-2 rounded-full shadow-lg shadow-[#656d4a]/5">
+        <span className="text-[#4a5759] font-extrabold uppercase tracking-widest text-xs md:text-sm bg-[#4a5759]/10 border border-[#4a5759]/20 px-4 py-2 rounded-full shadow-lg shadow-[#4a5759]/5">
           🏔️ Descubre los Andes y más allá
         </span>
-        <h1 className="text-4xl md:text-7xl font-extrabold text-white tracking-tight leading-none drop-shadow-md">
+        <h1 className="text-4xl md:text-7xl font-extrabold text-[#4a5759] tracking-tight leading-none drop-shadow-md">
           Aventuras Auténticas <br />
-          <span className="bg-gradient-to-r from-white via-gray-200 to-[#656d4a] bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-white via-gray-200 to-[#4a5759] bg-clip-text text-transparent">
             en Sudamérica
           </span>
         </h1>
-        <p className="text-gray-300 text-sm md:text-lg max-w-xl mx-auto leading-relaxed">
+        <p className="text-[#4a5759] text-sm md:text-lg max-w-xl mx-auto leading-relaxed">
           Diseñamos experiencias únicas de trekking y exploración cultural por Perú, Colombia y Chile. Conéctate con la naturaleza en su estado puro.
         </p>
 
         <div className="pt-6">
           <a
             href="#tours"
-            className="inline-flex items-center gap-2 bg-[#656d4a] hover:bg-[#7b855b] text-white px-8 py-4 rounded-xl font-bold shadow-lg shadow-[#656d4a]/20 hover:shadow-[#656d4a]/30 transition-all duration-300 group"
+            className="inline-flex items-center gap-2 bg-[#4a5759] hover:bg-[#384244] text-white px-8 py-4 rounded-xl font-bold shadow-lg shadow-[#4a5759]/20 hover:shadow-[#4a5759]/30 transition-all duration-300 group"
           >
             Ver Catálogo de Tours
             <ChevronDown className="w-5 h-5 group-hover:translate-y-1 transition-transform" />
@@ -81,7 +81,7 @@ export default function Hero() {
 
       {/* Flecha inferior animada indicando scroll */}
       <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-10 animate-bounce hidden md:block">
-        <a href="#tours" className="text-white/40 hover:text-white/80 transition-colors">
+        <a href="#tours" className="text-[#4a5759]/40 hover:text-[#4a5759]/80 transition-colors">
           <ChevronDown className="w-8 h-8" />
         </a>
       </div>

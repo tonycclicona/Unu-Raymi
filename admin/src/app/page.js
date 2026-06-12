@@ -32,8 +32,8 @@ export default function Dashboard() {
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-extrabold text-white tracking-tight">Dashboard</h1>
-        <p className="text-gray-400 mt-1 text-sm">Resumen general de las operaciones de Unu-Raymi.</p>
+        <h1 className="text-3xl font-extrabold text-[#4a5759] tracking-tight">Dashboard</h1>
+        <p className="text-[#6c7a7c] mt-1 text-sm">Resumen general de las operaciones de Unu-Raymi.</p>
       </div>
 
       {/* Tarjetas de Métricas */}
@@ -56,7 +56,7 @@ export default function Dashboard() {
           title="Tours Activos"
           value={totalTours}
           icon={Compass}
-          colorClass="text-[#656d4a]"
+          colorClass="text-[#4a5759]"
           subtitle="Tours en catálogo"
         />
         <StatsCard
@@ -70,25 +70,25 @@ export default function Dashboard() {
 
       {/* Reservas Recientes */}
       <div className="glass-card rounded-2xl p-6">
-        <div className="flex justify-between items-center border-b border-[#414833] pb-4 mb-4">
-          <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-[#656d4a]" />
+        <div className="flex justify-between items-center border-b border-[#b0c4b1] pb-4 mb-4">
+          <h2 className="text-lg font-bold text-[#4a5759] flex items-center gap-2">
+            <Calendar className="w-5 h-5 text-[#4a5759]" />
             Últimas Reservas
           </h2>
-          <Link href="/reservas" className="text-xs text-[#656d4a] hover:text-[#7b855b] font-semibold transition-colors">
+          <Link href="/reservas" className="text-xs text-[#4a5759] hover:text-[#384244] font-semibold transition-colors">
             Ver todas las reservas →
           </Link>
         </div>
 
         {ultimasReservas.length === 0 ? (
-          <div className="py-8 text-center text-gray-500 text-sm">
+          <div className="py-8 text-center text-[#6c7a7c]/80 text-sm">
             No se han registrado reservas aún.
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-gray-300">
+            <table className="w-full text-left text-sm text-[#4a5759]">
               <thead>
-                <tr className="border-b border-[#414833] text-gray-400 text-xs font-semibold uppercase">
+                <tr className="border-b border-[#b0c4b1] text-[#6c7a7c] text-xs font-semibold uppercase">
                   <th className="py-3 px-4">Titular</th>
                   <th className="py-3 px-4">Tour</th>
                   <th className="py-3 px-4">Fecha Viaje</th>
@@ -96,13 +96,13 @@ export default function Dashboard() {
                   <th className="py-3 px-4">Estado</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#414833]/50">
+              <tbody className="divide-y divide-[#b0c4b1]/50">
                 {ultimasReservas.map((reserva) => (
                   <tr key={reserva.id} className="hover:bg-white/[0.01] transition-colors">
-                    <td className="py-4 px-4 font-medium text-white">{reserva.titularNombre}</td>
+                    <td className="py-4 px-4 font-medium text-[#4a5759]">{reserva.titularNombre}</td>
                     <td className="py-4 px-4">{reserva.tour?.nombre || 'Tour desconocido'}</td>
                     <td className="py-4 px-4">{new Date(reserva.fechaViaje).toLocaleDateString('es-PE')}</td>
-                    <td className="py-4 px-4 font-bold text-white">${reserva.precioTotal.toFixed(2)}</td>
+                    <td className="py-4 px-4 font-bold text-[#4a5759]">${reserva.precioTotal.toFixed(2)}</td>
                     <td className="py-4 px-4">
                       <EstadoBadge estado={reserva.estado} />
                     </td>

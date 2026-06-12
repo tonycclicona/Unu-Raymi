@@ -1,25 +1,21 @@
 @import "tailwindcss";
 
 :root {
-  --coffee-bean: #7f5539;
-  --camel: #a68a64;
-  --almond-cream: #ede0d4;
-  --dusty-olive: #656d4a;
-  --ebony: #414833;
+  --color-rose: #edafb8;
+  --color-peach: #f7e1d7;
+  --color-warm-gray: #dedbd2;
+  --color-sage: #b0c4b1;
+  --color-slate-green: #4a5759;
 
-  --background: #12150e;
-  --foreground: #ede0d4;
-  --sidebar: #151811;
-  --card: #1a1d15;
-  --border: #414833;
-  --accent: #656d4a;
-  --accent-hover: #7b855b;
+  /* Mapeos Semánticos de Tema Claro */
+  --background: #f7e1d7;
+  --foreground: #4a5759;
+  --sidebar: #dedbd2;
+  --card: #ffffff;
+  --border: #b0c4b1;
+  --accent: #4a5759;
+  --accent-hover: #384244;
 
-  --color-coffee-bean: var(--coffee-bean);
-  --color-camel: var(--camel);
-  --color-almond-cream: var(--almond-cream);
-  --color-dusty-olive: var(--dusty-olive);
-  --color-ebony: var(--ebony);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-sidebar: var(--sidebar);
@@ -36,23 +32,23 @@ body {
   overflow-x: hidden;
 }
 
-/* Glassmorphism custom classes using modern CSS and Tailwind */
+/* Glassmorphism custom classes using modern CSS and Tailwind - Light Theme */
 .glass {
-  background: rgba(22, 22, 42, 0.65);
+  background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(74, 87, 89, 0.1);
 }
 
 .glass-card {
-  background: rgba(22, 22, 42, 0.45);
+  background: rgba(255, 255, 255, 0.45);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(74, 87, 89, 0.08);
   transition: all 0.3s ease;
 }
 
 .glass-card:hover {
-  border-color: rgba(233, 69, 96, 0.3);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+  border-color: rgba(237, 175, 184, 0.4);
+  box-shadow: 0 8px 30px rgba(74, 87, 89, 0.1);
 }

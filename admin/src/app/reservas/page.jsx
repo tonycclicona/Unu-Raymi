@@ -20,20 +20,20 @@ export default function ReservasPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold text-white tracking-tight">Reservas</h1>
-          <p className="text-gray-400 mt-1 text-sm">Gestiona y consulta las órdenes de reserva y estados de pago.</p>
+          <h1 className="text-3xl font-extrabold text-[#4a5759] tracking-tight">Reservas</h1>
+          <p className="text-[#6c7a7c] mt-1 text-sm">Gestiona y consulta las órdenes de reserva y estados de pago.</p>
         </div>
 
         {/* Filtros */}
-        <div className="flex bg-[#1a1d15]/55 border border-[#414833]/50 p-1 rounded-xl gap-1">
+        <div className="flex bg-[#ffffff]/55 border border-[#b0c4b1]/50 p-1 rounded-xl gap-1">
           {['ALL', 'PENDING', 'PAID', 'CANCELLED'].map((estado) => (
             <button
               key={estado}
               onClick={() => setFiltro(estado)}
               className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
                 filtro === estado
-                  ? 'bg-[#656d4a] text-white shadow-lg shadow-[#656d4a]/10'
-                  : 'text-gray-400 hover:text-white'
+                  ? 'bg-[#4a5759] text-white shadow-lg shadow-[#4a5759]/10'
+                  : 'text-[#6c7a7c] hover:text-[#4a5759]'
               }`}
             >
               {estado === 'ALL' && 'Todas'}
@@ -54,22 +54,22 @@ export default function ReservasPage() {
         )}
 
         {!reservas && !error && (
-          <div className="py-8 text-center text-gray-500 text-sm">
+          <div className="py-8 text-center text-[#6c7a7c]/80 text-sm">
             Cargando el listado de reservas...
           </div>
         )}
 
         {reservas && filteredReservas.length === 0 && (
-          <div className="py-8 text-center text-gray-500 text-sm">
+          <div className="py-8 text-center text-[#6c7a7c]/80 text-sm">
             No se encontraron reservas con el filtro seleccionado.
           </div>
         )}
 
         {reservas && filteredReservas.length > 0 && (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-gray-300">
+            <table className="w-full text-left text-sm text-[#4a5759]">
               <thead>
-                <tr className="border-b border-[#414833] text-gray-400 text-xs font-semibold uppercase">
+                <tr className="border-b border-[#b0c4b1] text-[#6c7a7c] text-xs font-semibold uppercase">
                   <th className="py-3.5 px-4">Referencia</th>
                   <th className="py-3.5 px-4">Titular</th>
                   <th className="py-3.5 px-4">Tour / Viaje</th>
@@ -79,34 +79,34 @@ export default function ReservasPage() {
                   <th className="py-3.5 px-4 text-right">Comprobante</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#414833]/50">
+              <tbody className="divide-y divide-[#b0c4b1]/50">
                 {filteredReservas.map((reserva) => (
                   <tr key={reserva.id} className="hover:bg-white/[0.01] transition-colors">
-                    <td className="py-4 px-4 font-mono text-xs text-gray-400">
+                    <td className="py-4 px-4 font-mono text-xs text-[#6c7a7c]">
                       #{reserva.id}
                       <span className="block text-[10px] text-gray-600 truncate max-w-[80px]" title={reserva.tokenSeguridad}>
                         {reserva.tokenSeguridad.slice(0, 8)}...
                       </span>
                     </td>
                     <td className="py-4 px-4">
-                      <div className="font-medium text-white">{reserva.titularNombre}</div>
-                      <div className="text-xs text-gray-500">{reserva.titularEmail}</div>
+                      <div className="font-medium text-[#4a5759]">{reserva.titularNombre}</div>
+                      <div className="text-xs text-[#6c7a7c]/80">{reserva.titularEmail}</div>
                     </td>
                     <td className="py-4 px-4">
-                      <div className="text-white">{reserva.tour?.nombre || 'Tour cargando...'}</div>
-                      <div className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
-                        <Calendar className="w-3.5 h-3.5 text-[#656d4a]" />
+                      <div className="text-[#4a5759]">{reserva.tour?.nombre || 'Tour cargando...'}</div>
+                      <div className="text-xs text-[#6c7a7c]/80 flex items-center gap-1 mt-0.5">
+                        <Calendar className="w-3.5 h-3.5 text-[#4a5759]" />
                         {new Date(reserva.fechaViaje).toLocaleDateString('es-PE')}
                       </div>
                     </td>
                     <td className="py-4 px-4">
-                      <div className="flex items-center gap-1.5 text-xs text-gray-300">
+                      <div className="flex items-center gap-1.5 text-xs text-[#4a5759]">
                         <Users className="w-4 h-4 text-purple-400" />
                         <span>{reserva.pasajeros.length} viajeros</span>
                       </div>
                     </td>
                     <td className="py-4 px-4">
-                      <div className="font-bold text-white">${reserva.precioTotal.toFixed(2)}</div>
+                      <div className="font-bold text-[#4a5759]">${reserva.precioTotal.toFixed(2)}</div>
                     </td>
                     <td className="py-4 px-4">
                       <EstadoBadge estado={reserva.estado} />
@@ -117,7 +117,7 @@ export default function ReservasPage() {
                           href={`${API_BASE_URL}/reservas/${reserva.id}/invoice?token=${reserva.tokenSeguridad}`}
                           target="_blank"
                           rel="noreferrer"
-                          className="inline-flex items-center gap-1.5 bg-[#656d4a]/10 hover:bg-[#656d4a] text-[#656d4a] hover:text-white border border-[#656d4a]/20 hover:border-transparent px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200"
+                          className="inline-flex items-center gap-1.5 bg-[#4a5759]/10 hover:bg-[#4a5759] text-white hover:text-[#4a5759] border border-[#4a5759]/20 hover:border-transparent px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200"
                         >
                           <Download className="w-3.5 h-3.5" />
                           PDF
