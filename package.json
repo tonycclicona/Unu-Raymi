@@ -2,24 +2,21 @@
   "name": "unu-raymi-monorepo",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
-    "start": "cd backend && npm run start",
+    "start": "node server.js",
     "postinstall": "cd backend && npm install && cd ../admin && npm install && cd ../frontend && npm install",
+
     "install:backend": "cd backend && npm install",
     "build:backend": "cd backend && npm run build",
-    "start:backend": "cd backend && npm run start",
+    "start:backend": "APP_TYPE=backend node server.js",
 
     "install:admin": "cd admin && npm install",
     "build:admin": "cd admin && npm run build",
-    "start:admin": "cd admin && npm run start -- -p $PORT",
+    "start:admin": "APP_TYPE=admin node server.js",
 
     "install:frontend": "cd frontend && npm install",
     "build:frontend": "cd frontend && npm run build",
-    "start:frontend": "cd frontend && npm run start -- -p $PORT"
-  },
-  "dependencies": {
-    "next": "16.2.6",
-    "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "start:frontend": "APP_TYPE=frontend node server.js"
   }
 }
