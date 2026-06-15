@@ -60,11 +60,11 @@ export default function Guias() {
       id="guias"
       className="min-h-screen py-20 md:py-28 px-6 flex items-center justify-center border-t border-[var(--border)]/30 relative overflow-hidden scroll-mt-16 md:scroll-mt-20 bg-cover bg-bottom bg-no-repeat"
       style={{
-        backgroundImage: `linear-gradient(to bottom, var(--background) 0%, transparent 25%, transparent 75%, var(--background) 100%), url('/uploads/mountain_bg.jpg')`
+        backgroundImage: `linear-gradient(to bottom, var(--background) 0%, transparent 10%, transparent 75%, var(--background) 100%), url('/uploads/mountain_bg.jpg')`
       }}
     >
       {/* Luz ambiental */}
-      <div className="absolute bottom-1/4 left-1/4 w-[350px] h-[350px] bg-purple-500/5 rounded-full filter blur-[100px] pointer-events-none -z-10"></div>
+      <div className="absolute bottom-1/4 left-1/4 w-[350px] h-[350px] bg-purple-500/10 rounded-full filter blur-[100px] pointer-events-none -z-10"></div>
 
       <div className="max-w-7xl mx-auto space-y-12 w-full">
 
@@ -110,26 +110,23 @@ export default function Guias() {
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent transition-opacity duration-300 group-hover:opacity-90"></div>
 
               {/* Panel Desplizable Dinámico desde Abajo (Hover animado) */}
-              <div className={`absolute bottom-0 left-0 right-0 p-5 md:p-4 bg-gradient-to-t from-[var(--card)]/98 via-[var(--card)]/90 to-transparent border-t border-black/5 transition-transform duration-500 ease-out ${
-                activeGuiaId === guia.id
-                  ? 'translate-y-0'
-                  : 'translate-y-[calc(100%-85px)] md:translate-y-[calc(100%-85px)] group-hover:translate-y-0'
-              }`}>
+              <div className={`absolute bottom-0 left-0 right-0 p-5 md:p-4 bg-gradient-to-t from-[var(--card)]/98 via-[var(--card)]/90 to-transparent border-t border-black/5 transition-transform duration-500 ease-out ${activeGuiaId === guia.id
+                ? 'translate-y-0'
+                : 'translate-y-[calc(100%-85px)] md:translate-y-[calc(100%-85px)] group-hover:translate-y-0'
+                }`}>
 
                 {/* Cabecera del Panel (Siempre visible) */}
                 <div className="space-y-1.5 pb-4">
-                  <h4 className={`text-lg font-black leading-tight transition-colors duration-300 ${
-                    activeGuiaId === guia.id
-                      ? 'text-[var(--foreground)]'
-                      : 'text-[#ffffff] group-hover:text-[var(--foreground)]'
-                  }`}>
+                  <h4 className={`text-lg font-black leading-tight transition-colors duration-300 ${activeGuiaId === guia.id
+                    ? 'text-[var(--foreground)]'
+                    : 'text-[#ffffff] group-hover:text-[var(--foreground)]'
+                    }`}>
                     {guia.nombre}
                   </h4>
-                  <div className={`flex items-center gap-1.5 text-xs font-bold transition-colors duration-300 ${
-                    activeGuiaId === guia.id
-                      ? 'text-[var(--muted-foreground)]'
-                      : 'text-[#ffffff] group-hover:text-[var(--muted-foreground)]'
-                  }`}>
+                  <div className={`flex items-center gap-1.5 text-xs font-bold transition-colors duration-300 ${activeGuiaId === guia.id
+                    ? 'text-[var(--muted-foreground)]'
+                    : 'text-[#ffffff] group-hover:text-[var(--muted-foreground)]'
+                    }`}>
                     <Sparkles className="w-3.5 h-3.5" />
                     <span>{guia.rol}</span>
                   </div>
