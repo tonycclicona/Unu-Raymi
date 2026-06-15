@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import useSWR from 'swr';
 import { fetcher, API_ASSETS_URL } from '@/lib/api';
-import { Sparkles, Languages, Award, MapPin } from 'lucide-react';
+import { Sparkles, Languages, Award, MapPin, Footprints } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 
 export default function Guias() {
@@ -63,14 +63,24 @@ export default function Guias() {
       <div className="max-w-7xl mx-auto space-y-12">
 
         {/* Encabezado */}
-        <div className="text-center space-y-3">
-          <span className="text-[10px] text-[var(--foreground)] font-extrabold uppercase tracking-widest bg-[var(--accent)]/10 border border-[var(--accent)]/20 px-4 py-1.5 rounded-full inline-block shadow-lg">
+        <div className="text-center space-y-4 max-w-4xl mx-auto">
+          <span className="text-[10px] text-[var(--foreground)] font-extrabold uppercase tracking-widest bg-[var(--accent)]/10 border border-[var(--accent)]/20 px-4 py-1.5 rounded-full inline-flex items-center gap-2 shadow-lg">
+            <Footprints className="w-3.5 h-3.5 text-[var(--accent)] animate-pulse" />
             {t('guias.badge')}
           </span>
           <h2 className="text-3xl md:text-5xl font-black text-[var(--foreground)] tracking-tight">
             {t('guias.title')}
           </h2>
-          <p className="text-sm text-[var(--muted-foreground)] max-w-xl mx-auto leading-relaxed">
+          <h3 className="text-lg md:text-xl font-bold text-[var(--foreground)]/90 tracking-tight">
+            {t('guias.sub')}
+          </h3>
+          <p className="text-sm text-[var(--muted-foreground)] leading-relaxed">
+            {t('guias.body1')}
+          </p>
+          <p className="text-sm text-[var(--muted-foreground)] leading-relaxed">
+            {t('guias.body2')}
+          </p>
+          <p className="text-xs text-[var(--muted-foreground)]/80 italic pt-2 border-t border-[var(--border)]/30">
             {t('guias.desc')}
           </p>
         </div>
