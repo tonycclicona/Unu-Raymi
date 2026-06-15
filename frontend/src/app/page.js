@@ -134,7 +134,7 @@ export default function Home() {
         <div className="flex flex-col lg:hidden">
 
           {/* Mapa compacto en mobile */}
-          <div className="w-full h-[230px] p-3 flex items-center justify-center border-b border-[var(--border)]/40">
+          <div className="w-full h-[320px] p-3 flex items-center justify-center border-b border-[var(--border)]/40">
             <MapaSudamerica
               filtroPais={filtroPais}
               setFiltroPais={(p) => {
@@ -364,9 +364,11 @@ export default function Home() {
           {/* Logo y lema */}
           <div className="space-y-4">
             <div className="flex items-center gap-2.5">
-              <div className="w-10 h-10 rounded-xl bg-[var(--accent)] flex items-center justify-center font-bold text-white text-xl shadow-lg">
-                U
-              </div>
+              <img
+                src="/uploads/logo.webp"
+                alt="Unuraymi Expeditions"
+                className="h-10 w-auto object-contain"
+              />
               <span className="font-extrabold text-[var(--foreground)] text-lg tracking-wider">UNU-RAYMI</span>
             </div>
             <p className="text-[var(--muted-foreground)] text-sm leading-relaxed max-w-sm">

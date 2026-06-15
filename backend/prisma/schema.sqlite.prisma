@@ -139,3 +139,40 @@ model Pasajero {
 
   @@map("pasajeros")
 }
+
+// ─────────────────────────────────────────────
+// MODEL: Guia
+// ─────────────────────────────────────────────
+model Guia {
+  id          Int      @id @default(autoincrement())
+  nombre      String
+  rol         String
+  experiencia String
+  idiomas     String
+  foto        String
+  descripcion String
+  activo      Boolean  @default(true)
+  orden       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("guias")
+}
+
+// ─────────────────────────────────────────────
+// MODEL: Garantia
+// ─────────────────────────────────────────────
+model Garantia {
+  id          Int      @id @default(autoincrement())
+  titulo      String
+  descripcion String
+  icono       String // e.g. "Award", "Lock", "ShieldCheck", "Star"
+  color       String // e.g. "red", "emerald", "blue", "amber"
+  imagenUrl   String?
+  activo      Boolean  @default(true)
+  orden       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("garantias")
+}

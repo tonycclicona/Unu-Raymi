@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, Compass, Receipt, LogOut, X } from 'lucide-react';
+import { LayoutDashboard, Compass, Receipt, LogOut, X, Users, ShieldCheck } from 'lucide-react';
 
 export default function Sidebar({ isOpen = false, onClose = () => {} }) {
   const pathname = usePathname();
@@ -12,6 +12,8 @@ export default function Sidebar({ isOpen = false, onClose = () => {} }) {
     { name: 'Dashboard', path: '/', icon: LayoutDashboard },
     { name: 'Tours', path: '/tours', icon: Compass },
     { name: 'Reservas', path: '/reservas', icon: Receipt },
+    { name: 'Guías', path: '/guias', icon: Users },
+    { name: 'Garantías', path: '/garantias', icon: ShieldCheck },
   ];
 
   const handleLogout = () => {
@@ -78,7 +80,7 @@ export default function Sidebar({ isOpen = false, onClose = () => {} }) {
                 }`}
               >
                 <Icon className={`w-5 h-5 transition-transform duration-200 group-hover:scale-110 ${
-                  isActive ? 'text-[#4a5759]' : 'text-[#6c7a7c] group-hover:text-[#4a5759]'
+                  isActive ? 'text-[#dbeafe]' : 'text-[#6c7a7c] group-hover:text-[#4a5759]'
                 }`} />
                 {item.name}
               </Link>

@@ -17,6 +17,8 @@ import reservaRoutes from "./routes/reservaRoutes.js";
 import webhookRoutes from "./routes/webhookRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import uploadRoutes from "./routes/uploadRoutes.js";
+import guiaRoutes from "./routes/guiaRoutes.js";
+import garantiaRoutes from "./routes/garantiaRoutes.js";
 import errorHandler from "./middlewares/errorHandler.js";
 
 const app = express();
@@ -94,6 +96,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/tours", tourRoutes);
 app.use("/api/reservas", reservaRoutes);
 app.use("/api/upload", uploadRoutes);
+app.use("/api/guias", guiaRoutes);
+app.use("/api/garantias", garantiaRoutes);
 // Nota: /api/webhooks ya está montado antes de express.json()
 
 // ── Ruta 404 para endpoints no existentes ────────────────────

@@ -1,9 +1,21 @@
 'use client';
 
+import { useState } from 'react';
+import useSWR from 'swr';
+import { fetcher, API_ASSETS_URL } from '@/lib/api';
 import { Sparkles, Languages, Award, MapPin } from 'lucide-react';
 
 export default function Guias() {
-  const guias = [
+  const [activeGuiaId, setActiveGuiaId] = useState(null);
+
+  const { data: response } = useSWR('/guias?activo=true', fetcher);
+  const dbGuias = response?.data || [];
+
+  const toggleActiveGuia = (id) => {
+    setActiveGuiaId(prev => prev === id ? null : id);
+  };
+
+  const mockGuias = [
     {
       id: 1,
       nombre: 'Edgar Quispe',
@@ -33,6 +45,8 @@ export default function Guias() {
     },
   ];
 
+  const guias = dbGuias.length > 0 ? dbGuias : mockGuias;
+
   return (
     <section id="guias" className="py-16 md:py-24 px-6 flex items-center bg-[var(--sidebar)]/50 border-t border-[var(--border)]/30 relative overflow-hidden scroll-mt-16 md:scroll-mt-20">
       {/* Luz ambiental */}
@@ -58,11 +72,12 @@ export default function Guias() {
           {guias.map((guia) => (
             <div
               key={guia.id}
-              className="relative h-[400px] md:h-[420px] rounded-3xl overflow-hidden border border-[var(--border)]/50 group bg-[var(--card)] shadow-xl"
+              onClick={() => toggleActiveGuia(guia.id)}
+              className="relative h-[400px] md:h-[420px] rounded-3xl overflow-hidden border border-[var(--border)]/50 group bg-[var(--card)] shadow-xl cursor-pointer select-none"
             >
               {/* Foto de fondo (.webp optimizada desde Unsplash) */}
               <img
-                src={guia.foto}
+                src={guia.foto ? (guia.foto.startsWith('http') ? guia.foto : `${API_ASSETS_URL}${guia.foto}`) : ''}
                 alt={guia.nombre}
                 className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
               />
@@ -71,14 +86,26 @@ export default function Guias() {
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent transition-opacity duration-300 group-hover:opacity-90"></div>
 
               {/* Panel Desplizable Dinámico desde Abajo (Hover animado) */}
-              <div className="absolute bottom-0 left-0 right-0 p-5 md:p-4 bg-gradient-to-t from-[var(--background)]/95 via-[#dbeafe]/90 to-transparent border-t border-black/5 translate-y-[calc(100%-85px)] md:translate-y-[calc(100%-85px)] group-hover:translate-y-0 transition-transform duration-500 ease-out">
+              <div className={`absolute bottom-0 left-0 right-0 p-5 md:p-4 bg-gradient-to-t from-[var(--card)]/98 via-[var(--card)]/90 to-transparent border-t border-black/5 transition-transform duration-500 ease-out ${
+                activeGuiaId === guia.id
+                  ? 'translate-y-0'
+                  : 'translate-y-[calc(100%-85px)] md:translate-y-[calc(100%-85px)] group-hover:translate-y-0'
+              }`}>
 
                 {/* Cabecera del Panel (Siempre visible) */}
                 <div className="space-y-1.5 pb-4">
-                  <h4 className="text-lg font-black text-[#ffffff] leading-tight">
+                  <h4 className={`text-lg font-black leading-tight transition-colors duration-300 ${
+                    activeGuiaId === guia.id
+                      ? 'text-[var(--foreground)]'
+                      : 'text-[#ffffff] group-hover:text-[var(--foreground)]'
+                  }`}>
                     {guia.nombre}
                   </h4>
-                  <div className="flex items-center gap-1.5 text-xs text-[#ffffff] font-bold">
+                  <div className={`flex items-center gap-1.5 text-xs font-bold transition-colors duration-300 ${
+                    activeGuiaId === guia.id
+                      ? 'text-[var(--muted-foreground)]'
+                      : 'text-[#ffffff] group-hover:text-[var(--muted-foreground)]'
+                  }`}>
                     <Sparkles className="w-3.5 h-3.5" />
                     <span>{guia.rol}</span>
                   </div>

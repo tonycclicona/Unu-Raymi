@@ -1,9 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function MapaSudamerica({ filtroPais, setFiltroPais }) {
   const [hoveredPais, setHoveredPais] = useState(null);
+  const [hasHover, setHasHover] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setHasHover(window.matchMedia('(hover: hover)').matches);
+    }
+  }, []);
 
   // Datos de los países interactivos con sus paths reales de Highcharts
   const paises = [
@@ -69,7 +76,7 @@ export default function MapaSudamerica({ filtroPais, setFiltroPais }) {
       </div>
 
       {/* Contenedor del Gráfico SVG */}
-      <div className="flex-1 flex items-center justify-center py-2 relative min-h-[350px] lg:min-h-[420px] xl:min-h-[480px]">
+      <div className="flex-1 flex items-center justify-center py-2 relative min-h-0 md:min-h-[350px] lg:min-h-[420px] xl:min-h-[480px]">
         <svg
           viewBox="170 190 100 160"
           className="w-full h-full max-h-[580px] transition-all"
@@ -79,8 +86,12 @@ export default function MapaSudamerica({ filtroPais, setFiltroPais }) {
             <path
               key={i}
               d={pais.path}
-              onMouseEnter={() => setHoveredPais(pais.nombre)}
-              onMouseLeave={() => setHoveredPais(null)}
+              onMouseEnter={() => {
+                if (hasHover) setHoveredPais(pais.nombre);
+              }}
+              onMouseLeave={() => {
+                if (hasHover) setHoveredPais(null);
+              }}
               className="fill-[var(--border)]/20 stroke-[var(--border)]/30 stroke-[0.3px] hover:fill-[var(--border)]/30 transition-all duration-300 cursor-default"
             />
           ))}
@@ -96,8 +107,12 @@ export default function MapaSudamerica({ filtroPais, setFiltroPais }) {
                 <path
                   d={pais.path}
                   onClick={() => setFiltroPais(isActive ? 'Todos' : pais.nombre)}
-                  onMouseEnter={() => setHoveredPais(pais.id)}
-                  onMouseLeave={() => setHoveredPais(null)}
+                  onMouseEnter={() => {
+                    if (hasHover) setHoveredPais(pais.id);
+                  }}
+                  onMouseLeave={() => {
+                    if (hasHover) setHoveredPais(null);
+                  }}
                   className={`cursor-pointer transition-all duration-300 stroke-[0.5px] ${isActive
                     ? pais.activeColor + ' stroke-[0.8px]'
                     : isHovered

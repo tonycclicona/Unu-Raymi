@@ -52,20 +52,31 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-3 sm:px-2 md:px-1 flex items-center justify-between gap-5">
         {/* Logo + montaña móvil */}
         <div className="flex items-center min-w-0 flex-1 md:flex-none">
-          <Link href="#inicio" className="flex items-center group shrink-0 transition-all duration-300">
+          <a
+            href="#inicio"
+            onClick={(e) => {
+              e.preventDefault();
+              setIsOpen(false);
+              const el = document.getElementById('inicio');
+              if (el) {
+                el.scrollIntoView({ behavior: 'smooth' });
+              }
+            }}
+            className="flex items-center group shrink-0 transition-all duration-300 cursor-pointer"
+          >
             <img
               src="/uploads/logo.webp"
               alt="Unuraymi Expeditions"
               className={`w-auto object-contain transition-[height] duration-500 ease-in-out group-hover:scale-105 ${isScrolled ? 'h-9 sm:h-10 md:h-12' : 'h-12 sm:h-14 md:h-16'
                 }`}
             />
-          </Link>
+          </a>
 
           {/* Montaña visible en móvil */}
           <div className="flex md:hidden items-center justify-center flex-1 ml-3 overflow-hidden">
             <svg
               viewBox="0 0 200 50"
-              className="w-full max-w-[140px] h-8 text-gray-700"
+              className="w-full max-w-[140px] h-8 text-gray-700 hover:text-[#ca8a04] active:text-[#ca8a04] transition-colors duration-500 cursor-pointer"
               fill="none"
               stroke="currentColor"
               strokeWidth="1.4"
@@ -105,7 +116,7 @@ export default function Navbar() {
         <div className="hidden md:flex items-center justify-center flex-grow mx-4">
           <svg
             viewBox="0 0 200 50"
-            className="w-full h-12 text-gray-700 hover:text-[#ca8a04] transition-colors duration-500"
+            className="w-full h-12 text-gray-700 hover:text-[#ca8a04] active:text-[#ca8a04] transition-colors duration-500 cursor-pointer"
             fill="none"
             stroke="currentColor"
             strokeWidth="1.5"

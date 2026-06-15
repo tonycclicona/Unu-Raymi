@@ -1,8 +1,35 @@
 'use client';
 
-import { ShieldCheck, Award, Lock, Star } from 'lucide-react';
+import { useState } from 'react';
+import useSWR from 'swr';
+import { fetcher, API_ASSETS_URL } from '@/lib/api';
+import { ShieldCheck, Award, Lock, Star, Heart, Shield, X } from 'lucide-react';
+
+const ICON_MAP = {
+  Award,
+  Lock,
+  ShieldCheck,
+  Star,
+  Heart,
+  Shield,
+};
+
+const COLOR_MAP = {
+  red: 'bg-red-500/5 border-red-500/10 text-red-400',
+  emerald: 'bg-emerald-500/5 border-emerald-500/10 text-emerald-400',
+  blue: 'bg-blue-500/5 border-blue-500/10 text-blue-400',
+  amber: 'bg-amber-500/5 border-amber-500/10 text-amber-400',
+  indigo: 'bg-indigo-500/5 border-indigo-500/10 text-indigo-400',
+  teal: 'bg-teal-500/5 border-teal-500/10 text-teal-400',
+};
 
 export default function Confianza() {
+  const [hoveredGarantiaId, setHoveredGarantiaId] = useState(null);
+  const [selectedGarantiaImg, setSelectedGarantiaImg] = useState(null);
+
+  const { data: response } = useSWR('/garantias?activo=true', fetcher);
+  const dbGarantias = response?.data || [];
+
   const opiniones = [
     {
       id: 1,
@@ -100,59 +127,94 @@ export default function Confianza() {
           </h3>
 
           <div className="grid grid-cols-2 gap-6">
-            
-            {/* Sello 1: Mincetur Licencia */}
-            <div className="flex items-start gap-3">
-              <div className="p-3 bg-red-500/5 border border-red-500/10 rounded-xl text-red-400 flex-shrink-0">
-                <Award className="w-5 h-5" />
-              </div>
-              <div className="space-y-0.5">
-                <h4 className="text-xs font-bold text-[var(--foreground)]">MINCETUR</h4>
-                <p className="text-[10px] text-[var(--muted-foreground)]/80 leading-normal">
-                  Operador oficial autorizado de turismo de aventura.
-                </p>
-              </div>
-            </div>
+            {(() => {
+              const mockGarantias = [
+                {
+                  id: 1,
+                  titulo: 'MINCETUR',
+                  descripcion: 'Operador oficial autorizado de turismo de aventura.',
+                  icono: 'Award',
+                  color: 'red',
+                  imagenUrl: '',
+                },
+                {
+                  id: 2,
+                  titulo: 'SSL Encriptado',
+                  descripcion: 'Tus transacciones y datos están protegidos bajo cifrado SSL.',
+                  icono: 'Lock',
+                  color: 'emerald',
+                  imagenUrl: '',
+                },
+                {
+                  id: 3,
+                  titulo: 'Stripe Verified',
+                  descripcion: 'Procesamiento de tarjetas bajo estándares PCI-DSS.',
+                  icono: 'ShieldCheck',
+                  color: 'blue',
+                  imagenUrl: '',
+                },
+                {
+                  id: 4,
+                  titulo: 'Marca Perú',
+                  descripcion: 'Promotor del turismo sostenible e identidad nacional.',
+                  icono: 'Star',
+                  color: 'amber',
+                  imagenUrl: '',
+                },
+              ];
 
-            {/* Sello 2: SSL Seguro */}
-            <div className="flex items-start gap-3">
-              <div className="p-3 bg-emerald-500/5 border border-emerald-500/10 rounded-xl text-emerald-400 flex-shrink-0">
-                <Lock className="w-5 h-5" />
-              </div>
-              <div className="space-y-0.5">
-                <h4 className="text-xs font-bold text-[var(--foreground)]">SSL Encriptado</h4>
-                <p className="text-[10px] text-[var(--muted-foreground)]/80 leading-normal">
-                  Tus transacciones y datos están protegidos bajo cifrado SSL.
-                </p>
-              </div>
-            </div>
+              const garantias = dbGarantias.length > 0 ? dbGarantias : mockGarantias;
 
-            {/* Sello 3: Stripe Partner */}
-            <div className="flex items-start gap-3">
-              <div className="p-3 bg-blue-500/5 border border-blue-500/10 rounded-xl text-blue-400 flex-shrink-0">
-                <ShieldCheck className="w-5 h-5" />
-              </div>
-              <div className="space-y-0.5">
-                <h4 className="text-xs font-bold text-[var(--foreground)]">Stripe Verified</h4>
-                <p className="text-[10px] text-[var(--muted-foreground)]/80 leading-normal">
-                  Procesamiento de tarjetas bajo estándares PCI-DSS.
-                </p>
-              </div>
-            </div>
+              return garantias.map((g) => {
+                const IconComponent = ICON_MAP[g.icono] || Shield;
+                const colorClass = COLOR_MAP[g.color] || 'bg-gray-500/5 border-gray-500/10 text-gray-400';
 
-            {/* Sello 4: Marca Perú */}
-            <div className="flex items-start gap-3">
-              <div className="p-3 bg-amber-500/5 border border-amber-500/10 rounded-xl text-amber-400 flex-shrink-0">
-                <Star className="w-5 h-5" />
-              </div>
-              <div className="space-y-0.5">
-                <h4 className="text-xs font-bold text-[var(--foreground)]">Marca Perú</h4>
-                <p className="text-[10px] text-[var(--muted-foreground)]/80 leading-normal">
-                  Promotor del turismo sostenible e identidad nacional.
-                </p>
-              </div>
-            </div>
+                return (
+                  <div
+                    key={g.id}
+                    className={`flex items-start gap-3 relative group/sello ${
+                      g.imagenUrl ? 'cursor-pointer' : ''
+                    }`}
+                    onMouseEnter={() => {
+                      if (g.imagenUrl) setHoveredGarantiaId(g.id);
+                    }}
+                    onMouseLeave={() => {
+                      if (g.imagenUrl) setHoveredGarantiaId(null);
+                    }}
+                    onClick={() => {
+                      if (g.imagenUrl) setSelectedGarantiaImg(g.imagenUrl);
+                    }}
+                  >
+                    {/* Tooltip con preview en hover */}
+                    {hoveredGarantiaId === g.id && g.imagenUrl && (
+                      <div className="absolute z-20 bottom-full mb-3 left-1/2 -translate-x-1/2 w-48 h-32 bg-[var(--card)] border border-[var(--border)]/40 rounded-2xl shadow-xl p-1.5 pointer-events-none animate-fade-in flex items-center justify-center">
+                        <img
+                          src={g.imagenUrl.startsWith('http') ? g.imagenUrl : `${API_ASSETS_URL}${g.imagenUrl}`}
+                          alt={g.titulo}
+                          className="max-w-full max-h-full object-contain rounded-lg"
+                        />
+                      </div>
+                    )}
 
+                    <div className={`p-3 rounded-xl border flex-shrink-0 transition-transform duration-300 ${
+                      g.imagenUrl ? 'group-hover/sello:scale-105 group-hover/sello:border-[#ca8a04]' : ''
+                    } ${colorClass}`}>
+                      <IconComponent className="w-5 h-5" />
+                    </div>
+                    <div className="space-y-0.5">
+                      <h4 className={`text-xs font-bold text-[var(--foreground)] transition-colors ${
+                        g.imagenUrl ? 'group-hover/sello:text-[#ca8a04]' : ''
+                      }`}>
+                        {g.titulo}
+                      </h4>
+                      <p className="text-[10px] text-[var(--muted-foreground)]/80 leading-normal">
+                        {g.descripcion}
+                      </p>
+                    </div>
+                  </div>
+                );
+              });
+            })()}
           </div>
 
           <div className="bg-[var(--card)] border border-[var(--border)]/40 p-4 rounded-xl text-[10px] text-[var(--muted-foreground)]/80 leading-relaxed text-center">
@@ -161,6 +223,32 @@ export default function Confianza() {
         </div>
 
       </div>
+
+      {/* Lightbox Modal para ver el certificado en tamaño completo */}
+      {selectedGarantiaImg && (
+        <div
+          className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in cursor-zoom-out"
+          onClick={() => setSelectedGarantiaImg(null)}
+        >
+          <div className="relative max-w-4xl max-h-[85vh] w-full h-full flex items-center justify-center">
+            <img
+              src={selectedGarantiaImg.startsWith('http') ? selectedGarantiaImg : `${API_ASSETS_URL}${selectedGarantiaImg}`}
+              alt="Certificado en tamaño completo"
+              className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl border border-white/10"
+            />
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedGarantiaImg(null);
+              }}
+              className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 border border-white/10 text-white p-2.5 rounded-full transition-all"
+              aria-label="Cerrar vista"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
