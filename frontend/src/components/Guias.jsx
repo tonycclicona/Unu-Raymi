@@ -4,9 +4,11 @@ import { useState } from 'react';
 import useSWR from 'swr';
 import { fetcher, API_ASSETS_URL } from '@/lib/api';
 import { Sparkles, Languages, Award, MapPin } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function Guias() {
   const [activeGuiaId, setActiveGuiaId] = useState(null);
+  const { t, language } = useLanguage();
 
   const { data: response } = useSWR('/guias?activo=true', fetcher);
   const dbGuias = response?.data || [];
@@ -19,29 +21,35 @@ export default function Guias() {
     {
       id: 1,
       nombre: 'Edgar Quispe',
-      rol: 'Guía de Alta Montaña',
-      experiencia: '12 años de experiencia',
-      idiomas: 'Español, Inglés, Quechua',
+      rol: language === 'es' ? 'Guía de Alta Montaña' : 'High Mountain Guide',
+      experiencia: language === 'es' ? '12 años de experiencia' : '12 years of experience',
+      idiomas: language === 'es' ? 'Español, Inglés, Quechua' : 'Spanish, English, Quechua',
       foto: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&h=500&q=80&fm=webp',
-      descripcion: 'Experto en escalada en hielo en el Nevado Ausangate. Ha liderado más de 200 expediciones clásicas de trekking.',
+      descripcion: language === 'es'
+        ? 'Experto en escalada en hielo en el Nevado Ausangate. Ha liderado más de 200 expediciones clásicas de trekking.'
+        : 'Expert in ice climbing at Nevado Ausangate. Has led more than 200 classic trekking expeditions.',
     },
     {
       id: 2,
       nombre: 'Camila Ospina',
-      rol: 'Líder de Aventura y Flora',
-      experiencia: '8 años de experiencia',
-      idiomas: 'Español, Inglés, Francés',
+      rol: language === 'es' ? 'Líder de Aventura y Flora' : 'Adventure & Flora Leader',
+      experiencia: language === 'es' ? '8 años de experiencia' : '8 years of experience',
+      idiomas: language === 'es' ? 'Español, Inglés, Francés' : 'Spanish, English, French',
       foto: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&h=500&q=80&fm=webp',
-      descripcion: 'Bióloga y guía certificada. Apasionada de la historia precolombina y la botánica andina en el Valle de Cocora.',
+      descripcion: language === 'es'
+        ? 'Bióloga y guía certificada. Apasionada de la historia precolombina y la botánica andina en el Valle de Cocora.'
+        : 'Biologist and certified guide. Passionate about pre-Columbian history and Andean botany in the Cocora Valley.',
     },
     {
       id: 3,
       nombre: 'Roberto Rojas',
-      rol: 'Especialista en Glaciología y Clima',
-      experiencia: '15 años de experiencia',
-      idiomas: 'Español, Inglés, Alemán',
+      rol: language === 'es' ? 'Especialista en Glaciología y Clima' : 'Glaciology & Climate Specialist',
+      experiencia: language === 'es' ? '15 años de experiencia' : '15 years of experience',
+      idiomas: language === 'es' ? 'Español, Inglés, Alemán' : 'Spanish, English, German',
       foto: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=400&h=500&q=80&fm=webp',
-      descripcion: 'Ex-rescatista de montaña en la Patagonia. Ha cruzado los campos de hielo sur y norte en Chile en múltiples ocasiones.',
+      descripcion: language === 'es'
+        ? 'Ex-rescatista de montaña en la Patagonia. Ha cruzado los campos de hielo sur y norte en Chile en múltiples ocasiones.'
+        : 'Former mountain rescuer in Patagonia. Has crossed the Southern and Northern Ice Fields in Chile on multiple occasions.',
     },
   ];
 
@@ -57,13 +65,13 @@ export default function Guias() {
         {/* Encabezado */}
         <div className="text-center space-y-3">
           <span className="text-[10px] text-[var(--foreground)] font-extrabold uppercase tracking-widest bg-[var(--accent)]/10 border border-[var(--accent)]/20 px-4 py-1.5 rounded-full inline-block shadow-lg">
-            About Us / Expertos
+            {t('guias.badge')}
           </span>
           <h2 className="text-3xl md:text-5xl font-black text-[var(--foreground)] tracking-tight">
-            El Alma de Unu-Raymi
+            {t('guias.title')}
           </h2>
           <p className="text-sm text-[var(--muted-foreground)] max-w-xl mx-auto leading-relaxed">
-            Te presentamos a nuestros líderes y guías de expedición. Profesionales certificados con capacitaciones internacionales en primeros auxilios y rescate.
+            {t('guias.desc')}
           </p>
         </div>
 
@@ -118,7 +126,7 @@ export default function Guias() {
                   <div className="flex items-start gap-2.5">
                     <Languages className="w-4.5 h-4.5 text-indigo-400 mt-0.5 flex-shrink-0" />
                     <div className="space-y-0.5">
-                      <span className="text-[10px] text-[var(--muted-foreground)]/80 font-bold uppercase tracking-wider block">Idiomas</span>
+                      <span className="text-[10px] text-[var(--muted-foreground)]/80 font-bold uppercase tracking-wider block">{t('guias.idiomas')}</span>
                       <span className="text-xs text-[var(--foreground)] font-medium">{guia.idiomas}</span>
                     </div>
                   </div>
@@ -127,7 +135,7 @@ export default function Guias() {
                   <div className="flex items-start gap-2.5">
                     <Award className="w-4.5 h-4.5 text-emerald-400 mt-0.5 flex-shrink-0" />
                     <div className="space-y-0.5">
-                      <span className="text-[10px] text-[var(--muted-foreground)]/80 font-bold uppercase tracking-wider block">Experiencia</span>
+                      <span className="text-[10px] text-[var(--muted-foreground)]/80 font-bold uppercase tracking-wider block">{t('guias.experiencia')}</span>
                       <span className="text-xs text-[var(--foreground)] font-medium">{guia.experiencia}</span>
                     </div>
                   </div>
@@ -148,3 +156,4 @@ export default function Guias() {
     </section>
   );
 }
+

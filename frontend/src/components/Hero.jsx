@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { ChevronDown } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function Hero() {
   const [scrollY, setScrollY] = useState(0);
+  const { t } = useLanguage();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -56,16 +58,16 @@ export default function Hero() {
         }}
       >
         <span className="text-white font-extrabold uppercase tracking-widest text-xs md:text-sm bg-white/10 border border-white/20 px-4 py-2 rounded-full shadow-lg">
-          🏔️ Descubre los Andes y más allá
+          {t('hero.badge')}
         </span>
         <h1 className="text-4xl md:text-7xl font-extrabold text-white tracking-tight leading-none drop-shadow-md">
-          Aventuras Auténticas <br />
+          {t('hero.title_part1')} <br />
           <span className="bg-gradient-to-r from-white via-gray-200 to-[#edafb8] bg-clip-text text-transparent">
-            en Sudamérica
+            {t('hero.title_part2')}
           </span>
         </h1>
         <p className="text-gray-200 text-sm md:text-lg max-w-xl mx-auto leading-relaxed">
-          Diseñamos experiencias únicas de trekking y exploración cultural por Perú, Colombia y Chile. Conéctate con la naturaleza en su estado puro.
+          {t('hero.desc')}
         </p>
 
         <div className="pt-6">
@@ -73,7 +75,7 @@ export default function Hero() {
             href="#tours"
             className="inline-flex items-center gap-2 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white px-8 py-4 rounded-xl font-bold shadow-lg shadow-[var(--accent)]/20 hover:shadow-[var(--accent)]/30 transition-all duration-300 group"
           >
-            Ver Catálogo de Tours
+            {t('hero.cta')}
             <ChevronDown className="w-5 h-5 group-hover:translate-y-1 transition-transform" />
           </a>
         </div>
@@ -88,3 +90,4 @@ export default function Hero() {
     </section>
   );
 }
+

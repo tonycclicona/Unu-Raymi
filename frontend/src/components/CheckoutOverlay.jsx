@@ -3,11 +3,13 @@
 import { useState, useEffect } from 'react';
 import { X, Users, DollarSign, Calendar, ShieldCheck, Mail, Phone, User, CheckCircle, CreditCard, ArrowLeft } from 'lucide-react';
 import { mutateApi, API_BASE_URL } from '@/lib/api';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBack }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [successData, setSuccessData] = useState(null);
+  const { t, language } = useLanguage();
 
   const hasVariants = tour.variantes && tour.variantes.length > 0;
   const activeVariant = hasVariants && selectedDuration
@@ -78,7 +80,6 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
     setPasajerosAdicionales((prev) => {
       const updated = [];
       for (let i = 0; i < adicionalesCount; i++) {
-        // Preservar datos ya escritos en el índice correspondiente
         updated.push(
           prev[i] || { nombre: '', apellido: '', dni: '' }
         );
@@ -102,7 +103,7 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
 
     // Validar titular obligatorio
     if (!titularNombre.trim() || !titularApellido.trim() || !titularEmail.trim()) {
-      setError('El nombre, apellido y correo electrónico del titular son obligatorios.');
+      setError(language === 'es' ? 'El nombre, apellido y correo electrónico del titular son obligatorios.' : 'The main passenger\'s first name, last name, and email are required.');
       setLoading(false);
       return;
     }
@@ -111,26 +112,24 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
     for (let i = 0; i < pasajerosAdicionales.length; i++) {
       const p = pasajerosAdicionales[i];
       if (!p.nombre.trim() || !p.apellido.trim()) {
-        setError(`Por favor completa el nombre y apellido del Pasajero Adicional #${i + 1}.`);
+        setError(language === 'es' ? `Por favor completa el nombre y apellido del Pasajero Adicional #${i + 1}.` : `Please fill out the first name and last name for Additional Passenger #${i + 1}.`);
         setLoading(false);
         return;
       }
     }
 
     try {
-      // Estructurar pasajeros combinando titular + adicionales
       const totalPasajeros = [
         {
           nombre: titularNombre,
           apellido: titularApellido,
           dni: titularDni || null,
-          tipo: 'adulto' // El titular siempre es adulto
+          tipo: 'adulto'
         },
         ...pasajerosAdicionales.map((p, index) => ({
           nombre: p.nombre,
           apellido: p.apellido,
           dni: p.dni || null,
-          // Los primeros (cantAdultos - 1) adicionales son adultos; el resto niños
           tipo: index < (cantAdultos - 1) ? 'adulto' : 'nino'
         }))
       ];
@@ -155,16 +154,14 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
       if (res.success) {
         setSuccessData(res.data);
       } else {
-        throw new Error(res.error || 'Error al procesar reserva');
+        throw new Error(res.error || (language === 'es' ? 'Error al procesar reserva' : 'Error processing booking'));
       }
     } catch (err) {
-      setError(err.message || 'Ocurrió un error al enviar el pago.');
+      setError(err.message || (language === 'es' ? 'Ocurrió un error al enviar el pago.' : 'An error occurred while sending the payment.'));
     } finally {
       setLoading(false);
     }
   };
-
-  // Cálculo de total en tiempo real (displays dinámicos por variante)
 
   const displayDuration = activeVariant ? activeVariant.duracion_dias : tour.duracion_dias;
   const precioAdulto = activeVariant ? parseFloat(activeVariant.precio_adulto) : parseFloat(tour.precio_adulto);
@@ -187,33 +184,35 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
           </div>
 
           <div className="space-y-2">
-            <h2 className="text-2xl font-black text-[var(--foreground)]">¡Reserva Creada!</h2>
+            <h2 className="text-2xl font-black text-[var(--foreground)]">{language === 'es' ? '¡Reserva Creada!' : 'Booking Created!'}</h2>
             <p className="text-[var(--muted-foreground)] text-sm">
-              Hemos registrado la orden con estado <span className="text-amber-400 font-bold">{successData.estado}</span>.
+              {language === 'es' ? 'Hemos registrado la orden con estado' : 'We have registered the order with status'} <span className="text-amber-400 font-bold">{successData.estado}</span>.
             </p>
           </div>
 
           <div className="bg-[var(--card)] border border-[var(--border)] p-5 rounded-2xl space-y-3 text-left">
             <div className="flex justify-between text-sm text-[var(--muted-foreground)]">
-              <span>Tour:</span>
-              <span className="text-[var(--foreground)] font-bold">{tour.nombre} ({displayDuration} {displayDuration === 1 ? 'Día' : 'Días'})</span>
+              <span>{language === 'es' ? 'Tour:' : 'Tour:'}</span>
+              <span className="text-[var(--foreground)] font-bold">{tour.nombre} ({displayDuration} {displayDuration === 1 ? t('tour_card.dia') : t('tour_card.dias')})</span>
             </div>
             <div className="flex justify-between text-sm text-[var(--muted-foreground)]">
-              <span>Total a Pagar:</span>
+              <span>{language === 'es' ? 'Total a Pagar:' : 'Total to Pay:'}</span>
               <span className="text-emerald-400 font-extrabold">${parseFloat(successData.precioTotal).toFixed(2)} USD</span>
             </div>
             <div className="border-t border-[var(--border)]/50 my-2 pt-2">
-              <span className="text-[10px] text-[var(--muted-foreground)]/80 block uppercase font-bold tracking-wider mb-1">Token de Seguridad (Invoice PDF)</span>
+              <span className="text-[10px] text-[var(--muted-foreground)]/80 block uppercase font-bold tracking-wider mb-1">{language === 'es' ? 'Token de Seguridad (Invoice PDF)' : 'Security Token (Invoice PDF)'}</span>
               <span className="text-[11px] text-[var(--muted-foreground)] font-mono select-all break-all">{successData.tokenSeguridad}</span>
             </div>
           </div>
 
           <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl text-left space-y-2">
             <span className="text-xs font-bold text-amber-400 block flex items-center gap-1">
-              <CreditCard className="w-4 h-4" /> Integración con Stripe / Pago Simulado
+              <CreditCard className="w-4 h-4" /> {language === 'es' ? 'Integración con Stripe / Pago Simulado' : 'Stripe Integration / Simulated Payment'}
             </span>
             <p className="text-[11px] text-[var(--foreground)] leading-relaxed">
-              El servidor ha enviado el Webhook. En un entorno real serás redirigido a la pasarela segura. Pulsa abajo para simular el pago digital.
+              {language === 'es'
+                ? 'El servidor ha enviado el Webhook. En un entorno real serás redirigido a la pasarela segura. Pulsa abajo para simular el pago digital.'
+                : 'The server has sent the Webhook. In a real environment, you will be redirected to the secure gateway. Click below to simulate digital payment.'}
             </p>
           </div>
 
@@ -224,14 +223,14 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
               rel="noreferrer"
               className="flex-1 bg-[var(--sidebar)] hover:bg-[var(--sidebar)] text-[var(--foreground)] py-3.5 rounded-xl text-sm font-bold border border-black/10 transition-all text-center"
             >
-              Inspeccionar PDF
+              {language === 'es' ? 'Inspeccionar PDF' : 'Inspect PDF'}
             </a>
 
             <button
               onClick={onClose}
               className="flex-1 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white py-3.5 rounded-xl text-sm font-bold shadow-lg shadow-[var(--accent)]/20 transition-all"
             >
-              Finalizar
+              {language === 'es' ? 'Finalizar' : 'Finish'}
             </button>
           </div>
         </div>
@@ -249,7 +248,7 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
       className={`fixed inset-0 z-[60] flex items-center justify-end transition-all duration-300 ${onBack ? 'bg-[var(--sidebar)]/30' : 'bg-[var(--sidebar)] '
         }`}
     >
-      {/* Contenedor flotante lateral de checkout */}
+      {/* Contenedor checkout */}
       <div className="w-full max-w-full md:max-w-xl h-full bg-[var(--background)]/80 md:border-l border-[var(--border)] flex flex-col relative shadow-2xl">
 
         {/* Header */}
@@ -261,11 +260,11 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
               className="text-[var(--muted-foreground)] hover:text-[var(--foreground)] p-2.5 bg-[var(--sidebar)] rounded-xl border border-black/5 transition-all flex items-center gap-1.5 text-xs font-bold shrink-0"
             >
               <ArrowLeft className="w-4 h-4" />
-              Volver
+              {language === 'es' ? 'Volver' : 'Back'}
             </button>
             <div>
-              <span className="text-[10px] text-[var(--foreground)] font-extrabold uppercase tracking-widest">Nivel 2</span>
-              <h2 className="font-extrabold text-[var(--foreground)] text-base leading-tight">Datos de Registro y Facturación</h2>
+              <span className="text-[10px] text-[var(--foreground)] font-extrabold uppercase tracking-widest">{language === 'es' ? 'Paso 2' : 'Step 2'}</span>
+              <h2 className="font-extrabold text-[var(--foreground)] text-base leading-tight">{language === 'es' ? 'Datos de Registro y Facturación' : 'Registration & Billing Details'}</h2>
             </div>
           </div>
         </div>
@@ -278,29 +277,29 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
             </div>
           )}
 
-          {/* Configuración de Fecha y Contadores */}
+          {/* Configuración */}
           <div className="bg-[var(--card)] border border-[var(--border)]/40 p-5 rounded-2xl space-y-4">
             <div className="border-b border-[var(--border)]/30 pb-3 flex justify-between items-center">
               <div>
-                <span className="text-[10px] text-[var(--muted-foreground)] block uppercase font-bold tracking-wider">Aventura</span>
+                <span className="text-[10px] text-[var(--muted-foreground)] block uppercase font-bold tracking-wider">{language === 'es' ? 'Aventura' : 'Adventure'}</span>
                 <span className="text-xs font-bold text-[var(--foreground)]">{tour.nombre}</span>
               </div>
               <div className="text-right">
-                <span className="text-[10px] text-[var(--muted-foreground)] block uppercase font-bold tracking-wider">Duración</span>
+                <span className="text-[10px] text-[var(--muted-foreground)] block uppercase font-bold tracking-wider">{t('tour_details.duracion')}</span>
                 <span className="text-[10px] bg-[var(--accent)]/10 text-[var(--foreground)] border border-[var(--accent)]/20 px-2.5 py-0.5 rounded-full font-bold">
-                  {displayDuration} {displayDuration === 1 ? 'Día' : 'Días'}
+                  {displayDuration} {displayDuration === 1 ? t('tour_card.dia') : t('tour_card.dias')}
                 </span>
               </div>
             </div>
 
             <h3 className="text-xs font-bold text-[var(--foreground)] uppercase tracking-wider flex items-center gap-1.5">
               <Calendar className="w-4 h-4 text-[var(--foreground)]" />
-              Fecha de Viaje y Cantidad
+              {language === 'es' ? 'Fecha de Viaje y Cantidad' : 'Travel Date & Quantity'}
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase">Calendario *</label>
+                <label className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase">{language === 'es' ? 'Calendario *' : 'Calendar *'}</label>
                 {fechasDisponibles.length > 0 ? (
                   <select
                     value={fechaViaje}
@@ -309,7 +308,7 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
                   >
                     {fechasDisponibles.map((d) => (
                       <option key={d} value={d}>
-                        {new Date(d + 'T00:00:00').toLocaleDateString('es-PE', { day: 'numeric', month: 'long', year: 'numeric' })}
+                        {new Date(d + 'T00:00:00').toLocaleDateString(language === 'es' ? 'es-PE' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' })}
                       </option>
                     ))}
                   </select>
@@ -326,7 +325,7 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase">Adultos</label>
+                <label className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase">{language === 'es' ? 'Adultos' : 'Adults'}</label>
                 <input
                   type="number"
                   min="1"
@@ -338,7 +337,7 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase">Niños (0-12)</label>
+                <label className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase">{language === 'es' ? 'Niños (0-12)' : 'Children (0-12)'}</label>
                 <input
                   type="number"
                   min="0"
@@ -351,64 +350,64 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
             </div>
           </div>
 
-          {/* Bloque 1: Titular de la Reserva (Pasajero #1) */}
+          {/* Titular */}
           <div className="space-y-4">
             <h3 className="text-xs font-bold text-[var(--foreground)] uppercase tracking-wider flex items-center gap-1.5">
               <User className="w-4 h-4 text-[var(--foreground)]" />
-              Pasajero #1: Titular de la Reserva (Adulto)
+              {language === 'es' ? 'Pasajero #1: Titular de la Reserva (Adulto)' : 'Passenger #1: Booking Holder (Adult)'}
             </h3>
 
             <div className="bg-[var(--card)] border border-[var(--border)]/60 p-5 rounded-2xl space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-[10px] text-[var(--muted-foreground)]">Nombre *</label>
+                  <label className="text-[10px] text-[var(--muted-foreground)]">{language === 'es' ? 'Nombre *' : 'First Name *'}</label>
                   <input
                     type="text"
                     required
                     value={titularNombre}
                     onChange={(e) => setTitularNombre(e.target.value)}
                     className="w-full bg-[var(--background)] border border-[var(--border)] rounded-xl px-3 py-2.5 text-[var(--foreground)] text-xs focus:outline-none"
-                    placeholder="Ej. Juan"
+                    placeholder={language === 'es' ? 'Ej. Juan' : 'e.g. John'}
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] text-[var(--muted-foreground)]">Apellido *</label>
+                  <label className="text-[10px] text-[var(--muted-foreground)]">{language === 'es' ? 'Apellido *' : 'Last Name *'}</label>
                   <input
                     type="text"
                     required
                     value={titularApellido}
                     onChange={(e) => setTitularApellido(e.target.value)}
                     className="w-full bg-[var(--background)] border border-[var(--border)] rounded-xl px-3 py-2.5 text-[var(--foreground)] text-xs focus:outline-none"
-                    placeholder="Ej. Pérez"
+                    placeholder={language === 'es' ? 'Ej. Pérez' : 'e.g. Smith'}
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-[10px] text-[var(--muted-foreground)]">Documento (DNI/Pasaporte)</label>
+                  <label className="text-[10px] text-[var(--muted-foreground)]">{language === 'es' ? 'Documento (DNI/Pasaporte)' : 'Document (ID/Passport)'}</label>
                   <input
                     type="text"
                     value={titularDni}
                     onChange={(e) => setTitularDni(e.target.value)}
                     className="w-full bg-[var(--background)] border border-[var(--border)] rounded-xl px-3 py-2.5 text-[var(--foreground)] text-xs focus:outline-none"
-                    placeholder="Opcional"
+                    placeholder={language === 'es' ? 'Opcional' : 'Optional'}
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] text-[var(--muted-foreground)]">Teléfono Móvil</label>
+                  <label className="text-[10px] text-[var(--muted-foreground)]">{language === 'es' ? 'Teléfono Móvil' : 'Mobile Phone'}</label>
                   <input
                     type="tel"
                     value={titularTelefono}
                     onChange={(e) => setTitularTelefono(e.target.value)}
                     className="w-full bg-[var(--background)] border border-[var(--border)] rounded-xl px-3 py-2.5 text-[var(--foreground)] text-xs focus:outline-none"
-                    placeholder="Opcional"
+                    placeholder={language === 'es' ? 'Opcional' : 'Optional'}
                   />
                 </div>
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10px] text-[var(--muted-foreground)]">Correo Electrónico (Obligatorio para Invoice) *</label>
+                <label className="text-[10px] text-[var(--muted-foreground)]">{language === 'es' ? 'Correo Electrónico (Obligatorio para Invoice) *' : 'Email Address (Required for Invoice) *'}</label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)]/80" />
                   <input
@@ -417,29 +416,29 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
                     value={titularEmail}
                     onChange={(e) => setTitularEmail(e.target.value)}
                     className="w-full bg-[var(--background)] border border-[var(--border)] rounded-xl pl-10 pr-4 py-2.5 text-[var(--foreground)] text-xs focus:outline-none focus:border-[var(--accent)]"
-                    placeholder="ejemplo@correo.com"
+                    placeholder="example@email.com"
                   />
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Bloques Pasajeros Adicionales */}
+          {/* Pasajeros Adicionales */}
           {pasajerosAdicionales.length > 0 && (
             <div className="space-y-4">
               <h3 className="text-xs font-bold text-[var(--foreground)] uppercase tracking-wider flex items-center gap-1.5">
                 <Users className="w-4 h-4 text-[var(--foreground)]" />
-                Pasajeros Adicionales
+                {language === 'es' ? 'Pasajeros Adicionales' : 'Additional Passengers'}
               </h3>
 
               <div className="space-y-4">
                 {pasajerosAdicionales.map((p, index) => {
-                  const labelTipo = index < (cantAdultos - 1) ? 'Adulto' : 'Niño';
+                  const labelTipo = index < (cantAdultos - 1) ? (language === 'es' ? 'Adulto' : 'Adult') : (language === 'es' ? 'Niño' : 'Child');
 
                   return (
                     <div key={index} className="bg-[var(--card)] border border-[var(--border)]/40 p-4 rounded-2xl space-y-3">
                       <span className="text-[9px] text-[var(--foreground)] font-bold uppercase tracking-wider">
-                        Pasajero #{index + 2} ({labelTipo})
+                        {language === 'es' ? `Pasajero #${index + 2} (${labelTipo})` : `Passenger #${index + 2} (${labelTipo})`}
                       </span>
 
                       <div className="grid grid-cols-2 gap-3">
@@ -449,7 +448,7 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
                           value={p.nombre}
                           onChange={(e) => handleAdicionalFieldChange(index, 'nombre', e.target.value)}
                           className="w-full bg-[var(--background)] border border-[var(--border)] rounded-xl px-3 py-2 text-[var(--foreground)] text-xs focus:outline-none"
-                          placeholder="Nombre *"
+                          placeholder={language === 'es' ? 'Nombre *' : 'First Name *'}
                         />
                         <input
                           type="text"
@@ -457,7 +456,7 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
                           value={p.apellido}
                           onChange={(e) => handleAdicionalFieldChange(index, 'apellido', e.target.value)}
                           className="w-full bg-[var(--background)] border border-[var(--border)] rounded-xl px-3 py-2 text-[var(--foreground)] text-xs focus:outline-none"
-                          placeholder="Apellido *"
+                          placeholder={language === 'es' ? 'Apellido *' : 'Last Name *'}
                         />
                       </div>
 
@@ -466,7 +465,7 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
                         value={p.dni}
                         onChange={(e) => handleAdicionalFieldChange(index, 'dni', e.target.value)}
                         className="w-full bg-[var(--background)] border border-[var(--border)] rounded-xl px-3 py-2 text-[var(--foreground)] text-xs focus:outline-none"
-                        placeholder="Documento (DNI/Pasaporte)"
+                        placeholder={language === 'es' ? 'Documento (DNI/Pasaporte)' : 'Document (ID/Passport)'}
                       />
                     </div>
                   );
@@ -476,11 +475,11 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
           )}
         </form>
 
-        {/* Footer Financiero */}
+        {/* Footer */}
         <div className="p-6 border-t border-[var(--border)] bg-white  space-y-4">
           <div className="flex justify-between items-center">
             <div>
-              <span className="text-[10px] text-[var(--muted-foreground)]/80 block uppercase font-bold tracking-wider">Monto Total</span>
+              <span className="text-[10px] text-[var(--muted-foreground)]/80 block uppercase font-bold tracking-wider">{language === 'es' ? 'Monto Total' : 'Total Amount'}</span>
               <span className="text-xl font-black text-[var(--foreground)] flex items-center">
                 <DollarSign className="w-5 h-5 -mr-0.5 text-emerald-400" />
                 {total.toFixed(2)} <span className="text-xs text-[var(--muted-foreground)] font-normal ml-1">USD</span>
@@ -488,7 +487,7 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
             </div>
             <div className="flex items-center gap-1.5 text-xs text-[var(--muted-foreground)]">
               <ShieldCheck className="w-4 h-4 text-emerald-400" />
-              <span>Checkout Protegido</span>
+              <span>{language === 'es' ? 'Checkout Protegido' : 'Secure Checkout'}</span>
             </div>
           </div>
 
@@ -497,7 +496,9 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
             disabled={loading}
             className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white py-3.5 rounded-xl font-bold shadow-lg shadow-[var(--accent)]/20 hover:shadow-[var(--accent)]/30 transition-all text-sm flex items-center justify-center gap-2 disabled:opacity-50"
           >
-            {loading ? 'Redirigiendo a Pasarela...' : 'Proceder al Pago'}
+            {loading 
+              ? (language === 'es' ? 'Redirigiendo a Pasarela...' : 'Redirecting to Gateway...') 
+              : (language === 'es' ? 'Proceder al Pago' : 'Proceed to Payment')}
           </button>
         </div>
 
@@ -505,3 +506,4 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
     </div>
   );
 }
+

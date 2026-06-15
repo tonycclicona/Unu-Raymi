@@ -4,10 +4,12 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Calendar, Users, DollarSign, ArrowRight } from 'lucide-react';
 import { API_ASSETS_URL } from '../lib/api';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function TourCard({ tour, onReservar }) {
   const imagenes = tour.imagenes || [];
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const { t, language } = useLanguage();
 
   const hasVariants = tour.variantes && tour.variantes.length > 0;
   const [selectedDuration, setSelectedDuration] = useState(() => {
@@ -50,7 +52,7 @@ export default function TourCard({ tour, onReservar }) {
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-[var(--muted-foreground)]/80">
-            No Image
+            {language === 'es' ? 'Sin Imagen' : 'No Image'}
           </div>
         )}
         <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
@@ -88,7 +90,7 @@ export default function TourCard({ tour, onReservar }) {
                           : 'bg-white hover:bg-[var(--border)]/50 text-[var(--muted-foreground)] hover:text-[var(--foreground)] border-[var(--border)]'
                       }`}
                     >
-                      {v.duracion_dias} {v.duracion_dias === 1 ? 'Día' : 'Días'}
+                      {v.duracion_dias} {v.duracion_dias === 1 ? t('tour_card.dia') : t('tour_card.dias')}
                     </button>
                   );
                 })}
@@ -96,12 +98,12 @@ export default function TourCard({ tour, onReservar }) {
             ) : (
               <span className="flex items-center gap-1">
                 <Calendar className="w-3.5 h-3.5 text-[var(--foreground)]" />
-                {displayDuration} {displayDuration === 1 ? 'Día' : 'Días'}
+                {displayDuration} {displayDuration === 1 ? t('tour_card.dia') : t('tour_card.dias')}
               </span>
             )}
             <span className="flex items-center gap-1">
               <Users className="w-3.5 h-3.5 text-purple-400" />
-              {displayCupos} Cupos libres
+              {displayCupos} {displayCupos === 0 ? t('tour_card.cupos_none') : t('tour_card.cupos')}
             </span>
             {tour.categoria && (
               <span className="bg-[var(--accent)]/10 text-[var(--foreground)] border border-[var(--accent)]/20 px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider">
@@ -122,7 +124,7 @@ export default function TourCard({ tour, onReservar }) {
         {/* Footer Tarjeta */}
         <div className="flex items-center justify-between border-t border-[var(--border)]/50 pt-2 gap-2">
           <div>
-            <span className="text-xs text-[var(--muted-foreground)]/80 block uppercase font-bold tracking-wider">Desde</span>
+            <span className="text-xs text-[var(--muted-foreground)]/80 block uppercase font-bold tracking-wider">{t('tour_card.desde')}</span>
             <span className="text-xl font-black text-[var(--foreground)] flex items-center">
               <DollarSign className="w-4 h-4 text-emerald-400 -mr-0.5" />
               {displayPrecio} <span className="text-xs text-[var(--muted-foreground)] font-normal ml-1">USD</span>
@@ -133,7 +135,7 @@ export default function TourCard({ tour, onReservar }) {
             onClick={() => onReservar(tour, displayDuration)}
             className="flex items-center gap-1.5 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-lg shadow-[var(--accent)]/10 hover:shadow-[var(--accent)]/20 transition-all duration-300 group/btn whitespace-nowrap"
           >
-            Reservar
+            {language === 'es' ? 'Reservar' : 'Book'}
             <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-1 transition-transform" />
           </button>
         </div>
@@ -141,3 +143,4 @@ export default function TourCard({ tour, onReservar }) {
     </div>
   );
 }
+

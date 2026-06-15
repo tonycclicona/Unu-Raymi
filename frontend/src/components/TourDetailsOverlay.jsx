@@ -3,12 +3,14 @@
 import { useState, useEffect } from 'react';
 import { X, Compass, Shield, Backpack, Utensils, Bus, Camera, ArrowRight, Calendar, MapPin, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
 import { API_ASSETS_URL } from '../lib/api';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function TourDetailsOverlay({ tour, initialDuration, onClose, onProceed, isShifted }) {
   const [activeTooltip, setActiveTooltip] = useState(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [lightboxIndex, setLightboxIndex] = useState(null);
   const imagenes = tour.imagenes || [];
+  const { t, language } = useLanguage();
 
   // Escuchar teclado para navegar en la galería
   useEffect(() => {
@@ -42,7 +44,7 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
     if (imagenes.length <= 1) return;
     const interval = setInterval(() => {
       setCurrentImageIndex((prev) => (prev + 1) % imagenes.length);
-    }, 500);
+    }, 3000);
     return () => clearInterval(interval);
   }, [imagenes.length]);
 
@@ -122,7 +124,6 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
       ) {
         actividades.push(s);
       } else {
-        // Distribuir en guías o actividades por defecto si no encaja
         actividades.push(s);
       }
     });
@@ -151,24 +152,24 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
     } : categorizarServicios(activeInclusiones || [], tour.que_llevar || []);
 
     return {
-      guia: rawCategorias.guia?.length > 0 ? rawCategorias.guia : ['Guía local profesional en español'],
-      seguridad: rawCategorias.seguridad?.length > 0 ? rawCategorias.seguridad : ['Botiquín de primeros auxilios y protocolos de seguridad'],
-      equipamiento: rawCategorias.equipamiento?.length > 0 ? rawCategorias.equipamiento : ['Ropa de abrigo o impermeable', 'Calzado cómodo de caminata'],
-      alimentacion: rawCategorias.alimentacion?.length > 0 ? rawCategorias.alimentacion : ['Alimentación no incluida (opciones en la ruta)'],
-      transporte: rawCategorias.transporte?.length > 0 ? rawCategorias.transporte : ['Traslados incluidos en el punto de encuentro'],
-      actividades: rawCategorias.actividades?.length > 0 ? rawCategorias.actividades : ['Caminatas y explicaciones culturales según itinerario']
+      guia: rawCategorias.guia?.length > 0 ? rawCategorias.guia : [language === 'es' ? 'Guía local profesional en español' : 'Professional local guide in English'],
+      seguridad: rawCategorias.seguridad?.length > 0 ? rawCategorias.seguridad : [language === 'es' ? 'Botiquín de primeros auxilios y protocolos de seguridad' : 'First aid kit and safety protocols'],
+      equipamiento: rawCategorias.equipamiento?.length > 0 ? rawCategorias.equipamiento : (language === 'es' ? ['Ropa de abrigo o impermeable', 'Calzado cómodo de caminata'] : ['Warm or waterproof clothing', 'Comfortable hiking shoes']),
+      alimentacion: rawCategorias.alimentacion?.length > 0 ? rawCategorias.alimentacion : [language === 'es' ? 'Alimentación no incluida (opciones en la ruta)' : 'Food not included (options along the route)'],
+      transporte: rawCategorias.transporte?.length > 0 ? rawCategorias.transporte : [language === 'es' ? 'Traslados incluidos en el punto de encuentro' : 'Transfers included at the meeting point'],
+      actividades: rawCategorias.actividades?.length > 0 ? rawCategorias.actividades : [language === 'es' ? 'Caminatas y explicaciones culturales según itinerario' : 'Hikes and cultural explanations according to the itinerary']
     };
   };
 
   const categorias = getCategorias();
 
   const itemsCategorias = [
-    { id: 'guia', label: 'Guías y Dirección', icon: Compass, list: categorias.guia, color: 'text-indigo-400 border-indigo-500/20 bg-indigo-500/5' },
-    { id: 'seguridad', label: 'Seguridad y Asistencia', icon: Shield, list: categorias.seguridad, color: 'text-emerald-400 border-emerald-500/20 bg-emerald-500/5' },
-    { id: 'equipamiento', label: 'Equipamiento Requerido', icon: Backpack, list: categorias.equipamiento, color: 'text-amber-400 border-emerald-500/20 bg-emerald-500/5' },
-    { id: 'alimentacion', label: 'Alimentación y Bebidas', icon: Utensils, list: categorias.alimentacion, color: 'text-rose-400 border-rose-500/20 bg-rose-500/5' },
-    { id: 'transporte', label: 'Transporte y Logística', icon: Bus, list: categorias.transporte, color: 'text-blue-400 border-blue-500/20 bg-blue-500/5' },
-    { id: 'actividades', label: 'Tickets y Actividades', icon: Camera, list: categorias.actividades, color: 'text-purple-400 border-purple-500/20 bg-purple-500/5' },
+    { id: 'guia', label: language === 'es' ? 'Guías y Dirección' : 'Guides & Direction', icon: Compass, list: categorias.guia, color: 'text-indigo-400 border-indigo-500/20 bg-indigo-500/5' },
+    { id: 'seguridad', label: language === 'es' ? 'Seguridad y Asistencia' : 'Safety & Assistance', icon: Shield, list: categorias.seguridad, color: 'text-emerald-400 border-emerald-500/20 bg-emerald-500/5' },
+    { id: 'equipamiento', label: language === 'es' ? 'Equipamiento Requerido' : 'Required Equipment', icon: Backpack, list: categorias.equipamiento, color: 'text-amber-400 border-emerald-500/20 bg-emerald-500/5' },
+    { id: 'alimentacion', label: language === 'es' ? 'Alimentación y Bebidas' : 'Food & Drinks', icon: Utensils, list: categorias.alimentacion, color: 'text-rose-400 border-rose-500/20 bg-rose-500/5' },
+    { id: 'transporte', label: language === 'es' ? 'Transporte y Logística' : 'Transport & Logistics', icon: Bus, list: categorias.transporte, color: 'text-blue-400 border-blue-500/20 bg-blue-500/5' },
+    { id: 'actividades', label: language === 'es' ? 'Tickets y Actividades' : 'Tickets & Activities', icon: Camera, list: categorias.actividades, color: 'text-purple-400 border-purple-500/20 bg-purple-500/5' },
   ];
 
   const displayExclusiones = (activeVariant && activeVariant.servicios_excluidos && activeVariant.servicios_excluidos.length > 0)
@@ -198,7 +199,7 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
           <X className="w-5 h-5" />
         </button>
 
-        {/* 1. GALERIA DE IMAGENES — horizontal strip en mobile, columna en desktop */}
+        {/* 1. GALERIA DE IMAGENES */}
         <div className="w-full md:w-[25%] lg:w-[22%] border-b md:border-b-0 md:border-r border-[var(--border)]/50 bg-[var(--sidebar)] md:h-full md:overflow-y-auto no-scrollbar">
           {/* Mobile: horizontal scroll */}
           <div className="flex gap-3 p-3 overflow-x-auto no-scrollbar md:hidden">
@@ -235,7 +236,7 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
           </div>
         </div>
 
-        {/* 2. Columna Central: Información, Duraciones, Itinerario y Exclusiones */}
+        {/* 2. Columna Central */}
         <div className="w-full md:w-[45%] lg:w-[48%] p-5 md:p-8 flex flex-col justify-between border-b md:border-b-0 md:border-r border-[var(--border)]/50 md:h-full md:overflow-y-auto no-scrollbar">
           <div className="space-y-5">
             {/* Header del Tour */}
@@ -246,7 +247,7 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
                 </span>
                 <span className="text-xs text-[var(--muted-foreground)] flex items-center gap-1">
                   <Calendar className="w-3.5 h-3.5 text-[var(--foreground)]" />
-                  {displayDuration} {displayDuration === 1 ? 'Día' : 'Días'}
+                  {displayDuration} {displayDuration === 1 ? t('tour_card.dia') : t('tour_card.dias')}
                 </span>
               </div>
               <h2 className="text-xl md:text-3xl font-black text-[var(--foreground)] leading-tight">{tour.nombre}</h2>
@@ -256,7 +257,7 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
             {/* Multi-duration Toggle Tabs */}
             {hasVariants && (
               <div className="bg-[var(--card)] border border-[var(--border)]/40 p-4 rounded-2xl space-y-2.5">
-                <span className="text-[10px] text-[var(--muted-foreground)] block uppercase font-bold tracking-wider">Duración del Paquete</span>
+                <span className="text-[10px] text-[var(--muted-foreground)] block uppercase font-bold tracking-wider">{t('tour_details.seleccionar_duracion')}</span>
                 <div className="flex flex-wrap gap-2">
                   {tour.variantes.map((v) => {
                     const isSelected = selectedDuration === v.duracion_dias;
@@ -269,7 +270,7 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
                           : 'bg-[var(--card)] hover:bg-[var(--border)]/50 text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)]'
                           }`}
                       >
-                        {v.duracion_dias} {v.duracion_dias === 1 ? 'Día' : 'Días'}
+                        {v.duracion_dias} {v.duracion_dias === 1 ? t('tour_card.dia') : t('tour_card.dias')}
                       </button>
                     );
                   })}
@@ -281,7 +282,7 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
             <div className="space-y-3">
               <h3 className="text-sm font-bold text-[var(--foreground)] uppercase tracking-wider flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-[var(--foreground)]" />
-                Itinerario Detallado
+                {t('tour_details.itinerario')}
               </h3>
 
               {displayItinerario ? (
@@ -294,17 +295,17 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
                 </div>
               ) : (
                 <div className="bg-[var(--card)] border border-[var(--border)]/40 p-5 rounded-2xl text-center text-xs text-[var(--muted-foreground)]/80 italic">
-                  No se ha registrado un itinerario detallado para este tour.
+                  {language === 'es' ? 'No se ha registrado un itinerario detallado para este tour.' : 'No detailed itinerary has been registered for this tour.'}
                 </div>
               )}
             </div>
 
-            {/* Exclusiones / Servicios Excluidos */}
+            {/* Exclusiones */}
             {displayExclusiones && displayExclusiones.length > 0 && (
               <div className="space-y-3">
                 <h3 className="text-sm font-bold text-[var(--foreground)] uppercase tracking-wider flex items-center gap-2">
                   <X className="w-4 h-4 text-[var(--foreground)]" />
-                  Servicios Excluidos
+                  {language === 'es' ? 'Servicios Excluidos' : 'Excluded Services'}
                 </h3>
                 <ul className="bg-[var(--card)] border border-[var(--border)]/40 p-4 rounded-2xl space-y-2 text-xs text-[var(--muted-foreground)]">
                   {displayExclusiones.map((item, idx) => (
@@ -324,26 +325,26 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
               onClick={onClose}
               className="text-xs text-[var(--muted-foreground)] hover:text-[var(--foreground)] font-semibold transition-colors"
             >
-              ← Volver al catálogo
+              {language === 'es' ? '← Volver al catálogo' : '← Back to catalog'}
             </button>
           </div>
         </div>
 
-        {/* 3. Columna Derecha: Servicios por Categoría, Precios y Pago */}
+        {/* 3. Columna Derecha */}
         <div className="w-full md:w-[30%] p-5 md:p-8 flex flex-col justify-between bg-[var(--card)] md:h-full md:overflow-y-auto no-scrollbar">
           <div className="space-y-5">
             <div className="space-y-1">
-              <span className="text-[10px] text-[var(--foreground)] font-extrabold uppercase tracking-widest">Inclusiones</span>
-              <h3 className="font-extrabold text-[var(--foreground)] text-base md:text-lg">Servicios Incluidos</h3>
+              <span className="text-[10px] text-[var(--foreground)] font-extrabold uppercase tracking-widest">{language === 'es' ? 'Inclusiones' : 'Inclusions'}</span>
+              <h3 className="font-extrabold text-[var(--foreground)] text-base md:text-lg">{language === 'es' ? 'Servicios Incluidos' : 'Included Services'}</h3>
               <p className="text-xs text-[var(--muted-foreground)] leading-relaxed hidden md:block">
-                Pasa el cursor sobre cada categoría para ver los detalles.
+                {language === 'es' ? 'Pasa el cursor sobre cada categoría para ver los detalles.' : 'Hover over each category to see the details.'}
               </p>
               <p className="text-xs text-[var(--muted-foreground)] leading-relaxed md:hidden">
-                Toca una categoría para ver los detalles.
+                {language === 'es' ? 'Toca una categoría para ver los detalles.' : 'Tap a category to see the details.'}
               </p>
             </div>
 
-            {/* Grid de 6 Categorías — tap toggle on mobile, hover on desktop */}
+            {/* Grid de 6 Categorías */}
             <div className="grid grid-cols-2 gap-4 relative">
               {itemsCategorias.map((cat) => {
                 const Icon = cat.icon;
@@ -360,7 +361,7 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
                     <Icon className="w-6 h-6 md:w-8 md:h-8 mb-2 transition-transform duration-300 group-hover:scale-110" />
                     <span className="text-[10px] md:text-xs font-extrabold text-[var(--foreground)]/90 leading-tight">{cat.label}</span>
 
-                    {/* Tooltip — works on hover (desktop) and tap (mobile) */}
+                    {/* Tooltip */}
                     {isActive && (
                       <div className="absolute z-30 left-1/2 -translate-x-1/2 bottom-[110%] w-52 md:w-56 bg-[var(--background)] border border-[var(--border)] p-3 md:p-4 rounded-2xl shadow-2xl animate-fade-in text-left">
                         <div className="text-[10px] text-[var(--foreground)] font-bold uppercase tracking-wider mb-2">
@@ -382,17 +383,17 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
             </div>
           </div>
 
-          {/* Info Financiera y Botón de Acción Principal */}
+          {/* Precios y Registro */}
           <div className="pt-5 space-y-3 md:space-y-4">
             <div className="bg-[var(--card)] border border-[var(--border)]/50 p-4 rounded-2xl flex justify-between items-center">
               <div>
-                <span className="text-[10px] text-[var(--muted-foreground)] block uppercase font-bold tracking-wider">Precio Adulto</span>
+                <span className="text-[10px] text-[var(--muted-foreground)] block uppercase font-bold tracking-wider">{language === 'es' ? 'Precio Adulto' : 'Adult Price'}</span>
                 <span className="text-base font-extrabold text-[var(--foreground)]">${displayPrecioAdulto} USD</span>
               </div>
               <div className="text-right">
-                <span className="text-[10px] text-[var(--muted-foreground)] block uppercase font-bold tracking-wider">Cupos</span>
+                <span className="text-[10px] text-[var(--muted-foreground)] block uppercase font-bold tracking-wider">{language === 'es' ? 'Cupos' : 'Spaces'}</span>
                 <span className="text-xs bg-[var(--accent)]/10 text-[var(--foreground)] px-2.5 py-0.5 rounded-full font-bold">
-                  {displayCupos} libres
+                  {displayCupos} {language === 'es' ? 'libres' : 'left'}
                 </span>
               </div>
             </div>
@@ -401,7 +402,7 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
               onClick={() => onProceed(selectedDuration)}
               className="w-full flex items-center justify-center gap-2 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white py-4 rounded-xl font-bold shadow-lg shadow-[var(--accent)]/20 hover:shadow-[var(--accent)]/30 transition-all duration-300 text-sm"
             >
-              Proceder al Registro
+              {language === 'es' ? 'Proceder al Registro' : 'Proceed to Registration'}
               <ArrowRight className="w-4 h-4" />
             </button>
 
@@ -410,14 +411,14 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
               onClick={onClose}
               className="w-full text-center text-xs text-[var(--muted-foreground)]/80 hover:text-[var(--foreground)] font-semibold transition-colors py-2 md:hidden"
             >
-              ← Volver al catálogo
+              {language === 'es' ? '← Volver al catálogo' : '← Back to catalog'}
             </button>
           </div>
         </div>
 
       </div>
 
-      {/* Lightbox de Galería en Tamaño Completo */}
+      {/* Lightbox de Galería */}
       {lightboxIndex !== null && (
         <div
           onClick={(e) => {
@@ -477,3 +478,4 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
     </div>
   );
 }
+

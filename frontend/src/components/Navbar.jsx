@@ -3,11 +3,13 @@
 import { useState, useEffect } from 'react';
 import { Menu, X, Sun, Moon } from 'lucide-react';
 import Link from 'next/link';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [theme, setTheme] = useState('light');
+  const { language, setLanguage, t } = useLanguage();
 
   useEffect(() => {
     const isDark = document.documentElement.classList.contains('dark');
@@ -27,10 +29,10 @@ export default function Navbar() {
   };
 
   const navItems = [
-    { label: 'Inicio', href: '#inicio' },
-    { label: 'Excursiones', href: '#tours' },
-    { label: 'Experiencias', href: '#reviews' },
-    { label: 'Nosotros', href: '#guias' },
+    { label: t('nav.inicio'), href: '#inicio' },
+    { label: t('nav.excursiones'), href: '#tours' },
+    { label: t('nav.experiencias'), href: '#reviews' },
+    { label: t('nav.nosotros'), href: '#guias' },
   ];
 
   useEffect(() => {
@@ -151,7 +153,7 @@ export default function Navbar() {
           </svg>
         </div>
 
-        <nav className="hidden md:flex items-center gap-8">
+        <nav className="hidden md:flex items-center gap-6">
           {navItems.map((item) => (
             <a
               key={item.label}
@@ -165,14 +167,23 @@ export default function Navbar() {
             href="#tours"
             className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white px-5 py-2.5 rounded-xl font-semibold shadow-lg shadow-[var(--accent)]/20 hover:shadow-[var(--accent)]/30 transition-all duration-300 text-sm"
           >
-            Explorar Ahora
+            {t('nav.explorar')}
           </a>
+
+          {/* Selector de idioma */}
+          <button
+            onClick={() => setLanguage(language === 'es' ? 'en' : 'es')}
+            className="px-3 py-2 rounded-xl border border-[var(--border)] bg-[var(--card)] hover:bg-[var(--sidebar)] text-[var(--foreground)] hover:scale-105 active:scale-95 transition-all duration-300 shadow-sm flex items-center gap-1.5 font-bold text-xs cursor-pointer shrink-0"
+            aria-label="Cambiar idioma / Switch language"
+          >
+            <span>🌐</span>
+            <span className="uppercase">{language}</span>
+          </button>
 
           <button
             onClick={toggleTheme}
             className="p-2.5 rounded-xl border border-[var(--border)] bg-[var(--card)] hover:bg-[var(--sidebar)] text-[var(--foreground)] hover:scale-105 active:scale-95 transition-all duration-300 shadow-sm flex items-center justify-center cursor-pointer shrink-0"
-            aria-label="Cambiar t
-            ema"
+            aria-label={t('nav.cambiarTema')}
           >
             {theme === 'light' ? (
               <Moon className="w-4.5 h-4.5 text-[var(--foreground)]" />
@@ -182,12 +193,22 @@ export default function Navbar() {
           </button>
         </nav>
 
-        {/* Mobile theme switch & menu buttons */}
+        {/* Mobile buttons */}
         <div className="flex md:hidden items-center gap-2">
+          {/* Selector de idioma móvil */}
+          <button
+            onClick={() => setLanguage(language === 'es' ? 'en' : 'es')}
+            className="px-2.5 py-1.5 rounded-xl border border-[var(--border)] bg-[var(--card)] hover:bg-[var(--sidebar)] text-[var(--foreground)] hover:scale-105 active:scale-95 transition-all duration-300 shadow-sm flex items-center gap-1 font-bold text-[10px] cursor-pointer shrink-0"
+            aria-label="Cambiar idioma"
+          >
+            <span>🌐</span>
+            <span className="uppercase">{language}</span>
+          </button>
+
           <button
             onClick={toggleTheme}
             className="p-2 rounded-xl border border-[var(--border)] bg-[var(--card)] hover:bg-[var(--sidebar)] text-[var(--foreground)] hover:scale-105 active:scale-95 transition-all duration-300 shadow-sm flex items-center justify-center cursor-pointer shrink-0"
-            aria-label="Cambiar tema"
+            aria-label={t('nav.cambiarTema')}
           >
             {theme === 'light' ? (
               <Moon className="w-4 h-4 text-[var(--foreground)]" />
@@ -223,10 +244,11 @@ export default function Navbar() {
             onClick={() => setIsOpen(false)}
             className="block text-center bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-[var(--accent)]/20"
           >
-            Explorar Ahora
+            {t('nav.explorar')}
           </a>
         </div>
       )}
     </header>
   );
 }
+

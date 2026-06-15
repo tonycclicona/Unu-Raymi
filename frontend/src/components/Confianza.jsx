@@ -4,6 +4,7 @@ import { useState } from 'react';
 import useSWR from 'swr';
 import { fetcher, API_ASSETS_URL } from '@/lib/api';
 import { ShieldCheck, Award, Lock, Star, Heart, Shield, X } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
 
 const ICON_MAP = {
   Award,
@@ -26,30 +27,12 @@ const COLOR_MAP = {
 export default function Confianza() {
   const [hoveredGarantiaId, setHoveredGarantiaId] = useState(null);
   const [selectedGarantiaImg, setSelectedGarantiaImg] = useState(null);
+  const { t, language } = useLanguage();
 
   const { data: response } = useSWR('/garantias?activo=true', fetcher);
   const dbGarantias = response?.data || [];
 
-  const opiniones = [
-    {
-      id: 1,
-      nombre: 'Mark S.',
-      origen: 'Boston, EE. UU.',
-      fecha: 'Hace 2 semanas',
-      titulo: 'Experiencia inolvidable en Cusco',
-      comentario: 'Hicimos el Camino Inca con Unu-Raymi y fue espectacular. Los guías sabían muchísimo de arqueología y la comida era increíble.',
-      burbujas: 5,
-    },
-    {
-      id: 2,
-      nombre: 'Elena R.',
-      origen: 'Madrid, España',
-      fecha: 'Hace 1 mes',
-      titulo: 'Muy profesionales y seguros',
-      comentario: 'Viajamos en familia y nos dieron una asistencia impecable desde la recogida en el aeropuerto. Muy recomendados en trekking de altura.',
-      burbujas: 5,
-    },
-  ];
+  const opiniones = t('reviews.opiniones') || [];
 
   // Renderizador de las clásicas burbujas verdes de TripAdvisor
   const TripAdvisorRating = ({ rating }) => {
@@ -78,13 +61,13 @@ export default function Confianza() {
         <div className="lg:col-span-7 space-y-6">
           <div className="space-y-2">
             <span className="text-[10px] text-[var(--foreground)] font-extrabold uppercase tracking-widest block">
-              Opiniones Reales
+              {t('reviews.badge')}
             </span>
             <h2 className="text-3xl font-black text-[var(--foreground)] tracking-tight">
-              Recomendados en TripAdvisor
+              {t('reviews.title')}
             </h2>
             <p className="text-sm text-[var(--muted-foreground)] max-w-xl">
-              Nuestra prioridad es tu seguridad y satisfacción. Mira lo que opinan los viajeros que confiaron en nosotros.
+              {t('reviews.desc')}
             </p>
           </div>
 
@@ -109,7 +92,7 @@ export default function Confianza() {
                 </div>
 
                 <div className="space-y-1">
-                  <TripAdvisorRating rating={op.burbujas} />
+                  <TripAdvisorRating rating={5} />
                   <h5 className="font-bold text-sm text-[var(--foreground)] pt-1">{op.titulo}</h5>
                   <p className="text-xs text-[var(--muted-foreground)] leading-relaxed italic">
                     "{op.comentario}"
@@ -123,7 +106,7 @@ export default function Confianza() {
         {/* LADO DERECHO: Licencias y Sellos SSL (5 columnas en desktop) */}
         <div className="lg:col-span-5 space-y-6 bg-[var(--card)] border border-[var(--border)]/50 p-8 rounded-3xl relative">
           <h3 className="text-base font-extrabold text-[var(--foreground)] uppercase tracking-wider border-b border-[var(--border)]/50 pb-3">
-            Garantías y Seguridad
+            {t('reviews.garantias_titulo')}
           </h3>
 
           <div className="grid grid-cols-2 gap-6">
@@ -132,7 +115,9 @@ export default function Confianza() {
                 {
                   id: 1,
                   titulo: 'MINCETUR',
-                  descripcion: 'Operador oficial autorizado de turismo de aventura.',
+                  descripcion: language === 'es' 
+                    ? 'Operador oficial autorizado de turismo de aventura.' 
+                    : 'Official authorized adventure tourism operator.',
                   icono: 'Award',
                   color: 'red',
                   imagenUrl: '',
@@ -140,7 +125,9 @@ export default function Confianza() {
                 {
                   id: 2,
                   titulo: 'SSL Encriptado',
-                  descripcion: 'Tus transacciones y datos están protegidos bajo cifrado SSL.',
+                  descripcion: language === 'es'
+                    ? 'Tus transacciones y datos están protegidos bajo cifrado SSL.'
+                    : 'Your transactions and data are protected under SSL encryption.',
                   icono: 'Lock',
                   color: 'emerald',
                   imagenUrl: '',
@@ -148,7 +135,9 @@ export default function Confianza() {
                 {
                   id: 3,
                   titulo: 'Stripe Verified',
-                  descripcion: 'Procesamiento de tarjetas bajo estándares PCI-DSS.',
+                  descripcion: language === 'es'
+                    ? 'Procesamiento de tarjetas bajo estándares PCI-DSS.'
+                    : 'Card processing under PCI-DSS standards.',
                   icono: 'ShieldCheck',
                   color: 'blue',
                   imagenUrl: '',
@@ -156,7 +145,9 @@ export default function Confianza() {
                 {
                   id: 4,
                   titulo: 'Marca Perú',
-                  descripcion: 'Promotor del turismo sostenible e identidad nacional.',
+                  descripcion: language === 'es'
+                    ? 'Promotor del turismo sostenible e identidad nacional.'
+                    : 'Promoter of sustainable tourism and national identity.',
                   icono: 'Star',
                   color: 'amber',
                   imagenUrl: '',
@@ -218,7 +209,7 @@ export default function Confianza() {
           </div>
 
           <div className="bg-[var(--card)] border border-[var(--border)]/40 p-4 rounded-xl text-[10px] text-[var(--muted-foreground)]/80 leading-relaxed text-center">
-            🔐 En Unu-Raymi nos tomamos en serio tu tranquilidad. Contamos con seguros contra accidentes y cobertura completa para todas nuestras rutas.
+            {t('reviews.garantias_fallback')}
           </div>
         </div>
 
@@ -233,7 +224,7 @@ export default function Confianza() {
           <div className="relative max-w-4xl max-h-[85vh] w-full h-full flex items-center justify-center">
             <img
               src={selectedGarantiaImg.startsWith('http') ? selectedGarantiaImg : `${API_ASSETS_URL}${selectedGarantiaImg}`}
-              alt="Certificado en tamaño completo"
+              alt={t('reviews.certificado_titulo')}
               className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl border border-white/10"
             />
             <button
@@ -242,7 +233,7 @@ export default function Confianza() {
                 setSelectedGarantiaImg(null);
               }}
               className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 border border-white/10 text-white p-2.5 rounded-full transition-all"
-              aria-label="Cerrar vista"
+              aria-label={t('reviews.cerrar_vista')}
             >
               <X className="w-6 h-6" />
             </button>
@@ -252,3 +243,4 @@ export default function Confianza() {
     </section>
   );
 }
+

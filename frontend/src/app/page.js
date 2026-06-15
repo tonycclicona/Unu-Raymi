@@ -12,6 +12,7 @@ import TourDetailsOverlay from '@/components/TourDetailsOverlay';
 import Confianza from '@/components/Confianza';
 import Guias from '@/components/Guias';
 import { Compass, HelpCircle, Phone, Mail, MapPin, Search, X } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function Home() {
   const [filtroPais, setFiltroPais] = useState('Todos');
@@ -21,6 +22,7 @@ export default function Home() {
   const [selectedDuration, setSelectedDuration] = useState(null);
   const [visibleCount, setVisibleCount] = useState(6);
   const [busqueda, setBusqueda] = useState('');
+  const { t, language } = useLanguage();
 
   // Cerrar todos los overlays al presionar Escape
   useEffect(() => {
@@ -45,9 +47,11 @@ export default function Home() {
   const mockTours = [
     {
       id: 101,
-      nombre: 'Camino Inca Clásico a Machupicchu',
+      nombre: language === 'es' ? 'Camino Inca Clásico a Machupicchu' : 'Classic Inca Trail to Machu Picchu',
       slug: 'camino-inca-clasico',
-      descripcion: 'La ruta de trekking más famosa de América. Camina por senderos ancestrales y descubre el místico santuario inca de Machupicchu.',
+      descripcion: language === 'es'
+        ? 'La ruta de trekking más famosa de América. Camina por senderos ancestrales y descubre el místico santuario inca de Machupicchu.'
+        : 'America\'s most famous trekking route. Hike along ancient trails and discover the mystical Inca sanctuary of Machu Picchu.',
       precio_adulto: 650.00,
       precio_nino: 450.00,
       duracion_dias: 4,
@@ -59,9 +63,11 @@ export default function Home() {
     },
     {
       id: 102,
-      nombre: 'Aventura al Valle de Cocora y Cafetales',
+      nombre: language === 'es' ? 'Aventura al Valle de Cocora y Cafetales' : 'Cocora Valley & Coffee Farms Adventure',
       slug: 'valle-cocora-cafe',
-      descripcion: 'Explora las palmas de cera gigantes más altas del mundo en Quindío y sumérgete en la cultura cafetera de Colombia.',
+      descripcion: language === 'es'
+        ? 'Explora las palmas de cera gigantes más altas del mundo en Quindío y sumérgete en la cultura cafetera de Colombia.'
+        : 'Explore the world\'s tallest giant wax palms in Quindío and immerse yourself in Colombia\'s coffee culture.',
       precio_adulto: 280.00,
       precio_nino: 180.00,
       duracion_dias: 3,
@@ -73,9 +79,11 @@ export default function Home() {
     },
     {
       id: 103,
-      nombre: 'Cruce Andino por los Lagos de la Patagonia',
+      nombre: language === 'es' ? 'Cruce Andino por los Lagos de la Patagonia' : 'Andean Crossing through Patagonia Lakes',
       slug: 'cruce-andino-patagonia',
-      descripcion: 'Cruza la imponente cordillera de los Andes navegando entre lagos cristalinos y volcanes cubiertos de nieve en el sur de Chile.',
+      descripcion: language === 'es'
+        ? 'Cruza la imponente cordillera de los Andes navegando entre lagos cristalinos y volcanes cubiertos de nieve en el sur de Chile.'
+        : 'Cross the imposing Andes mountain range sailing between crystal clear lakes and snow-capped volcanoes in southern Chile.',
       precio_adulto: 490.00,
       precio_nino: 350.00,
       duracion_dias: 5,
@@ -149,16 +157,20 @@ export default function Home() {
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-black text-[var(--foreground)] flex items-center gap-1.5">
                 <Compass className="w-4 h-4 text-[var(--foreground)]" />
-                Tours en {filtroPais === 'Todos' ? 'Sudamérica' : filtroPais}
+                {t('catalog.title_country').replace('{country}', filtroPais === 'Todos' ? (language === 'es' ? 'Sudamérica' : 'South America') : filtroPais)}
               </h2>
               <div className="flex items-center gap-2">
-                <span className="text-[9px] text-[var(--muted-foreground)]">{filteredTours.length} {filteredTours.length === 1 ? 'result.' : 'results.'}</span>
+                <span className="text-[9px] text-[var(--muted-foreground)]">
+                  {filteredTours.length === 1
+                    ? t('catalog.results_single')
+                    : t('catalog.results_plural').replace('{count}', filteredTours.length)}
+                </span>
                 {filtroPais !== 'Todos' && (
                   <button
                     onClick={() => { setFiltroPais('Todos'); setVisibleCount(6); }}
                     className="bg-[var(--accent)]/10 text-[var(--foreground)] border border-[var(--accent)]/20 text-[9px] px-2 py-0.5 rounded-full font-bold"
                   >
-                    ✕ Limpiar
+                    {t('catalog.clean_filter')}
                   </button>
                 )}
               </div>
@@ -177,7 +189,7 @@ export default function Home() {
                       : 'bg-[var(--card)]/60 text-[var(--muted-foreground)] border border-[var(--border)]/60'
                       }`}
                   >
-                    {cat === '*' ? 'Todos' : cat}
+                    {cat === '*' ? t('catalog.category_all') : cat}
                   </button>
                 );
               })}
@@ -192,7 +204,7 @@ export default function Home() {
                 type="text"
                 value={busqueda}
                 onChange={(e) => { setBusqueda(e.target.value); setVisibleCount(6); }}
-                placeholder="Buscar tours..."
+                placeholder={t('catalog.search_placeholder_mobile')}
                 className="w-full pl-9 pr-8 py-2.5 bg-white border border-[var(--border)]/50 rounded-xl text-xs text-[var(--foreground)] placeholder-gray-500 focus:outline-none focus:border-[var(--accent)]/50"
               />
               {busqueda && (
@@ -209,9 +221,9 @@ export default function Home() {
             {filteredTours.length === 0 ? (
               <div className="py-16 flex flex-col items-center justify-center text-center space-y-3">
                 <HelpCircle className="w-10 h-10 text-gray-600" />
-                <h4 className="text-[var(--foreground)] font-bold text-sm">No hay tours en esta región</h4>
+                <h4 className="text-[var(--foreground)] font-bold text-sm">{t('catalog.no_tours_title')}</h4>
                 <p className="text-xs text-[var(--muted-foreground)]/80 max-w-xs leading-relaxed">
-                  Selecciona otro país en el mapa.
+                  {t('catalog.no_tours_desc').replace('{country}', filtroPais)}
                 </p>
               </div>
             ) : (
@@ -229,7 +241,7 @@ export default function Home() {
                       onClick={() => setVisibleCount((prev) => prev + 6)}
                       className="group flex items-center gap-2 bg-[var(--card)]/60 border border-[var(--accent)]/40 hover:border-[var(--accent)] hover:bg-[var(--accent)] text-white px-6 py-3 rounded-xl text-xs font-bold transition-all"
                     >
-                      Cargar más aventuras
+                      {t('catalog.load_more')}
                       <Compass className="w-4 h-4 text-[var(--foreground)] group-hover:text-[var(--foreground)] group-hover:rotate-180 transition-all duration-500" />
                     </button>
                   </div>
@@ -262,19 +274,21 @@ export default function Home() {
                   <div className="flex items-center gap-2">
                     <h2 className="text-base md:text-lg font-black text-[var(--foreground)] flex items-center gap-1.5">
                       <Compass className="w-4 h-4 text-[var(--foreground)]" />
-                      Tours en {filtroPais === 'Todos' ? 'Sudamérica' : filtroPais}
+                      {t('catalog.title_country').replace('{country}', filtroPais === 'Todos' ? (language === 'es' ? 'Sudamérica' : 'South America') : filtroPais)}
                     </h2>
                     {filtroPais !== 'Todos' && (
                       <button
                         onClick={() => { setFiltroPais('Todos'); setVisibleCount(6); }}
-                        className="bg-[var(--accent)] text-[#ffffff] hover:bg-[var(--accent)] hover:text-[var(--foreground)] border border-[var(--accent)]/20 text-[10px] px-2 py-0.5 rounded-full font-bold transition-all"
+                        className="bg-[var(--accent)] text-[#ffffff] hover:bg-[var(--accent-hover)] hover:text-[var(--foreground)] border border-[var(--accent)]/20 text-[10px] px-2 py-0.5 rounded-full font-bold transition-all"
                       >
-                        Limpiar
+                        {t('catalog.clean_filter_desktop')}
                       </button>
                     )}
                   </div>
                   <p className="text-xs text-[var(--muted-foreground)] mt-0.5">
-                    {filteredTours.length} {filteredTours.length === 1 ? 'aventura encontrada' : 'aventuras encontradas'}
+                    {filteredTours.length === 1
+                      ? t('catalog.results_single')
+                      : t('catalog.results_plural').replace('{count}', filteredTours.length)}
                   </p>
                 </div>
 
@@ -290,7 +304,7 @@ export default function Home() {
                           : 'bg-[var(--card)]/60 hover:bg-[var(--card)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)]/60 hover:border-[var(--accent)]/40'
                           }`}
                       >
-                        {cat === '*' ? '*' : cat}
+                        {cat === '*' ? t('catalog.category_all') : cat}
                       </button>
                     );
                   })}
@@ -305,7 +319,7 @@ export default function Home() {
                   type="text"
                   value={busqueda}
                   onChange={(e) => { setBusqueda(e.target.value); setVisibleCount(6); }}
-                  placeholder="Buscar por nombre, descripción o país..."
+                  placeholder={t('catalog.search_placeholder')}
                   className="w-full pl-9 pr-8 py-2.5 bg-white border border-[var(--border)]/50 rounded-xl text-xs md:text-sm text-[var(--foreground)] placeholder-gray-500 focus:outline-none focus:border-[var(--accent)]/50 focus:ring-1 focus:ring-[#4a5759]/30 transition-all"
                 />
                 {busqueda && (
@@ -322,9 +336,9 @@ export default function Home() {
               {filteredTours.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-center space-y-3">
                   <HelpCircle className="w-12 h-12 text-gray-600" />
-                  <h4 className="text-[var(--foreground)] font-bold text-sm">No hay tours en esta región</h4>
+                  <h4 className="text-[var(--foreground)] font-bold text-sm">{t('catalog.no_tours_title')}</h4>
                   <p className="text-xs text-[var(--muted-foreground)]/80 max-w-xs leading-relaxed">
-                    Pronto agregaremos nuevas expediciones para {filtroPais}. Selecciona otro país en el mapa.
+                    {t('catalog.no_tours_desc').replace('{country}', filtroPais)}
                   </p>
                 </div>
               ) : (
@@ -342,7 +356,7 @@ export default function Home() {
                         onClick={() => setVisibleCount((prev) => prev + 6)}
                         className="group flex items-center gap-2 bg-[var(--card)]/60 border border-[var(--accent)]/40 hover:border-[var(--accent)] hover:bg-[var(--accent)] text-white px-6 py-3 rounded-xl text-xs font-bold transition-all hover:scale-[1.02] active:scale-[0.98]"
                       >
-                        Cargar más aventuras
+                        {t('catalog.load_more')}
                         <Compass className="w-4 h-4 text-[var(--foreground)] group-hover:text-[var(--foreground)] group-hover:rotate-180 transition-all duration-500" />
                       </button>
                     </div>
@@ -372,23 +386,23 @@ export default function Home() {
               <span className="font-extrabold text-[var(--foreground)] text-lg tracking-wider">UNU-RAYMI</span>
             </div>
             <p className="text-[var(--muted-foreground)] text-sm leading-relaxed max-w-sm">
-              Agencia de viajes dedicada a crear trekking personalizados de lujo y expediciones culturales por los andes sudamericanos.
+              {t('footer.desc')}
             </p>
           </div>
 
           {/* Destinos */}
           <div className="space-y-4">
-            <h4 className="font-extrabold text-[var(--foreground)] uppercase text-xs tracking-widest text-[var(--foreground)]">Destinos</h4>
+            <h4 className="font-extrabold text-[var(--foreground)] uppercase text-xs tracking-widest">{t('footer.destinos')}</h4>
             <ul className="space-y-2 text-sm text-[var(--muted-foreground)]">
-              <li><button onClick={() => setFiltroPais('Perú')} className="hover:text-[var(--foreground)] transition-colors">Perú y Machupicchu</button></li>
-              <li><button onClick={() => setFiltroPais('Colombia')} className="hover:text-[var(--foreground)] transition-colors">Colombia Cafetera</button></li>
-              <li><button onClick={() => setFiltroPais('Chile')} className="hover:text-[var(--foreground)] transition-colors">Chile y Lagos Patagónicos</button></li>
+              <li><button onClick={() => setFiltroPais('Perú')} className="hover:text-[var(--foreground)] transition-colors">{language === 'es' ? 'Perú y Machupicchu' : 'Peru & Machu Picchu'}</button></li>
+              <li><button onClick={() => setFiltroPais('Colombia')} className="hover:text-[var(--foreground)] transition-colors">{language === 'es' ? 'Colombia Cafetera' : 'Colombia Coffee Region'}</button></li>
+              <li><button onClick={() => setFiltroPais('Chile')} className="hover:text-[var(--foreground)] transition-colors">{language === 'es' ? 'Chile y Lagos Patagónicos' : 'Chile & Patagonian Lakes'}</button></li>
             </ul>
           </div>
 
           {/* Información de Contacto */}
           <div className="space-y-4">
-            <h4 className="font-extrabold text-[var(--foreground)] uppercase text-xs tracking-widest text-[var(--foreground)]">Contacto</h4>
+            <h4 className="font-extrabold text-[var(--foreground)] uppercase text-xs tracking-widest">{t('footer.contacto')}</h4>
             <div className="space-y-2 text-sm text-[var(--muted-foreground)]">
               <div className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-[var(--foreground)]" />
@@ -396,7 +410,7 @@ export default function Home() {
               </div>
               <div className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-[var(--foreground)]" />
-                <span>+51 987 654 321</span>
+                <span>+51 915 082 539</span>
               </div>
               <div className="flex items-center gap-2">
                 <MapPin className="w-4 h-4 text-[var(--foreground)]" />
@@ -406,7 +420,7 @@ export default function Home() {
           </div>
         </div>
         <div className="max-w-7xl mx-auto border-t border-[var(--border)]/30 mt-12 pt-6 text-center text-xs text-[var(--muted-foreground)]/80">
-          © {new Date().getFullYear()} Unu-Raymi Agencia de Viajes. Todos los derechos reservados.
+          © {new Date().getFullYear()} {t('footer.derechos')}
         </div>
       </section>
 
@@ -445,7 +459,7 @@ export default function Home() {
 
       {/* Botón Flotante de WhatsApp */}
       <a
-        href="https://wa.me/51915082539?text=Hola%20Unu-Raymi!%20Me%20gustar%C3%ADa%20recibir%20m%C3%A1s%20informaci%C3%B3n%20sobre%20sus%20tours%20y%20excursiones%20de%20aventura%20en%20Sudam%C3%A9rica."
+        href={`https://wa.me/51915082539?text=${encodeURIComponent(t('whatsapp.message'))}`}
         target="_blank"
         rel="noopener noreferrer"
         className="fixed bottom-6 right-6 z-40 bg-[#25D366] hover:bg-[#20ba5a] text-white p-3.5 rounded-full shadow-2xl hover:scale-110 active:scale-95 transition-all duration-300 flex items-center justify-center group"
