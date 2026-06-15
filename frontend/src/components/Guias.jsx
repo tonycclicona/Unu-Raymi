@@ -56,11 +56,17 @@ export default function Guias() {
   const guias = dbGuias.length > 0 ? dbGuias : mockGuias;
 
   return (
-    <section id="guias" className="py-16 md:py-24 px-6 flex items-center bg-[var(--sidebar)]/50 border-t border-[var(--border)]/30 relative overflow-hidden scroll-mt-16 md:scroll-mt-20">
+    <section
+      id="guias"
+      className="min-h-screen py-20 md:py-28 px-6 flex items-center justify-center border-t border-[var(--border)]/30 relative overflow-hidden scroll-mt-16 md:scroll-mt-20 bg-cover bg-bottom bg-no-repeat"
+      style={{
+        backgroundImage: `linear-gradient(to bottom, var(--background) 0%, transparent 25%, transparent 75%, var(--background) 100%), url('/uploads/mountain_bg.jpg')`
+      }}
+    >
       {/* Luz ambiental */}
       <div className="absolute bottom-1/4 left-1/4 w-[350px] h-[350px] bg-purple-500/5 rounded-full filter blur-[100px] pointer-events-none -z-10"></div>
 
-      <div className="max-w-7xl mx-auto space-y-12">
+      <div className="max-w-7xl mx-auto space-y-12 w-full">
 
         {/* Encabezado */}
         <div className="text-center space-y-4 max-w-4xl mx-auto">
