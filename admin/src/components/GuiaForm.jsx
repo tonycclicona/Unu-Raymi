@@ -62,7 +62,7 @@ export default function GuiaForm({ initialData, id }) {
       const res = await uploadApi('/upload', data);
       setFormData((prev) => ({
         ...prev,
-        foto: res.url,
+        foto: res.data.url,
       }));
     } catch (err) {
       setError(err.message || 'Error al subir la imagen.');

@@ -70,7 +70,7 @@ export default function GarantiaForm({ initialData, id }) {
       const res = await uploadApi('/upload', data);
       setFormData((prev) => ({
         ...prev,
-        imagenUrl: res.url,
+        imagenUrl: res.data.url,
       }));
     } catch (err) {
       setError(err.message || 'Error al subir el certificado.');
@@ -218,7 +218,7 @@ export default function GarantiaForm({ initialData, id }) {
                 Subir
                 <input
                   type="file"
-                  accept="image/*"
+                  accept="image/*,application/pdf"
                   onChange={handleFileUpload}
                   className="hidden"
                 />
