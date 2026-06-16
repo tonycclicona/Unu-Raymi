@@ -58,26 +58,26 @@ export default function Guias() {
   return (
     <section
       id="guias"
-      className="min-h-screen py-20 md:py-28 px-6 flex items-center justify-center border-t border-[var(--border)]/30 relative overflow-hidden scroll-mt-16 md:scroll-mt-20 bg-cover bg-bottom bg-no-repeat"
+      className="min-h-screen py-10 md:py-10 px-6 flex items-center justify-center border-t border-[var(--border)]/50 relative overflow-hidden scroll-mt-4 md:scroll-mt-2 bg-cover bg-bottom bg-no-repeat"
       style={{
-        backgroundImage: `linear-gradient(to bottom, var(--background) 0%, transparent 10%, transparent 75%, var(--background) 100%), url('/uploads/mountain_bg.jpg')`
+        backgroundImage: `linear-gradient(to bottom, transparent 50%, transparent 80%, var(--background) 100%), url('/uploads/mountain_bg.jpg')`
       }}
     >
       {/* Luz ambiental */}
       <div className="absolute bottom-1/4 left-1/4 w-[350px] h-[350px] bg-purple-500/10 rounded-full filter blur-[100px] pointer-events-none -z-10"></div>
 
-      <div className="max-w-7xl mx-auto space-y-12 w-full">
+      <div className="max-w-5xl mx-auto space-y-1 w-full">
 
         {/* Encabezado */}
-        <div className="text-center space-y-4 max-w-4xl mx-auto">
-          <span className="text-[10px] text-[var(--foreground)] font-extrabold uppercase tracking-widest bg-[var(--accent)]/10 border border-[var(--accent)]/20 px-4 py-1.5 rounded-full inline-flex items-center gap-2 shadow-lg">
-            <Footprints className="w-3.5 h-3.5 text-[var(--accent)] animate-pulse" />
+        <div className="text-center space-y-1 max-w-4xl mx-auto">
+          <span className="text-[10px] text-[#4a5759] font-extrabold uppercase tracking-widest bg-[#4a5759]/10 border border-[#4a5759]/20 px-4 py-1.5 rounded-full inline-flex items-center gap-2 shadow-lg">
+            <Footprints className="w-3.5 h-3.5 text-[#4a5759] animate-pulse" />
             {t('guias.badge')}
           </span>
-          <h2 className="text-3xl md:text-5xl font-black text-[var(--foreground)] tracking-tight">
+          <h2 className="text-3xl md:text-5xl font-black text-[#4a5759] tracking-tight">
             {t('guias.title')}
           </h2>
-          <h3 className="text-lg md:text-xl font-bold text-[var(--foreground)]/90 tracking-tight">
+          <h3 className="text-lg md:text-xl font-bold text-[#4a5759]/90 tracking-tight">
             {t('guias.sub')}
           </h3>
           <p className="text-sm text-[var(--muted-foreground)] leading-relaxed">

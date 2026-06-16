@@ -21,21 +21,33 @@ const INVOICES_DIR = join(__dirname, "..", "..", "storage", "invoices");
 if (!existsSync(INVOICES_DIR)) {
   mkdirSync(INVOICES_DIR, { recursive: true });
 }
-
-// ── Paleta de colores del invoice ────────────────────────────
+// ── Paleta de colores del boleto de reserva (Sobria y Profesional) ────────────────────────────
 const COLORS = {
-  primary: "#1a1a2e",      // Azul noche profundo
-  accent: "#e94560",       // Rojo coral (acento)
-  secondary: "#16213e",    // Azul marino
-  muted: "#6b7280",        // Gris medio
-  light: "#f3f4f6",        // Fondo gris claro
-  white: "#ffffff",
-  success: "#10b981",      // Verde éxito (PAGADO)
-  border: "#e5e7eb",       // Borde sutil
-};
+  // Un azul noche profundo pero suavizado con gris, ideal para títulos principales
+  primary: "#2C3E50",
 
+  // Cambiamos el Rojo Coral intenso (#e94560) por un terracota/ladrillo apagado y elegante para acentos importantes
+  accent: "#B85C5C",
+
+  // Un azul marino/pizarra deslavado para subtítulos, etiquetas y textos secundarios
+  secondary: "#4A6572",
+
+  // Gris neutro frío para textos descriptivos largos (términos y condiciones, notas)
+  muted: "#7F8C8D",
+
+  // Un fondo hueso/gris cálido muy suave que reduce la fatiga visual a diferencia del blanco puro
+  light: "#F8F9FA",
+
+  white: "#FFFFFF",
+
+  // Verde salvia/oliva para el estado "PAGADO", eliminando el verde chillón de alerta
+  success: "#4E876A",
+
+  // Un gris sutil para las líneas de puntos o divisiones de los troqueles del boleto
+  border: "#E2E8F0",
+};
 /**
- * Genera el PDF del invoice y lo guarda en disco.
+ * Genera el PDF del boleto de reserva y lo guarda en disco.
  * @param {Object} reserva - Objeto completo de la reserva (con tour y pasajeros).
  * @returns {Promise<string>} Ruta absoluta del archivo PDF generado.
  */
@@ -45,17 +57,19 @@ export const generarInvoicePDF = (reserva) => {
 
     // Si ya existe el PDF (por un reintento del webhook), no regenerar
     if (existsSync(outputPath)) {
-      console.log(`[PDF] ♻️  Invoice ya existe: ${reserva.tokenSeguridad}.pdf`);
+      console.log(`[PDF] ♻️  Boleto de reserva ya existe: ${reserva.tokenSeguridad}.pdf`);
       return resolve(outputPath);
     }
 
     const doc = new PDFDocument({
       size: "A4",
-      margins: { top: 50, bottom: 50, left: 50, right: 50 },
+      margins: { top: 40, bottom: 10, left: 50, right: 50 },
+      autoPageBreak: false,
+      bufferPages: true,
       info: {
-        Title: `Invoice Reserva #${reserva.id} — Unu-Raymi`,
+        Title: `Boleto de Reserva #${reserva.id} — Unu-Raymi`,
         Author: "Unu-Raymi Tours",
-        Subject: `Comprobante de pago — ${reserva.tour?.nombre ?? "Tour"}`,
+        Subject: `Boleto de reserva — ${reserva.tour?.nombre ?? "Tour"}`,
         Creator: "Unu-Raymi Backend API",
       },
     });
@@ -66,14 +80,13 @@ export const generarInvoicePDF = (reserva) => {
     writeStream.on("finish", () => resolve(outputPath));
     writeStream.on("error", reject);
 
-    // ── Contenido del PDF ──────────────────────────────────
-
+    // ── Contenido del PDF (Fijado a una sola página) ──────────────────────────────────
     dibujarEncabezado(doc, reserva);
     dibujarBadgePagado(doc);
     dibujarDatosReserva(doc, reserva);
     dibujarTitular(doc, reserva);
     dibujarTablaPasajeros(doc, reserva);
-    dibujarResumenFinanciero(doc, reserva);
+    dibujarResumenYNota(doc, reserva);
     dibujarPie(doc, reserva);
 
     doc.end();
@@ -84,36 +97,44 @@ export const generarInvoicePDF = (reserva) => {
 const dibujarEncabezado = (doc, reserva) => {
   // Fondo del header
   doc
-    .rect(0, 0, doc.page.width, 130)
+    .rect(0, 0, doc.page.width, 110)
     .fill(COLORS.primary);
+
+  // Logo a la izquierda
+  const logoPath = join(__dirname, "..", "..", "storage", "logo.png");
+  let textX = 50;
+  if (existsSync(logoPath)) {
+    doc.image(logoPath, 50, 15, { height: 45 });
+    textX = 120; // Desplazar texto para no sobreponerse al logo
+  }
 
   // Nombre de la empresa
   doc
     .fillColor(COLORS.white)
-    .fontSize(26)
+    .fontSize(22)
     .font("Helvetica-Bold")
-    .text("UNU-RAYMI", 50, 35, { continued: false });
+    .text("UNU-RAYMI", textX, 20);
 
   // Subtítulo empresa
   doc
     .fillColor(COLORS.accent)
-    .fontSize(10)
+    .fontSize(8)
     .font("Helvetica")
-    .text("TOURS & EXPERIENCIAS ANDINAS", 50, 65);
+    .text("EXPEDITIONS", textX, 45);
 
-  // Número de Invoice (derecha)
+  // Número de Boleto (derecha)
   doc
     .fillColor(COLORS.white)
     .fontSize(11)
     .font("Helvetica-Bold")
-    .text(`INVOICE #${String(reserva.id).padStart(6, "0")}`, 0, 40, {
+    .text(`BOLETO DE RESERVA #${String(reserva.id).padStart(6, "0")}`, 0, 22, {
       align: "right",
       width: doc.page.width - 50,
     });
 
   doc
     .fillColor(COLORS.light)
-    .fontSize(9)
+    .fontSize(8.5)
     .font("Helvetica")
     .text(
       `Emitido: ${new Date(reserva.pagadoEn ?? reserva.updatedAt).toLocaleDateString("es-PE", {
@@ -121,50 +142,48 @@ const dibujarEncabezado = (doc, reserva) => {
         month: "long",
         year: "numeric",
       })}`,
-      0, 62,
+      0, 42,
       { align: "right", width: doc.page.width - 50 }
     );
 
   // Nombre del tour
   doc
     .fillColor(COLORS.light)
-    .fontSize(13)
+    .fontSize(12)
     .font("Helvetica-Bold")
-    .text(reserva.tour?.nombre ?? "Tour", 50, 90, { width: 400 });
-
-  doc.moveDown(3);
+    .text(reserva.tour?.nombre ?? "Tour", 50, 78, { width: 400 });
 };
 
-// ── Sección: Badge PAGADO ────────────────────────────────────
+// ── Sección: Badge CONFIRMADO ────────────────────────────────────
 const dibujarBadgePagado = (doc) => {
-  const badgeX = doc.page.width - 130;
-  const badgeY = 145;
+  const badgeX = doc.page.width - 140;
+  const badgeY = 125;
 
   doc
-    .roundedRect(badgeX, badgeY, 90, 24, 4)
+    .roundedRect(badgeX, badgeY, 90, 20, 4)
     .fill(COLORS.success);
 
   doc
     .fillColor(COLORS.white)
-    .fontSize(10)
+    .fontSize(9)
     .font("Helvetica-Bold")
-    .text("✓  PAGADO", badgeX, badgeY + 7, { width: 90, align: "center" });
+    .text("✓CONFIRMADO", badgeX, badgeY + 5, { width: 90, align: "center" });
 };
 
 // ── Sección: Datos de la Reserva ─────────────────────────────
 const dibujarDatosReserva = (doc, reserva) => {
-  const y = 150;
+  const y = 130;
   doc.y = y;
 
   doc
     .fillColor(COLORS.primary)
-    .fontSize(13)
+    .fontSize(12)
     .font("Helvetica-Bold")
     .text("Detalles de la Reserva", 50, y);
 
-  doc.moveDown(0.5);
+  doc.moveDown(0.4);
   dibujarLineaSeparadora(doc);
-  doc.moveDown(0.5);
+  doc.moveDown(0.4);
 
   const fechaViaje = new Date(reserva.fechaViaje).toLocaleDateString("es-PE", {
     weekday: "long",
@@ -174,44 +193,50 @@ const dibujarDatosReserva = (doc, reserva) => {
   });
 
   const campos = [
-    ["Nº de Reserva",   `#${String(reserva.id).padStart(6, "0")}`],
-    ["Tour",            reserva.tour?.nombre ?? "—"],
+    ["Nº de Reserva", `#${String(reserva.id).padStart(6, "0")}`],
+    ["Tour", reserva.tour?.nombre ?? "—"],
     ["Fecha del Viaje", fechaViaje],
-    ["Duración",        `${reserva.tour?.duracion_dias ?? "—"} día(s)`],
-    ["Adultos",         String(reserva.cantAdultos)],
-    ["Niños",           String(reserva.cantNinos)],
+    ["Duración", `${reserva.tour?.duracion_dias ?? "—"} día(s)`],
+    ["Adultos", String(reserva.cantAdultos)],
+    ["Niños", String(reserva.cantNinos)],
     ["Referencia Pago", reserva.referenciaPago ?? "—"],
   ];
 
   campos.forEach(([label, valor]) => {
+    const currentY = doc.y;
+    const valueHeight = doc.heightOfString(valor, { width: 360 });
+    const labelHeight = doc.heightOfString(label.toUpperCase(), { width: 120 });
+    const rowHeight = Math.max(valueHeight, labelHeight) + 3;
+
     doc
       .fillColor(COLORS.muted)
-      .fontSize(9)
+      .fontSize(8.5)
       .font("Helvetica-Bold")
-      .text(label.toUpperCase(), 50, doc.y, { continued: true, width: 140 });
+      .text(label.toUpperCase(), 50, currentY, { width: 120 });
 
     doc
       .fillColor(COLORS.primary)
+      .fontSize(8.5)
       .font("Helvetica")
-      .text(valor, { align: "left" });
+      .text(valor, 180, currentY, { width: 360 });
 
-    doc.moveDown(0.3);
+    doc.y = currentY + rowHeight;
   });
 };
 
 // ── Sección: Datos del Titular ───────────────────────────────
 const dibujarTitular = (doc, reserva) => {
-  doc.moveDown(0.8);
+  doc.y = doc.y + 10;
 
   doc
     .fillColor(COLORS.primary)
-    .fontSize(13)
+    .fontSize(12)
     .font("Helvetica-Bold")
-    .text("Titular de la Reserva");
+    .text("Titular de la Reserva", 50, doc.y);
 
-  doc.moveDown(0.5);
+  doc.moveDown(0.4);
   dibujarLineaSeparadora(doc);
-  doc.moveDown(0.5);
+  doc.moveDown(0.4);
 
   const campos = [
     ["Nombre completo", reserva.titularNombre],
@@ -220,41 +245,47 @@ const dibujarTitular = (doc, reserva) => {
   ];
 
   campos.forEach(([label, valor]) => {
+    const currentY = doc.y;
+    const valueHeight = doc.heightOfString(valor, { width: 360 });
+    const labelHeight = doc.heightOfString(label.toUpperCase(), { width: 120 });
+    const rowHeight = Math.max(valueHeight, labelHeight) + 3;
+
     doc
       .fillColor(COLORS.muted)
-      .fontSize(9)
+      .fontSize(8.5)
       .font("Helvetica-Bold")
-      .text(label.toUpperCase(), 50, doc.y, { continued: true, width: 140 });
+      .text(label.toUpperCase(), 50, currentY, { width: 120 });
 
     doc
       .fillColor(COLORS.primary)
+      .fontSize(8.5)
       .font("Helvetica")
-      .text(valor);
+      .text(valor, 180, currentY, { width: 360 });
 
-    doc.moveDown(0.3);
+    doc.y = currentY + rowHeight;
   });
 };
 
 // ── Sección: Tabla de Pasajeros ──────────────────────────────
 const dibujarTablaPasajeros = (doc, reserva) => {
-  doc.moveDown(0.8);
+  doc.y = doc.y + 10;
 
   doc
     .fillColor(COLORS.primary)
-    .fontSize(13)
+    .fontSize(12)
     .font("Helvetica-Bold")
-    .text("Pasajeros");
+    .text("Pasajeros", 50, doc.y);
 
-  doc.moveDown(0.5);
+  doc.moveDown(0.4);
   dibujarLineaSeparadora(doc);
-  doc.moveDown(0.3);
+  doc.moveDown(0.4);
 
   // Cabecera de tabla
-  const colX = { num: 50, nombre: 80, apellido: 220, dni: 360, tipo: 460 };
+  const colX = { num: 55, nombre: 80, apellido: 220, dni: 360, tipo: 460 };
   const headerY = doc.y;
 
   doc
-    .rect(50, headerY, doc.page.width - 100, 20)
+    .rect(50, headerY, doc.page.width - 100, 18)
     .fill(COLORS.secondary);
 
   doc
@@ -262,21 +293,20 @@ const dibujarTablaPasajeros = (doc, reserva) => {
     .fontSize(8)
     .font("Helvetica-Bold");
 
-  doc.text("#",          colX.num,      headerY + 6, { width: 25 });
-  doc.text("NOMBRE",     colX.nombre,   headerY + 6, { width: 135, continued: false });
-  doc.text("APELLIDO",   colX.apellido, headerY + 6, { width: 135 });
-  doc.text("DNI",        colX.dni,      headerY + 6, { width: 95 });
-  doc.text("TIPO",       colX.tipo,     headerY + 6, { width: 60 });
+  doc.text("#", colX.num, headerY + 5, { width: 25 });
+  doc.text("NOMBRE", colX.nombre, headerY + 5, { width: 135 });
+  doc.text("APELLIDO", colX.apellido, headerY + 5, { width: 135 });
+  doc.text("DNI", colX.dni, headerY + 5, { width: 95 });
+  doc.text("TIPO", colX.tipo, headerY + 5, { width: 60 });
 
-  doc.moveDown(0.2);
+  let currentRowY = headerY + 18;
 
   // Filas de pasajeros
   reserva.pasajeros?.forEach((pasajero, i) => {
-    const rowY = doc.y;
     const bgColor = i % 2 === 0 ? COLORS.white : COLORS.light;
 
     doc
-      .rect(50, rowY, doc.page.width - 100, 18)
+      .rect(50, currentRowY, doc.page.width - 100, 16)
       .fill(bgColor);
 
     doc
@@ -284,66 +314,91 @@ const dibujarTablaPasajeros = (doc, reserva) => {
       .fontSize(8)
       .font("Helvetica");
 
-    doc.text(String(i + 1),             colX.num,      rowY + 5, { width: 25 });
-    doc.text(pasajero.nombre,           colX.nombre,   rowY + 5, { width: 135 });
-    doc.text(pasajero.apellido,         colX.apellido, rowY + 5, { width: 135 });
-    doc.text(pasajero.dni ?? "—",       colX.dni,      rowY + 5, { width: 95 });
+    doc.text(String(i + 1), colX.num, currentRowY + 4, { width: 25 });
+    doc.text(pasajero.nombre, colX.nombre, currentRowY + 4, { width: 135 });
+    doc.text(pasajero.apellido, colX.apellido, currentRowY + 4, { width: 135 });
+    doc.text(pasajero.dni ?? "—", colX.dni, currentRowY + 4, { width: 95 });
     doc.text(
       pasajero.tipo === "adulto" ? "Adulto" : "Niño",
-      colX.tipo, rowY + 5, { width: 60 }
+      colX.tipo, currentRowY + 4, { width: 60 }
     );
 
-    doc.moveDown(0.15);
+    currentRowY += 16;
   });
+
+  doc.y = currentRowY + 10;
 };
 
-// ── Sección: Resumen Financiero ──────────────────────────────
-const dibujarResumenFinanciero = (doc, reserva) => {
-  doc.moveDown(1);
-
-  // Caja del total
-  const boxY = doc.y;
-  const boxW = 220;
+// ── Sección: Resumen Financiero y Nota de Check-In ───────────
+const dibujarResumenYNota = (doc, reserva) => {
+  const boxY = doc.y + 10;
+  const boxH = 55;
+  const boxW = 200;
   const boxX = doc.page.width - 50 - boxW;
 
+  // 1. Dibujar Nota de Check-In a la izquierda
   doc
-    .rect(boxX, boxY, boxW, 70)
+    .roundedRect(50, boxY, 275, boxH, 4)
+    .fill(COLORS.light);
+
+  doc
+    .fillColor(COLORS.secondary)
+    .fontSize(7.5)
+    .font("Helvetica-Bold")
+    .text("INFORMACIÓN IMPORTANTE PARA EL VIAJE", 60, boxY + 8, { width: 255 });
+
+  doc
+    .fillColor(COLORS.primary)
+    .fontSize(7)
+    .font("Helvetica")
+    .text(
+      "• Realizar el Check-In final con al menos 24 horas de anticipación.\n" +
+      "• Llevar documento de identidad original (DNI o Pasaporte obligatorio).\n" +
+      "• Asegurar calzado de montaña y todo lo requerido para la ruta.",
+      60, boxY + 20,
+      { width: 255, lineGap: 1.5 }
+    );
+
+  // 2. Dibujar Caja del Total a la derecha
+  doc
+    .rect(boxX, boxY, boxW, boxH)
     .fill(COLORS.primary);
 
   doc
     .fillColor(COLORS.light)
-    .fontSize(9)
+    .fontSize(8)
     .font("Helvetica")
-    .text("TOTAL PAGADO", boxX + 15, boxY + 12, { width: boxW - 30, align: "center" });
+    .text("TOTAL PAGADO", boxX + 10, boxY + 10, { width: boxW - 20, align: "center" });
 
   doc
     .fillColor(COLORS.white)
-    .fontSize(24)
+    .fontSize(16)
     .font("Helvetica-Bold")
     .text(
-      `S/ ${Number(reserva.precioTotal).toFixed(2)}`,
-      boxX + 15, boxY + 28,
-      { width: boxW - 30, align: "center" }
+      `$ ${Number(reserva.precioTotal).toFixed(2)} USD`,
+      boxX + 10, boxY + 24,
+      { width: boxW - 20, align: "center" }
     );
 
-  doc.moveDown(4.5);
+  doc.y = boxY + boxH + 10;
 };
 
 // ── Sección: Pie de Página ───────────────────────────────────
 const dibujarPie = (doc, reserva) => {
-  const pieY = doc.page.height - 80;
+  const pieHeight = 70;
+  const pieY = doc.page.height - pieHeight;
 
   doc
-    .rect(0, pieY, doc.page.width, 80)
+    .rect(0, pieY, doc.page.width, pieHeight)
     .fill(COLORS.light);
 
   doc
     .fillColor(COLORS.muted)
-    .fontSize(7.5)
+    .fontSize(7)
     .font("Helvetica")
     .text(
-      `Token de verificación: ${reserva.tokenSeguridad}`,
-      50, pieY + 12,
+      `Token de seguridad: ${reserva.tokenSeguridad}`,
+      50, pieY + 10,
       { width: doc.page.width - 100, align: "center" }
     );
 
@@ -351,8 +406,8 @@ const dibujarPie = (doc, reserva) => {
     .fillColor(COLORS.muted)
     .fontSize(8)
     .text(
-      "Este documento es tu comprobante oficial de pago. Preséntalo el día del tour.",
-      50, pieY + 28,
+      "Este documento es tu boleto oficial de reserva. Preséntalo impreso o digital el día del tour.",
+      50, pieY + 24,
       { width: doc.page.width - 100, align: "center" }
     );
 
@@ -362,7 +417,7 @@ const dibujarPie = (doc, reserva) => {
     .font("Helvetica-Bold")
     .text(
       "Unu-Raymi Tours | info@unu-raymi.com | www.unu-raymi.com",
-      50, pieY + 46,
+      50, pieY + 40,
       { width: doc.page.width - 100, align: "center" }
     );
 };
