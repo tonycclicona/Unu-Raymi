@@ -21,14 +21,37 @@ if (!appType) {
   process.exit(0);
 }
 
+function getPackageManager() {
+  try {
+    execSync('pnpm --version', { stdio: 'ignore' });
+    return 'pnpm';
+  } catch (e) {
+    try {
+      execSync('npx --version', { stdio: 'ignore' });
+      return 'npx pnpm';
+    } catch (err) {
+      return 'npm';
+    }
+  }
+}
+
+const pm = getPackageManager();
+console.log(`[postinstall] Using package runner: "${pm}"`);
+
 function run(cmd, subdir) {
   const cwd = path.join(process.cwd(), subdir);
-  console.log(`[postinstall] Running: ${cmd}`);
+  // Reemplazar prefijo 'pnpm' por el gestor detectado si se requiere
+  let finalCmd = cmd;
+  if (cmd.startsWith('pnpm ')) {
+    finalCmd = cmd.replace(/^pnpm\s+/, `${pm} `);
+  }
+
+  console.log(`[postinstall] Running: ${finalCmd}`);
   console.log(`[postinstall]     in: ${cwd}`);
   try {
-    execSync(cmd, { cwd, stdio: 'inherit', env: process.env });
+    execSync(finalCmd, { cwd, stdio: 'inherit', env: process.env });
   } catch (err) {
-    console.error(`[postinstall] FAILED: ${cmd}`);
+    console.error(`[postinstall] FAILED: ${finalCmd}`);
     console.error(err.message);
     process.exit(1);
   }
@@ -36,10 +59,14 @@ function run(cmd, subdir) {
 
 function installDeps(subdir) {
   const lockFile = path.join(process.cwd(), subdir, 'pnpm-lock.yaml');
-  if (fs.existsSync(lockFile)) {
-    run('pnpm install --frozen-lockfile', subdir);
+  if (pm.includes('pnpm')) {
+    if (fs.existsSync(lockFile)) {
+      run('pnpm install --frozen-lockfile', subdir);
+    } else {
+      run('pnpm install', subdir);
+    }
   } else {
-    run('pnpm install', subdir);
+    run('npm install --legacy-peer-deps', subdir);
   }
 }
 
