@@ -17,11 +17,11 @@ export default function Dashboard() {
   // Calcular ingresos totales y clientes atendidos
   const ingresosTotales = (reservas || [])
     .filter(r => r.estado === 'PAID')
-    .reduce((sum, r) => sum + r.precioTotal, 0);
+    .reduce((sum, r) => sum + Number(r.precioTotal || 0), 0);
 
   const pasajerosUnicos = (reservas || [])
     .filter(r => r.estado === 'PAID')
-    .reduce((sum, r) => sum + r.pasajeros.length, 0);
+    .reduce((sum, r) => sum + (r.pasajeros ? r.pasajeros.length : 0), 0);
 
   const ultimasReservas = (reservas || [])
     .slice()
@@ -102,7 +102,7 @@ export default function Dashboard() {
                     <td className="py-4 px-4 font-medium text-[#4a5759]">{reserva.titularNombre}</td>
                     <td className="py-4 px-4">{reserva.tour?.nombre || 'Tour desconocido'}</td>
                     <td className="py-4 px-4">{new Date(reserva.fechaViaje).toLocaleDateString('es-PE')}</td>
-                    <td className="py-4 px-4 font-bold text-[#4a5759]">${reserva.precioTotal.toFixed(2)}</td>
+                    <td className="py-4 px-4 font-bold text-[#4a5759]">${Number(reserva.precioTotal || 0).toFixed(2)}</td>
                     <td className="py-4 px-4">
                       <EstadoBadge estado={reserva.estado} />
                     </td>

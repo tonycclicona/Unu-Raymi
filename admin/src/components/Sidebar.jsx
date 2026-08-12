@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, Compass, Receipt, LogOut, X, Users, ShieldCheck } from 'lucide-react';
+import { LayoutDashboard, Compass, Receipt, LogOut, X, Users, ShieldCheck, MapPin } from 'lucide-react';
 
 export default function Sidebar({ isOpen = false, onClose = () => {} }) {
   const pathname = usePathname();
@@ -11,9 +11,11 @@ export default function Sidebar({ isOpen = false, onClose = () => {} }) {
   const menuItems = [
     { name: 'Dashboard', path: '/', icon: LayoutDashboard },
     { name: 'Tours', path: '/tours', icon: Compass },
+    { name: 'Puntos GIS', path: '/attractions/create', icon: MapPin },
     { name: 'Reservas', path: '/reservas', icon: Receipt },
     { name: 'Guías', path: '/guias', icon: Users },
     { name: 'Garantías', path: '/garantias', icon: ShieldCheck },
+    { name: 'Evaluación Salud', path: '/evaluaciones', icon: ShieldCheck },
   ];
 
   const handleLogout = () => {
@@ -39,13 +41,13 @@ export default function Sidebar({ isOpen = false, onClose = () => {} }) {
 
       {/* Sidebar */}
       <aside
-        className={`fixed md:static inset-y-0 left-0 z-50 w-64 bg-[#dedbd2] border-r border-[#b0c4b1] flex flex-col h-screen
+        className={`fixed md:static inset-y-0 left-0 z-50 w-64 bg-[#f8fafc] border-r border-[#e2e8f0] flex flex-col h-screen
           transition-transform duration-300 ease-in-out
           ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
         `}
       >
         {/* Header */}
-        <div className="p-5 border-b border-[#b0c4b1] flex items-center justify-between gap-3">
+        <div className="p-5 border-b border-[#e2e8f0] flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <img
               src="/logo.webp"
@@ -56,7 +58,7 @@ export default function Sidebar({ isOpen = false, onClose = () => {} }) {
           {/* Close button — mobile only */}
           <button
             onClick={onClose}
-            className="md:hidden text-[#6c7a7c] hover:text-[#4a5759] p-1.5 rounded-lg hover:bg-[#dedbd2] transition-all"
+            className="md:hidden text-[#666666] hover:text-[#333333] p-1.5 rounded-lg hover:bg-[#e2e8f0] transition-all"
             aria-label="Cerrar menú"
           >
             <X className="w-5 h-5" />
@@ -75,12 +77,12 @@ export default function Sidebar({ isOpen = false, onClose = () => {} }) {
                 onClick={handleNavClick}
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
                   isActive
-                    ? 'bg-[#4a5759] text-[#dbeafe] shadow-lg shadow-[#4a5759]/20 font-medium'
-                    : 'text-[#6c7a7c] hover:bg-[#ffffff] hover:text-[#4a5759]'
+                    ? 'bg-[#84dcc6] text-[#0f372d] shadow-md shadow-[#84dcc6]/20 font-bold'
+                    : 'text-[#666666] hover:bg-[#ffffff] hover:text-[#333333]'
                 }`}
               >
                 <Icon className={`w-5 h-5 transition-transform duration-200 group-hover:scale-110 ${
-                  isActive ? 'text-[#dbeafe]' : 'text-[#6c7a7c] group-hover:text-[#4a5759]'
+                  isActive ? 'text-[#0f372d]' : 'text-[#666666] group-hover:text-[#333333]'
                 }`} />
                 {item.name}
               </Link>
@@ -88,10 +90,10 @@ export default function Sidebar({ isOpen = false, onClose = () => {} }) {
           })}
         </nav>
 
-        <div className="p-4 border-t border-[#b0c4b1]">
+        <div className="p-4 border-t border-[#e2e8f0]">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-3 text-[#6c7a7c] hover:bg-red-500/10 hover:text-red-400 rounded-xl transition-all duration-200 group"
+            className="w-full flex items-center gap-3 px-4 py-3 text-[#666666] hover:bg-red-500/10 hover:text-red-500 rounded-xl transition-all duration-200 group font-semibold"
           >
             <LogOut className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             Cerrar Sesión

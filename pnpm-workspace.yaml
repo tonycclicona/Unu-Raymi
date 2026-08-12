@@ -1,0 +1,11 @@
+packages:
+  - 'backend'
+  - 'frontend'
+  - 'admin'
+allowBuilds:
+  '@prisma/client': true
+  '@prisma/engines': true
+  ffmpeg-static: set this to true or false
+  prisma: true
+  sharp: true
+  unrs-resolver: true

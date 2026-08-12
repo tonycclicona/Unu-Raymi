@@ -41,11 +41,32 @@ model Tour {
   imagenes             Imagen[]
   reservas             Reserva[]
   variantes            TourVariante[]
+  attractions          Attraction[]
 
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
 
   @@map("tours")
+}
+
+// ─────────────────────────────────────────────
+// MODEL: Attraction (Puntos GIS)
+// ─────────────────────────────────────────────
+model Attraction {
+  id          String   @id @default(uuid())
+  name        String
+  category    String   @default("ATRACTIVO") // ATRACTIVO, HOSPITAL, TRANSPORTE, RESTAURANTE, TIENDA
+  latitude    Float
+  longitude   Float
+  altitude    Int?
+  description String?
+  tourId      Int?
+  tour        Tour?    @relation(fields: [tourId], references: [id], onDelete: SetNull)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("attractions")
 }
 
 // ─────────────────────────────────────────────
@@ -112,6 +133,7 @@ model Reserva {
 
   // Pasajeros incluidos en la reserva
   pasajeros       Pasajero[]
+  evaluaciones    PassengerEvaluation[]
 
   // Referencia de pago
   referenciaPago  String?
@@ -129,13 +151,14 @@ model Reserva {
 // MODEL: Pasajero
 // ─────────────────────────────────────────────
 model Pasajero {
-  id         Int     @id @default(autoincrement())
-  nombre     String
-  apellido   String
-  dni        String?
-  tipo       String // "adulto" | "nino"
-  reservaId  Int
-  reserva    Reserva @relation(fields: [reservaId], references: [id], onDelete: Cascade)
+  id           Int                   @id @default(autoincrement())
+  nombre       String
+  apellido     String
+  dni          String?
+  tipo         String // "adulto" | "nino"
+  reservaId    Int
+  reserva      Reserva               @relation(fields: [reservaId], references: [id], onDelete: Cascade)
+  evaluaciones PassengerEvaluation[]
 
   @@map("pasajeros")
 }
@@ -176,3 +199,304 @@ model Garantia {
 
   @@map("garantias")
 }
+
+// ============================================================
+// MODELOS PARA FORMULARIO ADAPTATIVO Y EVALUACIÓN DE APTITUD
+// ============================================================
+
+model DynamicForm {
+  id           Int                   @id @default(autoincrement())
+  titulo       String
+  descripcion  String?
+  activo       Boolean               @default(true)
+  version      Int                   @default(1)
+  preguntas    DynamicQuestion[]
+  evaluaciones PassengerEvaluation[]
+
+  createdAt    DateTime              @default(now())
+  updatedAt    DateTime              @updatedAt
+
+  @@map("dynamic_forms")
+}
+
+model DynamicQuestion {
+  id               Int          @id @default(autoincrement())
+  formId           Int
+  form             DynamicForm  @relation(fields: [formId], references: [id], onDelete: Cascade)
+
+  codigo           String       @unique
+  seccion          String
+  preguntaText     String
+  tipoControl      String
+  opciones         String?
+  orden            Int          @default(0)
+  obligatorio      Boolean      @default(true)
+  ayudaText        String?
+  condicionMostrar String?
+
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  @@map("dynamic_questions")
+}
+
+model RiskRule {
+  id             Int      @id @default(autoincrement())
+  nombre         String
+  descripcion    String?
+  ponderacion    Int      @default(1)
+  condicion      String
+  dictamenResult String
+  mensajeAlerta  String
+  tagsRespuesta  String   @default("[]")
+  activo         Boolean  @default(true)
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("risk_rules")
+}
+
+model PasajeroProfile {
+  id                  Int                   @id @default(autoincrement())
+  documentoIdentidad  String                @unique
+  nombre              String
+  apellido            String
+  email               String
+  telefono            String?
+  fechaNacimiento     DateTime?
+  altitudResidencia   Int?
+  contactosEmergencia String?
+
+  evaluaciones        PassengerEvaluation[]
+
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+
+  @@map("pasajero_profiles")
+}
+
+model PassengerEvaluation {
+  id                 Int              @id @default(autoincrement())
+  reservaId          Int?
+  reserva            Reserva?         @relation(fields: [reservaId], references: [id], onDelete: SetNull)
+  pasajeroId         Int?
+  pasajero           Pasajero?        @relation(fields: [pasajeroId], references: [id], onDelete: SetNull)
+  profileId          Int?
+  profile            PasajeroProfile? @relation(fields: [profileId], references: [id], onDelete: SetNull)
+  formId             Int
+  form               DynamicForm      @relation(fields: [formId], references: [id])
+
+  respuestasJSON     String
+  scoreRiesgoTotal   Int              @default(0)
+  dictamenCalculado  String
+  dictamenFinal      String
+  observacionesAdmin String?
+  alertasGeneradas   String
+
+  consentimientoFirmado Boolean       @default(false)
+  ipOrigen           String?
+  fechaFirma         DateTime?
+
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  @@map("passenger_evaluations")
+}
+
+// ============================================================
+// MODELOS PARA EL MÓDULO MAPA SUDAMÉRICA (GIS)
+// ============================================================
+
+model GisCountry {
+  id        Int                     @id @default(autoincrement())
+  nombre    String
+  isoCode   String                  @unique
+  geometria String?
+  activo    Boolean                 @default(true)
+  areas     GisAdministrativeArea[]
+  tours     TouristAttraction[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("gis_countries")
+}
+
+model GisAdministrativeArea {
+  id           Int                     @id @default(autoincrement())
+  countryId    Int
+  country      GisCountry              @relation(fields: [countryId], references: [id])
+  parentId     Int?
+  parent       GisAdministrativeArea?  @relation("AdminHierarchy", fields: [parentId], references: [id])
+  children     GisAdministrativeArea[] @relation("AdminHierarchy")
+
+  nombre       String
+  adminLevel   Int
+  adminType    String
+  geometria    String?
+  fuente       String?                 @default("OSM/GeoBoundaries")
+  verificado   Boolean                 @default(false)
+  verificadoEn DateTime?
+
+  attractions  TouristAttraction[]
+
+  createdAt    DateTime                @default(now())
+  updatedAt    DateTime                @updatedAt
+
+  @@map("gis_administrative_areas")
+}
+
+model TouristAttraction {
+  id                   Int                    @id @default(autoincrement())
+  nombre               String
+  slug                 String                 @unique
+  descripcion          String
+  categoria            String
+  
+  countryId            Int
+  country              GisCountry             @relation(fields: [countryId], references: [id])
+  administrativeAreaId Int?
+  administrativeArea   GisAdministrativeArea? @relation(fields: [administrativeAreaId], references: [id])
+  localidad            String?
+
+  latitud              Float
+  longitud             Float
+  geometria            String?
+  altitudMetros        Int
+  dificultad           String
+  duracionDias         Float                  @default(1.0)
+  
+  estado               String                 @default("verified")
+  fuente               String?                @default("Agencia Unu-Raymi")
+  verificado           Boolean                @default(true)
+  verificadoEn         DateTime?              @default(now())
+  creadoPor            String?
+
+  rutasRelacionadas    RouteAttraction[]
+
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+
+  @@map("tourist_attractions")
+}
+
+model GisRoute {
+  id               Int                @id @default(autoincrement())
+  nombre           String
+  slug             String             @unique
+  descripcion      String
+  tipoRuta         String
+  dificultad       String
+  duracionDias     Float
+  distanciaKm      Float
+  altitudMaxMetros Int
+  altitudMinMetros Int
+  desnivelPositivo Int?
+  desnivelNegativo Int?
+  
+  geometria        String?
+  gpxFileUrl       String?
+  geojsonFileUrl   String?
+
+  estado           String             @default("active")
+  verificado       Boolean            @default(true)
+  verificadoEn     DateTime?          @default(now())
+
+  segmentos        GisRouteSegment[]
+  atractivos       RouteAttraction[]
+  puntosInteres    GisRoutePoint[]
+  advertencias     GisRouteWarning[]
+
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  @@map("gis_routes")
+}
+
+model GisRouteSegment {
+  id               Int      @id @default(autoincrement())
+  routeId          Int
+  route            GisRoute @relation(fields: [routeId], references: [id], onDelete: Cascade)
+
+  nombre           String
+  ordenIndex       Int
+  puntoInicio      String
+  puntoFin         String
+  tipoTransporte   String
+  distanciaKm      Float
+  duracionMinutos  Int
+  altitudInicioM   Int
+  altitudFinM      Int
+  geometria        String?
+  dificultad       String?
+  advertencias     String?
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@map("gis_route_segments")
+}
+
+model RouteAttraction {
+  routeId      Int
+  route        GisRoute          @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  attractionId Int
+  attraction   TouristAttraction @relation(fields: [attractionId], references: [id], onDelete: Cascade)
+
+  @@id([routeId, attractionId])
+  @@map("gis_route_attractions")
+}
+
+model GisPointOfInterest {
+  id            Int             @id @default(autoincrement())
+  nombre        String
+  categoria     String
+  latitud       Float
+  longitud      Float
+  direccion     String?
+  telefono      String?
+  horario       String?
+  fuente        String?         @default("OpenStreetMap")
+  verificado    Boolean         @default(true)
+  activo        Boolean         @default(true)
+
+  rutas         GisRoutePoint[]
+
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@map("gis_points_of_interest")
+}
+
+model GisRoutePoint {
+  id                  Int                @id @default(autoincrement())
+  routeId             Int
+  route               GisRoute           @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  pointOfInterestId   Int
+  pointOfInterest     GisPointOfInterest @relation(fields: [pointOfInterestId], references: [id], onDelete: Cascade)
+  tipoPunto           String
+  ordenIndex          Int
+  notas               String?
+
+  @@map("gis_route_points")
+}
+
+model GisRouteWarning {
+  id          Int      @id @default(autoincrement())
+  routeId     Int
+  route       GisRoute @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  severidad   String
+  titulo      String
+  descripcion String
+  activo      Boolean  @default(true)
+  validoDesde DateTime @default(now())
+  validoHasta DateTime?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("gis_route_warnings")
+}
+
+

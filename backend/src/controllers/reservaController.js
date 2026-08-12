@@ -301,3 +301,32 @@ export const obtenerReservas = async (req, res, next) => {
     next(error);
   }
 };
+
+// ── POST /api/reservas/:id/openpay ─────────────────────────────
+export const crearPagoOpenPay = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const reserva = await prisma.reserva.findUnique({
+      where: { id: Number(id) },
+      include: { tour: true, pasajeros: true },
+    });
+
+    if (!reserva) {
+      return res.status(404).json({ success: false, error: 'Reserva no encontrada' });
+    }
+
+    const { createOpenpayChargeSession } = await import('../services/openpayService.js');
+    const openpayRes = await createOpenpayChargeSession(reserva);
+
+    return res.json({
+      success: true,
+      message: 'Sesión de pago OpenPay Perú generada',
+      paymentUrl: openpayRes.paymentUrl,
+      chargeId: openpayRes.chargeId,
+      provider: 'OpenPay Perú',
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+

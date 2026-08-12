@@ -4,7 +4,7 @@
 // ============================================================
 
 import { Router } from "express";
-import { checkout, obtenerReserva, descargarInvoice, obtenerReservas } from "../controllers/reservaController.js";
+import { checkout, obtenerReserva, descargarInvoice, obtenerReservas, crearPagoOpenPay } from "../controllers/reservaController.js";
 import validateRequest from "../middlewares/validateRequest.js";
 import { checkoutReservaSchema } from "../schemas/reservaSchema.js";
 import { requireAuth } from "../middlewares/authMiddleware.js";
@@ -18,6 +18,10 @@ router.get("/", requireAuth, obtenerReservas);
 // ── POST /api/reservas/checkout ──────────────────────────────────
 // Valida el payload con Zod → Procesa checkout → Crea reserva PENDING
 router.post("/checkout", validateRequest(checkoutReservaSchema), checkout);
+
+// ── POST /api/reservas/:id/openpay ────────────────────────────
+// Inicia sesión de pago con pasarela OpenPay Perú
+router.post("/:id/openpay", crearPagoOpenPay);
 
 // ── GET /api/reservas/:id/invoice?token=xxx ───────────────────
 // Descarga del PDF del invoice (protegida por tokenSeguridad, sin login)

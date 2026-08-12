@@ -149,6 +149,13 @@ export default function Home() {
                 setFiltroPais(p);
                 setVisibleCount(6);
               }}
+              onSelectAttraction={(attr) => {
+                const term = attr?.tour?.nombre || attr?.name || attr?.nombre;
+                if (term) {
+                  setBusqueda(term);
+                  setVisibleCount(6);
+                }
+              }}
             />
           </div>
 
@@ -261,6 +268,14 @@ export default function Home() {
               setFiltroPais={(p) => {
                 setFiltroPais(p);
                 setVisibleCount(6);
+              }}
+              onSelectAttraction={(attr) => {
+                // Sincronizar búsqueda al hacer clic en un punto del mapa Leaflet
+                const term = attr?.tour?.nombre || attr?.name || attr?.nombre;
+                if (term) {
+                  setBusqueda(term);
+                  setVisibleCount(6);
+                }
               }}
             />
           </div>

@@ -1,9 +1,17 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Compass, Shield, Backpack, Utensils, Bus, Camera, ArrowRight, Calendar, MapPin, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X, Shield, Backpack, Utensils, Bus, Camera, ArrowRight, Calendar, MapPin, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
 import { API_ASSETS_URL } from '../lib/api';
 import { useLanguage } from '@/context/LanguageContext';
+import {
+  Compass3D,
+  Backpack3D,
+  Sprinter3D,
+  GourmetPlate3D,
+  Shield3D,
+  Camera3D,
+} from './illustrations/Neomorphic3DIcons';
 
 export default function TourDetailsOverlay({ tour, initialDuration, onClose, onProceed, isShifted }) {
   const [activeTooltip, setActiveTooltip] = useState(null);
@@ -164,12 +172,12 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
   const categorias = getCategorias();
 
   const itemsCategorias = [
-    { id: 'guia', label: language === 'es' ? 'Guías y Dirección' : 'Guides & Direction', icon: Compass, list: categorias.guia, color: 'text-indigo-400 border-indigo-500/20 bg-indigo-500/5' },
-    { id: 'seguridad', label: language === 'es' ? 'Seguridad y Asistencia' : 'Safety & Assistance', icon: Shield, list: categorias.seguridad, color: 'text-emerald-400 border-emerald-500/20 bg-emerald-500/5' },
-    { id: 'equipamiento', label: language === 'es' ? 'Equipamiento Requerido' : 'Required Equipment', icon: Backpack, list: categorias.equipamiento, color: 'text-amber-400 border-emerald-500/20 bg-emerald-500/5' },
-    { id: 'alimentacion', label: language === 'es' ? 'Alimentación y Bebidas' : 'Food & Drinks', icon: Utensils, list: categorias.alimentacion, color: 'text-rose-400 border-rose-500/20 bg-rose-500/5' },
-    { id: 'transporte', label: language === 'es' ? 'Transporte y Logística' : 'Transport & Logistics', icon: Bus, list: categorias.transporte, color: 'text-blue-400 border-blue-500/20 bg-blue-500/5' },
-    { id: 'actividades', label: language === 'es' ? 'Tickets y Actividades' : 'Tickets & Activities', icon: Camera, list: categorias.actividades, color: 'text-purple-400 border-purple-500/20 bg-purple-500/5' },
+    { id: 'guia', label: language === 'es' ? 'Guías y Dirección' : 'Guides & Direction', Icon3D: Compass3D, list: categorias.guia, color: 'border-amber-500/30 bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent shadow-[4px_6px_16px_rgba(255,167,81,0.15)]' },
+    { id: 'seguridad', label: language === 'es' ? 'Seguridad y Asistencia' : 'Safety & Assistance', Icon3D: Shield3D, list: categorias.seguridad, color: 'border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent shadow-[4px_6px_16px_rgba(16,185,129,0.15)]' },
+    { id: 'equipamiento', label: language === 'es' ? 'Equipamiento Requerido' : 'Required Equipment', Icon3D: Backpack3D, list: categorias.equipamiento, color: 'border-orange-500/30 bg-gradient-to-br from-orange-500/10 via-orange-500/5 to-transparent shadow-[4px_6px_16px_rgba(242,153,74,0.15)]' },
+    { id: 'alimentacion', label: language === 'es' ? 'Alimentación y Bebidas' : 'Food & Drinks', Icon3D: GourmetPlate3D, list: categorias.alimentacion, color: 'border-rose-500/30 bg-gradient-to-br from-rose-500/10 via-rose-500/5 to-transparent shadow-[4px_6px_16px_rgba(225,29,72,0.15)]' },
+    { id: 'transporte', label: language === 'es' ? 'Transporte y Logística' : 'Transport & Logistics', Icon3D: Sprinter3D, list: categorias.transporte, color: 'border-blue-500/30 bg-gradient-to-br from-blue-500/10 via-blue-500/5 to-transparent shadow-[4px_6px_16px_rgba(47,128,237,0.15)]' },
+    { id: 'actividades', label: language === 'es' ? 'Tickets y Actividades' : 'Tickets & Activities', Icon3D: Camera3D, list: categorias.actividades, color: 'border-purple-500/30 bg-gradient-to-br from-purple-500/10 via-purple-500/5 to-transparent shadow-[4px_6px_16px_rgba(139,92,246,0.15)]' },
   ];
 
   const displayExclusiones = (activeVariant && activeVariant.servicios_excluidos && activeVariant.servicios_excluidos.length > 0)
@@ -347,7 +355,7 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
             {/* Grid de 6 Categorías */}
             <div className="grid grid-cols-2 gap-4 relative">
               {itemsCategorias.map((cat) => {
-                const Icon = cat.icon;
+                const Icon3DComponent = cat.Icon3D;
                 const isActive = activeTooltip === cat.id;
 
                 return (
@@ -356,10 +364,12 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
                     onMouseEnter={() => setActiveTooltip(cat.id)}
                     onMouseLeave={() => setActiveTooltip(null)}
                     onClick={() => setActiveTooltip(isActive ? null : cat.id)}
-                    className={`relative p-4 md:p-6 rounded-2xl border flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300 ${isActive ? 'border-[var(--accent)]/40' : 'hover:border-[var(--accent)]/30'} ${cat.color} group`}
+                    className={`relative p-4 md:p-5 rounded-2xl border backdrop-blur-md flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300 ${isActive ? 'border-[var(--accent)] scale-[1.03] z-20' : 'hover:scale-[1.02]'} ${cat.color} group`}
                   >
-                    <Icon className="w-6 h-6 md:w-8 md:h-8 mb-2 transition-transform duration-300 group-hover:scale-110" />
-                    <span className="text-[10px] md:text-xs font-extrabold text-[var(--foreground)]/90 leading-tight">{cat.label}</span>
+                    <div className="mb-2 transition-transform duration-300 group-hover:scale-110 group-hover:-translate-y-1">
+                      <Icon3DComponent className="w-10 h-10 md:w-12 md:h-12" />
+                    </div>
+                    <span className="text-[10px] md:text-xs font-extrabold text-[var(--foreground)] leading-tight">{cat.label}</span>
 
                     {/* Tooltip */}
                     {isActive && (

@@ -4,12 +4,15 @@ import { useState, useEffect } from 'react';
 import { X, Users, DollarSign, Calendar, ShieldCheck, Mail, Phone, User, CheckCircle, CreditCard, ArrowLeft } from 'lucide-react';
 import { mutateApi, API_BASE_URL } from '@/lib/api';
 import { useLanguage } from '@/context/LanguageContext';
+import { useCurrency } from '@/context/CurrencyContext';
+import AdaptiveHealthForm from './AdaptiveHealthForm';
 
 export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBack }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [successData, setSuccessData] = useState(null);
   const { t, language } = useLanguage();
+  const { formatPrice } = useCurrency();
 
   const hasVariants = tour.variantes && tour.variantes.length > 0;
   const activeVariant = hasVariants && selectedDuration
@@ -95,6 +98,7 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
       return copy;
     });
   };
+  const [openpayData, setOpenpayData] = useState(null);
 
   const handleCheckoutSubmit = async (e) => {
     e.preventDefault();
@@ -119,45 +123,58 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
     }
 
     try {
-      const totalPasajeros = [
+      const pasajerosData = [
         {
-          nombre: titularNombre,
-          apellido: titularApellido,
-          dni: titularDni || null,
-          tipo: 'adulto'
+          nombre: titularNombre.trim(),
+          apellido: titularApellido.trim(),
+          dni: titularDni.trim() || null,
+          tipo: 'adulto',
         },
-        ...pasajerosAdicionales.map((p, index) => ({
-          nombre: p.nombre,
-          apellido: p.apellido,
-          dni: p.dni || null,
-          tipo: index < (cantAdultos - 1) ? 'adulto' : 'nino'
-        }))
+        ...pasajerosAdicionales.map((p, idx) => ({
+          nombre: p.nombre.trim(),
+          apellido: p.apellido.trim(),
+          dni: p.dni.trim() || null,
+          tipo: idx < (cantAdultos - 1) ? 'adulto' : 'nino',
+        })),
       ];
 
-      const payload = {
-        tourId: tour.id,
-        duracion_dias: displayDuration,
-        fechaViaje: new Date(fechaViaje).toISOString(),
-        cantAdultos: parseInt(cantAdultos, 10),
-        cantNinos: parseInt(cantNinos, 10),
-        titularNombre: `${titularNombre.trim()} ${titularApellido.trim()}`,
-        titularEmail: titularEmail.trim(),
-        titularTelefono: titularTelefono || null,
-        pasajeros: totalPasajeros
-      };
-
-      const res = await mutateApi('/reservas/checkout', {
+      // 1. Enviar Reserva
+      const resReserva = await mutateApi('/reservas/checkout', {
         method: 'POST',
-        body: payload
+        body: {
+          tourId: tour.id,
+          fechaViaje,
+          cantAdultos: parseInt(cantAdultos, 10),
+          cantNinos: parseInt(cantNinos, 10),
+          duracion_dias: selectedDuration || tour.duracion_dias || 1,
+          titularNombre: `${titularNombre.trim()} ${titularApellido.trim()}`,
+          titularEmail: titularEmail.trim(),
+          titularTelefono: titularTelefono ? titularTelefono.trim() : null,
+          pasajeros: pasajerosData,
+        },
       });
 
-      if (res.success) {
-        setSuccessData(res.data);
-      } else {
-        throw new Error(res.error || (language === 'es' ? 'Error al procesar reserva' : 'Error processing booking'));
+      const reservaCreada = resReserva.data || resReserva;
+
+      // 2. Generar Sesión de Pago OpenPay Perú
+      let openpayRes = null;
+      try {
+        openpayRes = await mutateApi(`/reservas/${reservaCreada.reservaId || reservaCreada.id}/openpay`, {
+          method: 'POST',
+        });
+        setOpenpayData(openpayRes);
+      } catch (errOpenpay) {
+        console.warn('Sandbox OpenPay active:', errOpenpay);
       }
+
+      setSuccessData({
+        ...reservaCreada,
+        openpayUrl: openpayRes?.paymentUrl,
+        provider: 'OpenPay Perú',
+      });
     } catch (err) {
-      setError(err.message || (language === 'es' ? 'Ocurrió un error al enviar el pago.' : 'An error occurred while sending the payment.'));
+      console.error('Error al procesar reserva:', err);
+      setError(err.message || (language === 'es' ? 'Ocurrió un error al procesar el pago con OpenPay Perú.' : 'An error occurred processing the payment with OpenPay Peru.'));
     } finally {
       setLoading(false);
     }
@@ -176,17 +193,17 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
             onClose();
           }
         }}
-        className="fixed inset-0 z-50 bg-[var(--background)]  flex items-center justify-center p-4"
+        className="fixed inset-0 z-50 bg-[var(--background)] flex items-center justify-center p-4"
       >
-        <div className="glass max-w-lg w-full p-8 rounded-3xl text-center space-y-6 shadow-2xl relative border border-black/5">
+        <div className="glass max-w-lg w-full p-8 rounded-3xl text-center space-y-6 shadow-2xl relative border border-emerald-500/30">
           <div className="w-16 h-16 bg-emerald-500/10 border border-emerald-500/20 rounded-full flex items-center justify-center mx-auto text-emerald-400">
             <CheckCircle className="w-8 h-8" />
           </div>
 
           <div className="space-y-2">
-            <h2 className="text-2xl font-black text-[var(--foreground)]">{language === 'es' ? '¡Reserva Creada!' : 'Booking Created!'}</h2>
+            <h2 className="text-2xl font-black text-[var(--foreground)]">{language === 'es' ? '¡Reserva Registrada!' : 'Booking Registered!'}</h2>
             <p className="text-[var(--muted-foreground)] text-sm">
-              {language === 'es' ? 'Hemos registrado la orden con estado' : 'We have registered the order with status'} <span className="text-amber-400 font-bold">{successData.estado}</span>.
+              {language === 'es' ? 'Procesando pago con la pasarela' : 'Processing payment with'} <span className="text-emerald-400 font-bold">OpenPay Perú</span>.
             </p>
           </div>
 
@@ -197,7 +214,7 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
             </div>
             <div className="flex justify-between text-sm text-[var(--muted-foreground)]">
               <span>{language === 'es' ? 'Total a Pagar:' : 'Total to Pay:'}</span>
-              <span className="text-emerald-400 font-extrabold">${parseFloat(successData.precioTotal).toFixed(2)} USD</span>
+              <span className="text-emerald-400 font-extrabold">${parseFloat(successData.precioTotal || total).toFixed(2)} USD</span>
             </div>
             <div className="border-t border-[var(--border)]/50 my-2 pt-2">
               <span className="text-[10px] text-[var(--muted-foreground)]/80 block uppercase font-bold tracking-wider mb-1">{language === 'es' ? 'Token de Seguridad (Invoice PDF)' : 'Security Token (Invoice PDF)'}</span>
@@ -205,32 +222,32 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
             </div>
           </div>
 
-          <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl text-left space-y-2">
-            <span className="text-xs font-bold text-amber-400 block flex items-center gap-1">
-              <CreditCard className="w-4 h-4" /> {language === 'es' ? 'Integración con Stripe / Pago Simulado' : 'Stripe Integration / Simulated Payment'}
+          <div className="p-4 bg-emerald-950/40 border border-emerald-500/30 rounded-2xl text-left space-y-2">
+            <span className="text-xs font-bold text-emerald-400 block flex items-center gap-1">
+              <CreditCard className="w-4 h-4" /> Pasarela OpenPay Perú (Tarjetas / Yape / PagoEfectivo)
             </span>
             <p className="text-[11px] text-[var(--foreground)] leading-relaxed">
               {language === 'es'
-                ? 'El servidor ha enviado el Webhook. En un entorno real serás redirigido a la pasarela segura. Pulsa abajo para simular el pago digital.'
-                : 'The server has sent the Webhook. In a real environment, you will be redirected to the secure gateway. Click below to simulate digital payment.'}
+                ? 'La evaluación médica y orden de reserva fueron guardadas. Haz clic en el botón a continuación para completar la transacción segura.'
+                : 'The health evaluation and booking order have been saved. Click the button below to complete the secure transaction.'}
             </p>
           </div>
 
           <div className="flex gap-4">
             <a
-              href={`${API_BASE_URL}/reservas/${successData.reservaId || successData.id}/invoice?token=${successData.tokenSeguridad}`}
+              href={successData.openpayUrl || `${API_BASE_URL}/reservas/${successData.reservaId || successData.id}/invoice?token=${successData.tokenSeguridad}`}
               target="_blank"
               rel="noreferrer"
-              className="flex-1 bg-[var(--sidebar)] hover:bg-[var(--sidebar)] text-[var(--foreground)] py-3.5 rounded-xl text-sm font-bold border border-black/10 transition-all text-center"
+              className="flex-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 py-3.5 rounded-xl text-sm font-bold shadow-lg shadow-emerald-500/20 transition-all text-center"
             >
-              {language === 'es' ? 'Inspeccionar PDF' : 'Inspect PDF'}
+              {language === 'es' ? 'Pagar con OpenPay Perú' : 'Pay with OpenPay Peru'}
             </a>
 
             <button
               onClick={onClose}
-              className="flex-1 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white py-3.5 rounded-xl text-sm font-bold shadow-lg shadow-[var(--accent)]/20 transition-all"
+              className="px-6 bg-[var(--sidebar)] hover:bg-slate-800 text-white py-3.5 rounded-xl text-sm font-bold transition-all"
             >
-              {language === 'es' ? 'Finalizar' : 'Finish'}
+              {language === 'es' ? 'Cerrar' : 'Close'}
             </button>
           </div>
         </div>
@@ -249,10 +266,10 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
         }`}
     >
       {/* Contenedor checkout */}
-      <div className="w-full max-w-full md:max-w-xl h-full bg-[var(--background)]/80 md:border-l border-[var(--border)] flex flex-col relative shadow-2xl">
+      <div className="w-full max-w-full md:max-w-2xl h-full bg-[var(--background)] md:border-l border-[var(--border)] flex flex-col relative shadow-2xl overflow-y-auto">
 
         {/* Header */}
-        <div className="p-6 border-b border-[var(--border)] flex justify-between items-center">
+        <div className="p-6 border-b border-[var(--border)] flex justify-between items-center sticky top-0 bg-[var(--background)]/90 backdrop-blur-md z-10">
           <div className="flex items-center gap-3.5">
             <button
               type="button"
@@ -263,14 +280,14 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
               {language === 'es' ? 'Volver' : 'Back'}
             </button>
             <div>
-              <span className="text-[10px] text-[var(--foreground)] font-extrabold uppercase tracking-widest">{language === 'es' ? 'Paso 2' : 'Step 2'}</span>
-              <h2 className="font-extrabold text-[var(--foreground)] text-base leading-tight">{language === 'es' ? 'Datos de Registro y Facturación' : 'Registration & Billing Details'}</h2>
+              <span className="text-[10px] text-emerald-400 font-extrabold uppercase tracking-widest">{language === 'es' ? 'Checkout & Evaluación Médica' : 'Checkout & Health Assessment'}</span>
+              <h2 className="font-extrabold text-[var(--foreground)] text-base leading-tight">{language === 'es' ? 'Registro, Aptitud Física y Pago' : 'Registration, Fitness & Payment'}</h2>
             </div>
           </div>
         </div>
 
-        {/* Formulario */}
-        <form onSubmit={handleCheckoutSubmit} className="flex-1 overflow-y-auto p-6 space-y-6 no-scrollbar">
+        {/* Formulario Consolidado */}
+        <form id="checkout-form" onSubmit={handleCheckoutSubmit} className="flex-1 overflow-y-auto p-6 space-y-6">
           {error && (
             <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-xl text-xs">
               {error}
@@ -426,9 +443,23 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
           {/* Pasajeros Adicionales */}
           {pasajerosAdicionales.length > 0 && (
             <div className="space-y-4">
-              <h3 className="text-xs font-bold text-[var(--foreground)] uppercase tracking-wider flex items-center gap-1.5">
-                <Users className="w-4 h-4 text-[var(--foreground)]" />
-                {language === 'es' ? 'Pasajeros Adicionales' : 'Additional Passengers'}
+              <h3 className="text-xs font-bold text-[var(--foreground)] uppercase tracking-wider flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <Users className="w-4 h-4 text-[var(--foreground)]" />
+                  {language === 'es' ? 'Pasajeros Adicionales' : 'Additional Passengers'}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPasajerosAdicionales(prev => prev.map(p => ({
+                      ...p,
+                      apellido: p.apellido || titularApellido,
+                    })));
+                  }}
+                  className="text-[10px] text-emerald-400 hover:underline font-bold"
+                >
+                  {language === 'es' ? '⚡ Copiar apellido del titular a todos' : '⚡ Copy main last name to all'}
+                </button>
               </h3>
 
               <div className="space-y-4">
@@ -437,9 +468,11 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
 
                   return (
                     <div key={index} className="bg-[var(--card)] border border-[var(--border)]/40 p-4 rounded-2xl space-y-3">
-                      <span className="text-[9px] text-[var(--foreground)] font-bold uppercase tracking-wider">
-                        {language === 'es' ? `Pasajero #${index + 2} (${labelTipo})` : `Passenger #${index + 2} (${labelTipo})`}
-                      </span>
+                      <div className="flex justify-between items-center">
+                        <span className="text-[9px] text-[var(--foreground)] font-bold uppercase tracking-wider">
+                          {language === 'es' ? `Pasajero #${index + 2} (${labelTipo})` : `Passenger #${index + 2} (${labelTipo})`}
+                        </span>
+                      </div>
 
                       <div className="grid grid-cols-2 gap-3">
                         <input
@@ -473,32 +506,44 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
               </div>
             </div>
           )}
+
+          {/* Formulario Adaptativo Médicos y Aptitud Física */}
+          <div className="pt-4 border-t border-[var(--border)]/60">
+            <AdaptiveHealthForm
+              tour={tour}
+              pasajeros={[
+                { nombre: titularNombre, apellido: titularApellido, dni: titularDni, email: titularEmail },
+                ...pasajerosAdicionales,
+              ]}
+              onEvaluationsComplete={() => {}}
+            />
+          </div>
         </form>
 
         {/* Footer */}
-        <div className="p-6 border-t border-[var(--border)] bg-white  space-y-4">
+        <div className="p-6 border-t border-[var(--border)] bg-slate-950 space-y-4">
           <div className="flex justify-between items-center">
             <div>
               <span className="text-[10px] text-[var(--muted-foreground)]/80 block uppercase font-bold tracking-wider">{language === 'es' ? 'Monto Total' : 'Total Amount'}</span>
-              <span className="text-xl font-black text-[var(--foreground)] flex items-center">
-                <DollarSign className="w-5 h-5 -mr-0.5 text-emerald-400" />
-                {total.toFixed(2)} <span className="text-xs text-[var(--muted-foreground)] font-normal ml-1">USD</span>
+              <span className="text-xl font-black text-emerald-400">
+                {formatPrice(total)}
               </span>
             </div>
-            <div className="flex items-center gap-1.5 text-xs text-[var(--muted-foreground)]">
+            <div className="flex items-center gap-1.5 text-xs text-slate-300">
               <ShieldCheck className="w-4 h-4 text-emerald-400" />
-              <span>{language === 'es' ? 'Checkout Protegido' : 'Secure Checkout'}</span>
+              <span>{language === 'es' ? 'OpenPay Perú Protegido' : 'OpenPay Peru Secure'}</span>
             </div>
           </div>
 
           <button
             onClick={handleCheckoutSubmit}
             disabled={loading}
-            className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white py-3.5 rounded-xl font-bold shadow-lg shadow-[var(--accent)]/20 hover:shadow-[var(--accent)]/30 transition-all text-sm flex items-center justify-center gap-2 disabled:opacity-50"
+            className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 py-4 rounded-xl font-extrabold shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/40 transition-all text-sm flex items-center justify-center gap-2 disabled:opacity-50"
           >
+            <CreditCard className="w-5 h-5" />
             {loading 
-              ? (language === 'es' ? 'Redirigiendo a Pasarela...' : 'Redirecting to Gateway...') 
-              : (language === 'es' ? 'Proceder al Pago' : 'Proceed to Payment')}
+              ? (language === 'es' ? 'Conectando con OpenPay Perú...' : 'Connecting to OpenPay Peru...') 
+              : (language === 'es' ? 'Pagar con OpenPay Perú (Tarjetas / Yape / QR)' : 'Pay with OpenPay Peru (Cards / Yape / QR)')}
           </button>
         </div>
 

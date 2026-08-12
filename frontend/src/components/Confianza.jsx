@@ -5,14 +5,15 @@ import useSWR from 'swr';
 import { fetcher, API_ASSETS_URL } from '@/lib/api';
 import { ShieldCheck, Award, Lock, Star, Heart, Shield, X } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
+import { Award3D, Lock3D, Star3D, ShieldCheck3D, Shield3D } from './illustrations/Neomorphic3DIcons';
 
 const ICON_MAP = {
-  Award,
-  Lock,
-  ShieldCheck,
-  Star,
-  Heart,
-  Shield,
+  Award: Award3D,
+  Lock: Lock3D,
+  ShieldCheck: ShieldCheck3D,
+  Star: Star3D,
+  Heart: Shield3D,
+  Shield: Shield3D,
 };
 
 const COLOR_MAP = {
@@ -187,10 +188,10 @@ export default function Confianza() {
                       </div>
                     )}
 
-                    <div className={`p-3 rounded-xl border flex-shrink-0 transition-transform duration-300 ${
-                      g.imagenUrl ? 'group-hover/sello:scale-105 group-hover/sello:border-[#ca8a04]' : ''
+                    <div className={`p-2.5 rounded-xl border flex-shrink-0 transition-all duration-300 shadow-sm ${
+                      g.imagenUrl ? 'group-hover/sello:scale-110 group-hover/sello:border-[#ca8a04]' : ''
                     } ${colorClass}`}>
-                      <IconComponent className="w-5 h-5" />
+                      <IconComponent className="w-8 h-8 md:w-9 md:h-9" />
                     </div>
                     <div className="space-y-0.5">
                       <h4 className={`text-xs font-bold text-[var(--foreground)] transition-colors ${

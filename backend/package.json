@@ -15,6 +15,9 @@
     "db:local:generate": "npx prisma generate --schema=prisma/schema.sqlite.prisma",
     "db:local:push": "npx prisma db push --schema=prisma/schema.sqlite.prisma"
   },
+  "pnpm": {
+    "onlyBuiltDependencies": ["*"]
+  },
   "keywords": [
     "tours",
     "reservas",
@@ -43,4 +46,3 @@
     "nodemon": "^3.1.7"
   }
 }
-

@@ -5,11 +5,13 @@ import Image from 'next/image';
 import { Calendar, Users, DollarSign, ArrowRight } from 'lucide-react';
 import { API_ASSETS_URL } from '../lib/api';
 import { useLanguage } from '@/context/LanguageContext';
+import { useCurrency } from '@/context/CurrencyContext';
 
 export default function TourCard({ tour, onReservar }) {
   const imagenes = tour.imagenes || [];
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const { t, language } = useLanguage();
+  const { formatPrice } = useCurrency();
 
   const hasVariants = tour.variantes && tour.variantes.length > 0;
   const [selectedDuration, setSelectedDuration] = useState(() => {
@@ -125,19 +127,20 @@ export default function TourCard({ tour, onReservar }) {
         <div className="flex items-center justify-between border-t border-[var(--border)]/50 pt-2 gap-2">
           <div>
             <span className="text-xs text-[var(--muted-foreground)]/80 block uppercase font-bold tracking-wider">{t('tour_card.desde')}</span>
-            <span className="text-xl font-black text-[var(--foreground)] flex items-center">
-              <DollarSign className="w-4 h-4 text-emerald-400 -mr-0.5" />
-              {displayPrecio} <span className="text-xs text-[var(--muted-foreground)] font-normal ml-1">USD</span>
+            <span className="text-lg md:text-xl font-black text-emerald-400">
+              {formatPrice(displayPrecio)}
             </span>
           </div>
 
-          <button
-            onClick={() => onReservar(tour, displayDuration)}
-            className="flex items-center gap-1.5 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-lg shadow-[var(--accent)]/10 hover:shadow-[var(--accent)]/20 transition-all duration-300 group/btn whitespace-nowrap"
-          >
-            {language === 'es' ? 'Reservar' : 'Book'}
-            <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-1 transition-transform" />
-          </button>
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => onReservar(tour, displayDuration)}
+              className="flex items-center gap-1.5 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow-lg shadow-[var(--accent)]/10 hover:shadow-[var(--accent)]/20 transition-all duration-300 group/btn whitespace-nowrap"
+            >
+              {language === 'es' ? 'Reservar' : 'Book'}
+              <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-1 transition-transform" />
+            </button>
+          </div>
         </div>
       </div>
     </div>

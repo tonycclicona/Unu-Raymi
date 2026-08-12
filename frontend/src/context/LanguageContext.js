@@ -6,7 +6,7 @@ import { translations } from '@/lib/translations';
 const LanguageContext = createContext();
 
 export function LanguageProvider({ children }) {
-  const [language, setLanguageState] = useState('es');
+  const [language, setLanguageState] = useState('en');
   const [loading, setLoading] = useState(true);
 
   const setLanguage = (lang) => {
@@ -53,13 +53,11 @@ export function LanguageProvider({ children }) {
           }
         }
       } catch (err) {
-        console.warn('Geolocation lookup failed or timed out, falling back to browser language:', err);
+        console.warn('Geolocation lookup failed or timed out, defaulting to English:', err);
       }
 
-      // 3. Fallback to Browser Language
-      const browserLang = navigator.language || navigator.userLanguage || '';
-      const fallbackLang = browserLang.toLowerCase().startsWith('es') ? 'es' : 'en';
-      setLanguageState(fallbackLang);
+      // 3. Fallback Default: English
+      setLanguageState('en');
       setLoading(false);
     };
 

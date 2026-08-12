@@ -74,7 +74,7 @@ if (appType === 'backend') {
     nextModule = subappRequire('next');
   } catch (e) {
     console.error('> ERROR: Could not load next from ' + dir + '/node_modules');
-    console.error('> Ensure npm install ran in the subapp directory.');
+    console.error('> Ensure pnpm install ran in the subapp directory.');
     console.error(e.message);
     process.exit(1);
   }

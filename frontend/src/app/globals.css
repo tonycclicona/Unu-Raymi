@@ -1,21 +1,36 @@
 @import "tailwindcss";
 
 :root {
-  --color-rose: #edafb8;
-  --color-peach: #dbeafe;
-  --color-warm-gray: #dedbd2;
-  --color-sage: #b0c4b1;
-  --color-slate-green: #4a5759;
+  /* Paleta Oficial Tema Claro Unu-Raymi */
+  --color-white: #ffffff;
+  --color-white-text-main: #333333;
+  --color-white-text-sub: #666666;
+  --color-white-text-muted: #999999;
+  
+  --color-pearl-aqua: #84dcc6;
+  --color-pearl-aqua-dark: #1f6e5a;
+  --color-pearl-aqua-light: #e6f8f4;
+  
+  --color-aquamarine: #a5ffd6;
+  --color-aquamarine-dark: #00a75c;
+  --color-aquamarine-light: #edfff7;
+
+  --color-powder-blush: #ffa69e;
+  --color-powder-blush-light: #ffedec;
+
+  --color-grapefruit-pink: #ff686b;
+  --color-grapefruit-pink-hover: #d60004;
 
   /* Mapeos Semánticos de Tema Claro */
-  --background: #dbeafe;
-  --foreground: #4a5759;
+  --background: #f8fafc;
+  --foreground: #333333;
   --card: #ffffff;
-  --border: #b0c4b1;
-  --accent: #4a5759;
-  --accent-hover: #384244;
-  --sidebar: #dedbd2;
-  --muted-foreground: #6c7a7c;
+  --border: #e2e8f0;
+  --accent: #84dcc6;
+  --accent-hover: #2ea587;
+  --cta-primary: #ff686b;
+  --sidebar: #f1f5f9;
+  --muted-foreground: #666666;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);

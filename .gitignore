@@ -18,3 +18,4 @@ pnpm-debug.log*
 
 # Each sub-project has its own .gitignore for
 # node_modules, .env, build artifacts, etc.
+node_modules

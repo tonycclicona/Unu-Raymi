@@ -106,7 +106,7 @@ export default function ReservasPage() {
                       </div>
                     </td>
                     <td className="py-4 px-4">
-                      <div className="font-bold text-[#4a5759]">${reserva.precioTotal.toFixed(2)}</div>
+                      <div className="font-bold text-[#4a5759]">${Number(reserva.precioTotal || 0).toFixed(2)}</div>
                     </td>
                     <td className="py-4 px-4">
                       <EstadoBadge estado={reserva.estado} />

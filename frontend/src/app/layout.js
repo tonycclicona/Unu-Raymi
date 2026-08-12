@@ -1,6 +1,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { LanguageProvider } from "@/context/LanguageContext";
+import { CurrencyProvider } from "@/context/CurrencyContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -13,20 +14,20 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Unu-Raymi — Tours de Aventura en Perú | Cusco, Machu Picchu y más",
+  title: "Unu-Raymi — Adventure Tours in Peru | Cusco, Machu Picchu & More",
   description:
-    "Descubre los mejores tours de aventura en Perú con Unu-Raymi. Trekking, cultura y naturaleza en Cusco, Machu Picchu, Valle Sagrado y más destinos inolvidables.",
-  keywords: "tours Perú, trekking Cusco, Machu Picchu tours, aventura Perú, Unu-Raymi",
+    "Discover authentic adventure tours in Peru with Unu-Raymi. Trekking, culture and nature in Cusco, Machu Picchu, Sacred Valley and unforgettable destinations.",
+  keywords: "Peru tours, Cusco trekking, Machu Picchu tours, Peru adventure, Unu-Raymi",
   icons: {
     icon: '/uploads/logo.webp',
     apple: '/uploads/logo.webp',
     shortcut: '/uploads/logo.webp',
   },
   openGraph: {
-    title: "Unu-Raymi — Tours de Aventura en Perú",
-    description: "Descubre los mejores tours de aventura en Cusco, Machu Picchu y más destinos del Perú.",
+    title: "Unu-Raymi — Adventure Tours in Peru",
+    description: "Discover authentic adventure tours in Cusco, Machu Picchu and more destinations across South America.",
     type: "website",
-    locale: "es_PE",
+    locale: "en_US",
     siteName: "Unu-Raymi",
   },
 };
@@ -34,7 +35,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html
-      lang="es"
+      lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <head>
@@ -57,7 +58,9 @@ export default function RootLayout({ children }) {
       </head>
       <body className="min-h-full flex flex-col">
         <LanguageProvider>
-          {children}
+          <CurrencyProvider>
+            {children}
+          </CurrencyProvider>
         </LanguageProvider>
       </body>
     </html>
