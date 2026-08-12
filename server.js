@@ -50,14 +50,17 @@ if (appType === 'backend') {
   }
 
   // Use dynamic import() inside an async wrapper (avoids top-level await)
-  (async function() {
-    try {
-      await import('./backend/src/server.js');
-    } catch (err) {
+  const backendPromise = import('./backend/src/server.js')
+    .then(function(m) {
+      console.log('> Backend Express app loaded successfully.');
+      return m.default || m;
+    })
+    .catch(function(err) {
       console.error('> FATAL: Failed to start backend:', err);
       process.exit(1);
-    }
-  })();
+    });
+
+  module.exports = backendPromise;
 
 // ── FRONTEND / ADMIN (Next.js) ────────────────────────────────────────────────
 } else {
