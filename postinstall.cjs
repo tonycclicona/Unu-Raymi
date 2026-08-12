@@ -59,7 +59,15 @@ function run(cmd, subdir) {
 // ── BACKEND ───────────────────────────────────────────────────────────────────
 if (appType === 'backend') {
   console.log('[postinstall] === BACKEND setup ===');
-  run('pnpm run build', 'backend'); // copies .env, prisma generate, db push
+  // Conceder permisos de ejecución a los binarios de Prisma Engine en servidores Linux
+  try {
+    const nodeModulesPath = path.join(process.cwd(), 'node_modules');
+    execSync(`find "${nodeModulesPath}" -name "schema-engine*" -exec chmod +x {} + 2>/dev/null || true`, { stdio: 'ignore' });
+    execSync(`find "${nodeModulesPath}" -name "query-engine*" -exec chmod +x {} + 2>/dev/null || true`, { stdio: 'ignore' });
+  } catch (e) {
+    // Ignorar si en Windows no aplica find/chmod
+  }
+  run('pnpm run build', 'backend');
 }
 
 // ── FRONTEND ──────────────────────────────────────────────────────────────────
