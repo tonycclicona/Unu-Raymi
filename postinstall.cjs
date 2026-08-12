@@ -1,11 +1,6 @@
-// postinstall.cjs — Runs after `pnpm install` in the root
+// postinstall.cjs — Runs after `npm install` in the root
 // Automatically installs deps AND builds the correct subapp
 // based on the APP_TYPE environment variable set in Hostinger.
-//
-// APP_TYPE=backend  → installs backend, runs prisma generate + db push
-// APP_TYPE=frontend → installs frontend, runs Next.js build
-// APP_TYPE=admin    → installs admin, runs Next.js build
-// (no APP_TYPE)     → skips (local dev handles its own installs)
 
 const { execSync } = require('child_process');
 const path = require('path');
@@ -26,12 +21,7 @@ function getPackageManager() {
     execSync('pnpm --version', { stdio: 'ignore' });
     return 'pnpm';
   } catch (e) {
-    try {
-      execSync('npx --version', { stdio: 'ignore' });
-      return 'npx pnpm';
-    } catch (err) {
-      return 'npm';
-    }
+    return 'npm';
   }
 }
 
@@ -40,10 +30,13 @@ console.log(`[postinstall] Using package runner: "${pm}"`);
 
 function run(cmd, subdir) {
   const cwd = path.join(process.cwd(), subdir);
-  // Reemplazar prefijo 'pnpm' por el gestor detectado si se requiere
   let finalCmd = cmd;
-  if (cmd.startsWith('pnpm ')) {
-    finalCmd = cmd.replace(/^pnpm\s+/, `${pm} `);
+  if (pm === 'npm') {
+    if (cmd.startsWith('pnpm install')) {
+      finalCmd = 'npm install --legacy-peer-deps';
+    } else if (cmd.startsWith('pnpm run ')) {
+      finalCmd = cmd.replace(/^pnpm run\s+/, 'npm run ');
+    }
   }
 
   console.log(`[postinstall] Running: ${finalCmd}`);
@@ -58,8 +51,8 @@ function run(cmd, subdir) {
 }
 
 function installDeps(subdir) {
-  const lockFile = path.join(process.cwd(), subdir, 'pnpm-lock.yaml');
-  if (pm.includes('pnpm')) {
+  if (pm === 'pnpm') {
+    const lockFile = path.join(process.cwd(), subdir, 'pnpm-lock.yaml');
     if (fs.existsSync(lockFile)) {
       run('pnpm install --frozen-lockfile', subdir);
     } else {
