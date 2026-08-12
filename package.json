@@ -1,7 +1,8 @@
 {
-  "name": "unu-raymi-monorepo",
+  "name": "unu-raymi",
   "version": "1.0.0",
   "private": true,
+  "packageManager": "pnpm@11.5.3",
   "scripts": {
     "dev": "pnpm --recursive --parallel run dev",
     "dev:backend": "pnpm --filter backend dev",
