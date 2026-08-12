@@ -21,14 +21,5 @@
     "install:frontend": "pnpm --filter frontend install",
     "build:frontend": "pnpm --filter frontend build",
     "start:frontend": "APP_TYPE=frontend node server.js"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "@prisma/client",
-      "@prisma/engines",
-      "prisma",
-      "sharp",
-      "unrs-resolver"
-    ]
   }
 }

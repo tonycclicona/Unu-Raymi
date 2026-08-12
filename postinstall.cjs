@@ -1,6 +1,5 @@
-// postinstall.cjs — Runs after `pnpm install` in the root
-// Automatically installs deps AND builds the correct subapp
-// based on the APP_TYPE environment variable set in Hostinger.
+// postinstall.cjs — Runs after install in the root
+// Automatically builds the correct subapp based on the APP_TYPE environment variable in Hostinger.
 
 const { execSync } = require('child_process');
 const path = require('path');
@@ -12,7 +11,7 @@ console.log(`\n[postinstall] APP_TYPE="${appType || '(none - skipping subapp set
 
 // Skip if no APP_TYPE (local dev environment)
 if (!appType) {
-  console.log('[postinstall] No APP_TYPE set - skipping subapp install/build (local dev mode).');
+  console.log('[postinstall] No APP_TYPE set - skipping subapp build (local dev mode).');
   process.exit(0);
 }
 
@@ -57,37 +56,21 @@ function run(cmd, subdir) {
   }
 }
 
-function installDeps(subdir) {
-  if (pm.includes('pnpm')) {
-    const lockFile = path.join(process.cwd(), subdir, 'pnpm-lock.yaml');
-    if (fs.existsSync(lockFile)) {
-      run('pnpm install --frozen-lockfile', subdir);
-    } else {
-      run('pnpm install', subdir);
-    }
-  } else {
-    run('npm install --legacy-peer-deps', subdir);
-  }
-}
-
 // ── BACKEND ───────────────────────────────────────────────────────────────────
 if (appType === 'backend') {
   console.log('[postinstall] === BACKEND setup ===');
-  installDeps('backend');
   run('pnpm run build', 'backend'); // copies .env, prisma generate, db push
 }
 
 // ── FRONTEND ──────────────────────────────────────────────────────────────────
 else if (appType === 'frontend') {
   console.log('[postinstall] === FRONTEND setup ===');
-  installDeps('frontend');
   run('pnpm run build', 'frontend'); // Next.js build
 }
 
 // ── ADMIN ─────────────────────────────────────────────────────────────────────
 else if (appType === 'admin') {
   console.log('[postinstall] === ADMIN setup ===');
-  installDeps('admin');
   run('pnpm run build', 'admin'); // Next.js build
 }
 
