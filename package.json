@@ -29,5 +29,12 @@
     "backend",
     "admin",
     "frontend"
-  ]
+  ],
+  "pnpm": {
+    "workspaces": [
+      "backend",
+      "admin",
+      "frontend"
+    ]
+  }
 }
