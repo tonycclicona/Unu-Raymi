@@ -1,4 +1,4 @@
-// postinstall.cjs — Runs after `npm install` in the root
+// postinstall.cjs — Runs after `pnpm install` in the root
 // Automatically installs deps AND builds the correct subapp
 // based on the APP_TYPE environment variable set in Hostinger.
 
@@ -21,17 +21,24 @@ function getPackageManager() {
     execSync('pnpm --version', { stdio: 'ignore' });
     return 'pnpm';
   } catch (e) {
-    return 'npm';
+    try {
+      execSync('npx pnpm --version', { stdio: 'ignore' });
+      return 'npx pnpm';
+    } catch (err) {
+      return 'npm';
+    }
   }
 }
 
 const pm = getPackageManager();
-console.log(`[postinstall] Using package runner: "${pm}"`);
+console.log(`[postinstall] Configured package manager: "${pm}"`);
 
 function run(cmd, subdir) {
   const cwd = path.join(process.cwd(), subdir);
   let finalCmd = cmd;
-  if (pm === 'npm') {
+  if (pm === 'npx pnpm') {
+    finalCmd = cmd.replace(/^pnpm\s+/, 'npx pnpm ');
+  } else if (pm === 'npm') {
     if (cmd.startsWith('pnpm install')) {
       finalCmd = 'npm install --legacy-peer-deps';
     } else if (cmd.startsWith('pnpm run ')) {
@@ -51,7 +58,7 @@ function run(cmd, subdir) {
 }
 
 function installDeps(subdir) {
-  if (pm === 'pnpm') {
+  if (pm.includes('pnpm')) {
     const lockFile = path.join(process.cwd(), subdir, 'pnpm-lock.yaml');
     if (fs.existsSync(lockFile)) {
       run('pnpm install --frozen-lockfile', subdir);
