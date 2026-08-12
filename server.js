@@ -67,16 +67,19 @@ if (appType === 'backend') {
 
   console.log('> Starting Next.js [' + appType.toUpperCase() + '] from: ' + dir);
 
-  // Load Next.js from the subapp's own node_modules
+  // Load Next.js from the subapp or root node_modules (monorepo friendly)
   let nextModule;
   try {
     const subappRequire = createRequire(path.join(dir, 'package.json'));
     nextModule = subappRequire('next');
   } catch (e) {
-    console.error('> ERROR: Could not load next from ' + dir + '/node_modules');
-    console.error('> Ensure pnpm install ran in the subapp directory.');
-    console.error(e.message);
-    process.exit(1);
+    try {
+      nextModule = require('next');
+    } catch (errRoot) {
+      console.error('> ERROR: Could not load next from ' + dir + ' or root node_modules');
+      console.error(e.message);
+      process.exit(1);
+    }
   }
 
   const next = nextModule.default || nextModule;
