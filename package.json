@@ -8,6 +8,7 @@
     "dev:frontend": "pnpm --filter frontend dev",
     "dev:admin": "pnpm --filter admin dev",
     "start": "node server.js",
+    "build": "node postinstall.cjs",
     "postinstall": "node postinstall.cjs",
 
     "install:backend": "pnpm --filter backend install",
