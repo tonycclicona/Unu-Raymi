@@ -2,6 +2,7 @@ packages:
   - 'backend'
   - 'frontend'
   - 'admin'
+  - 'docs'
 allowBuilds:
   '@prisma/client': true
   '@prisma/engines': true

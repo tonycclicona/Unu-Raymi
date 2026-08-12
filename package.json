@@ -28,13 +28,15 @@
   "workspaces": [
     "backend",
     "admin",
-    "frontend"
+    "frontend",
+    "docs"
   ],
   "pnpm": {
     "workspaces": [
       "backend",
       "admin",
-      "frontend"
+      "frontend",
+      "docs"
     ]
   }
 }
