@@ -27,7 +27,7 @@
   "main": "server.js",
   "workspaces": [
     "backend",
-    "frontend",
-    "admin"
+    "admin",
+    "frontend"
   ]
 }

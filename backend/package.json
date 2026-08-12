@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "description": "API Backend para el Sistema de Reservas de Tours Unu-Raymi",
   "type": "module",
-  "main": "src/server.js",
+  "main": "dist/server.js",
   "scripts": {
     "dev": "nodemon src/server.js",
-    "start": "node src/server.js",
+    "start": "node dist/server.js",
     "build": "node -e \"const fs = require('fs'); if (fs.existsSync('.env.production') && !fs.existsSync('.env')) fs.copyFileSync('.env.production', '.env'); if (!fs.existsSync('dist')) fs.mkdirSync('dist'); fs.writeFileSync('dist/server.js', 'import \"../src/server.js\";');\" && npx prisma generate",
     "postinstall": "node -e \"const fs = require('fs'); if (fs.existsSync('.env.production') && !fs.existsSync('.env')) fs.copyFileSync('.env.production', '.env'); if (!fs.existsSync('dist')) fs.mkdirSync('dist'); fs.writeFileSync('dist/server.js', 'import \"../src/server.js\";');\" && npx prisma generate",
     "db:generate": "npx prisma generate",
