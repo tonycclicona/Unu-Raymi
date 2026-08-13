@@ -119,7 +119,35 @@ if (appType === 'backend') {
   const http = require('http');
   const url = require('url');
 
+  let isPrepared = false;
+  const preparePromise = app.prepare()
+    .then(function() {
+      isPrepared = true;
+      console.log('> Next.js [' + appType.toUpperCase() + '] app.prepare() completed successfully.');
+    })
+    .catch(function(err) {
+      console.error('> Next.js failed to prepare:', err);
+    });
+
   const server = http.createServer(function(req, res) {
+    if (!isPrepared) {
+      preparePromise.then(function() {
+        try {
+          const parsedUrl = url.parse(req.url, true);
+          handle(req, res, parsedUrl);
+        } catch (err) {
+          console.error('Error handling request:', req.url, err);
+          res.statusCode = 500;
+          res.end('Internal server error');
+        }
+      }).catch(function(err) {
+        console.error('Error in prepare before handling request:', err);
+        res.statusCode = 500;
+        res.end('Next.js initialization error');
+      });
+      return;
+    }
+
     try {
       const parsedUrl = url.parse(req.url, true);
       handle(req, res, parsedUrl);
@@ -130,19 +158,12 @@ if (appType === 'backend') {
     }
   });
 
-  app.prepare()
-    .then(function() {
-      console.log('> Next.js [' + appType.toUpperCase() + '] app.prepare() completed successfully.');
-      if (typeof port === 'number' || (typeof port === 'string' && !port.startsWith('/'))) {
-        server.listen(port, function(err) {
-          if (err) throw err;
-          console.log('> Next.js [' + appType.toUpperCase() + '] listening on port:', port);
-        });
-      }
-    })
-    .catch(function(err) {
-      console.error('> Next.js failed to prepare:', err);
+  if (typeof port === 'number' || (typeof port === 'string' && !port.startsWith('/') && port !== 'passenger')) {
+    server.listen(port, function(err) {
+      if (err) throw err;
+      console.log('> Next.js [' + appType.toUpperCase() + '] listening on port:', port);
     });
+  }
 
   module.exports = server;
 }
