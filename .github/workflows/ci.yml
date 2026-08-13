@@ -1,0 +1,40 @@
+name: CI Build & Compatibility Check
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 11.5.3
+
+      - name: Install Dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Generate Prisma Client (Backend)
+        run: pnpm --filter unu-raymi-backend run db:generate
+
+      - name: Build Backend
+        run: pnpm --filter unu-raymi-backend run build
+
+      - name: Build Admin
+        run: pnpm --filter admin run build
+
+      - name: Build Frontend
+        run: pnpm --filter frontend run build
