@@ -16,20 +16,13 @@ const { createRequire } = require('module');
 
 let appType = (process.env.APP_TYPE || '').toLowerCase().trim();
 
-if (!appType || appType === 'backend') {
-  const cwd = (process.cwd() || process.env.PWD || __dirname).toLowerCase();
-  if (cwd.includes('admin')) {
-    appType = 'admin';
-  } else if (cwd.includes('api') || cwd.includes('backend')) {
-    appType = 'backend';
-  } else if (cwd.includes('unu-raymi.com') || cwd.includes('frontend')) {
-    appType = 'frontend';
-  } else {
-    appType = process.env.APP_TYPE ? process.env.APP_TYPE.toLowerCase().trim() : 'backend';
-  }
+function getAppTypeFromRequest(req) {
+  if (process.env.APP_TYPE) return process.env.APP_TYPE.toLowerCase().trim();
+  const host = (req.headers && req.headers.host) ? req.headers.host.toLowerCase() : '';
+  if (host.includes('admin')) return 'admin';
+  if (host.includes('api')) return 'backend';
+  return 'frontend';
 }
-
-console.log('> Launching app: [' + appType.toUpperCase() + '] from root server.js...');
 
 // Capturar el puerto nativo inyectado por Hostinger ANTES de cargar cualquier archivo .env
 const hostingerPort = process.env.PORT;
