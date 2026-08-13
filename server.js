@@ -49,8 +49,14 @@ if (appType === 'backend') {
     }
   }
 
-  // Use dynamic import() inside an async wrapper (avoids top-level await)
-  const backendPromise = import('./backend/src/server.js')
+  // Use dynamic import() inside an async wrapper — try dist/server.js first, fallback to src/server.js
+  const backendPath = fs.existsSync(path.resolve(__dirname, 'backend/dist/server.js'))
+    ? './backend/dist/server.js'
+    : './backend/src/server.js';
+
+  console.log('> Loading backend entrypoint from: ' + backendPath);
+
+  const backendPromise = import(backendPath)
     .then(function(m) {
       console.log('> Backend Express app loaded successfully.');
       return m.default || m;
