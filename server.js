@@ -119,9 +119,14 @@ if (appType === 'backend') {
     }
   }
 
-  const subappNext = path.join(dir, '.next');
+  let chosenDir = dir;
+  if (!fs.existsSync(path.join(chosenDir, 'package.json')) && fs.existsSync(path.join(__dirname, 'package.json'))) {
+    chosenDir = __dirname;
+  }
+
+  const subappNext = path.join(chosenDir, '.next');
   const rootNext = path.join(__dirname, '.next');
-  const targetDir = fs.existsSync(subappNext) ? dir : (fs.existsSync(rootNext) ? __dirname : dir);
+  const targetDir = fs.existsSync(subappNext) ? chosenDir : (fs.existsSync(rootNext) ? __dirname : chosenDir);
 
   console.log('> Starting Next.js [' + appType.toUpperCase() + '] using directory: ' + targetDir);
 
@@ -129,9 +134,8 @@ if (appType === 'backend') {
   const app = next({
     dev: dev,
     dir: targetDir,
-    conf: {
-      distDir: fs.existsSync(path.join(targetDir, '.next')) ? '.next' : undefined
-    }
+    hostname: '0.0.0.0',
+    port: typeof port === 'number' ? port : 3000
   });
   const handle = app.getRequestHandler();
 
