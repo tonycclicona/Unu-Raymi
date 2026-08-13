@@ -16,6 +16,9 @@ if (!appType) {
 }
 
 function getPackageManager() {
+  if (process.env.PKG_MANAGER) {
+    return process.env.PKG_MANAGER.toLowerCase().trim();
+  }
   try {
     execSync('pnpm --version', { stdio: 'ignore' });
     return 'pnpm';
@@ -24,7 +27,7 @@ function getPackageManager() {
       execSync('npx pnpm --version', { stdio: 'ignore' });
       return 'npx pnpm';
     } catch (err) {
-      return 'npm';
+      return 'pnpm';
     }
   }
 }
