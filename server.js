@@ -133,9 +133,7 @@ if (appType === 'backend') {
   const next = nextModule.default || nextModule;
   const app = next({
     dev: dev,
-    dir: targetDir,
-    hostname: '0.0.0.0',
-    port: typeof port === 'number' ? port : 3000
+    dir: targetDir
   });
   const handle = app.getRequestHandler();
 
@@ -152,7 +150,7 @@ if (appType === 'backend') {
       console.error('> Next.js failed to prepare:', err);
     });
 
-  const server = http.createServer(function(req, res) {
+  function requestHandler(req, res) {
     if (!isPrepared) {
       preparePromise.then(function() {
         try {
@@ -166,7 +164,7 @@ if (appType === 'backend') {
       }).catch(function(err) {
         console.error('Error in prepare before handling request:', err);
         res.statusCode = 500;
-        res.end('Next.js initialization error: ' + (err ? err.message : 'Unknown error'));
+        res.end('Next.js initialization error');
       });
       return;
     }
@@ -179,15 +177,18 @@ if (appType === 'backend') {
       res.statusCode = 500;
       res.end('Internal server error');
     }
-  });
+  }
 
-  server.listen(port, function(err) {
-    if (err) {
-      console.error('Server listen error:', err.message);
-      return;
-    }
-    console.log('> Next.js [' + appType.toUpperCase() + '] listening on port/socket:', port);
-  });
-
-  module.exports = server;
+  // Si estamos en un puerto numérico directo (ej: local o puerto TCP en Hostinger)
+  if (typeof port === 'number' && port > 0) {
+    const server = http.createServer(requestHandler);
+    server.listen(port, function(err) {
+      if (err) throw err;
+      console.log('> Next.js [' + appType.toUpperCase() + '] listening on TCP port:', port);
+    });
+    module.exports = server;
+  } else {
+    // Si estamos en Phusion Passenger / LiteSpeed Socket
+    module.exports = requestHandler;
+  }
 }
