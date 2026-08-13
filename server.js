@@ -91,8 +91,15 @@ if (appType === 'backend') {
     }
   }
 
+  // Check if .next is in subapp dir or root dir
+  const subappNext = path.join(dir, '.next');
+  const rootNext = path.join(__dirname, '.next');
+  const targetDir = fs.existsSync(subappNext) ? dir : (fs.existsSync(rootNext) ? __dirname : dir);
+
+  console.log('> Starting Next.js [' + appType.toUpperCase() + '] using directory: ' + targetDir);
+
   const next = nextModule.default || nextModule;
-  const app = next({ dev: dev, dir: dir });
+  const app = next({ dev: dev, dir: targetDir });
   const handle = app.getRequestHandler();
 
   app.prepare()
