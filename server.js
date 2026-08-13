@@ -116,33 +116,33 @@ if (appType === 'backend') {
   const app = next({ dev: dev, dir: targetDir });
   const handle = app.getRequestHandler();
 
-  const serverPromise = app.prepare()
+  const http = require('http');
+  const url = require('url');
+
+  const server = http.createServer(function(req, res) {
+    try {
+      const parsedUrl = url.parse(req.url, true);
+      handle(req, res, parsedUrl);
+    } catch (err) {
+      console.error('Error handling request:', req.url, err);
+      res.statusCode = 500;
+      res.end('Internal server error');
+    }
+  });
+
+  app.prepare()
     .then(function() {
-      const http = require('http');
-      const url = require('url');
-
-      const server = http.createServer(function(req, res) {
-        try {
-          const parsedUrl = url.parse(req.url, true);
-          handle(req, res, parsedUrl);
-        } catch (err) {
-          console.error('Error handling request:', req.url, err);
-          res.statusCode = 500;
-          res.end('Internal server error');
-        }
-      });
-
-      server.listen(port, function(err) {
-        if (err) throw err;
-        console.log('> Next.js [' + appType.toUpperCase() + '] running on port/socket:', port);
-      });
-
-      return server;
+      console.log('> Next.js [' + appType.toUpperCase() + '] app.prepare() completed successfully.');
+      if (typeof port === 'number' || (typeof port === 'string' && !port.startsWith('/'))) {
+        server.listen(port, function(err) {
+          if (err) throw err;
+          console.log('> Next.js [' + appType.toUpperCase() + '] listening on port:', port);
+        });
+      }
     })
     .catch(function(err) {
-      console.error('> Next.js failed to start:', err);
-      process.exit(1);
+      console.error('> Next.js failed to prepare:', err);
     });
 
-  module.exports = serverPromise;
+  module.exports = server;
 }
