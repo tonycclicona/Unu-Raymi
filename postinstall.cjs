@@ -41,6 +41,8 @@ function run(cmd, subdir) {
 
   if (pm === 'npx pnpm') {
     finalCmd = cmd.replace(/^pnpm\s+/, 'npx pnpm ');
+  } else if (pm === 'npm') {
+    finalCmd = cmd.startsWith('pnpm run ') ? cmd.replace(/^pnpm run\s+/, 'npm run ') : cmd.replace(/^pnpm\s+/, 'npm ');
   }
 
   console.log(`[postinstall] Running: ${finalCmd}`);
@@ -48,15 +50,15 @@ function run(cmd, subdir) {
   try {
     execSync(finalCmd, { cwd, stdio: 'inherit', env: process.env });
   } catch (err) {
-    // If pnpm was attempted directly and failed with command not found, retry via npx pnpm
-    if (cmd.startsWith('pnpm') && pm === 'pnpm') {
-      const fallbackCmd = cmd.replace(/^pnpm\s+/, 'npx --yes pnpm ');
-      console.log(`[postinstall] Retrying with fallback: ${fallbackCmd}`);
+    // If command failed due to missing pnpm binary, fall back to npm run
+    if (finalCmd.startsWith('pnpm')) {
+      const npmCmd = cmd.startsWith('pnpm run ') ? cmd.replace(/^pnpm run\s+/, 'npm run ') : 'npm run build';
+      console.log(`[postinstall] Executing npm fallback: ${npmCmd}`);
       try {
-        execSync(fallbackCmd, { cwd, stdio: 'inherit', env: process.env });
+        execSync(npmCmd, { cwd, stdio: 'inherit', env: process.env });
         return;
-      } catch (retryErr) {
-        console.error(`[postinstall] FAILED fallback: ${fallbackCmd}`);
+      } catch (npmErr) {
+        console.error(`[postinstall] FAILED npm fallback: ${npmCmd}`);
       }
     }
     console.error(`[postinstall] FAILED: ${finalCmd}`);
