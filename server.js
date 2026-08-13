@@ -151,32 +151,68 @@ if (appType === 'backend') {
     });
 
   const server = http.createServer(function(req, res) {
-    if (!isPrepared) {
-      preparePromise.then(function() {
-        try {
-          const parsedUrl = url.parse(req.url, true);
-          handle(req, res, parsedUrl);
-        } catch (err) {
-          console.error('Error handling request:', req.url, err);
-          res.statusCode = 500;
-          res.end('Internal server error');
-        }
-      }).catch(function(err) {
-        console.error('Error in prepare before handling request:', err);
-        res.statusCode = 500;
-        res.end('Next.js initialization error');
-      });
+    const parsedUrl = url.parse(req.url, true);
+    let pathname = parsedUrl.pathname || '/';
+
+    // 1. Servir archivos estáticos directamente desde .next/static o public con consumo mínimo de RAM
+    if (pathname.startsWith('/_next/static/')) {
+      const filePath = path.join(targetDir, '.next/static', pathname.replace('/_next/static/', ''));
+      if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+        const ext = path.extname(filePath).toLowerCase();
+        const mimeTypes = {
+          '.js': 'application/javascript; charset=utf-8',
+          '.css': 'text/css; charset=utf-8',
+          '.json': 'application/json',
+          '.png': 'image/png',
+          '.jpg': 'image/jpeg',
+          '.svg': 'image/svg+xml',
+          '.woff2': 'font/woff2',
+          '.webp': 'image/webp'
+        };
+        res.setHeader('Content-Type', mimeTypes[ext] || 'application/octet-stream');
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        fs.createReadStream(filePath).pipe(res);
+        return;
+      }
+    }
+
+    // 2. Servir páginas pre-renderizadas HTML directamente desde .next/server/app
+    const htmlPath = pathname === '/'
+      ? path.join(targetDir, '.next/server/app/index.html')
+      : path.join(targetDir, '.next/server/app', pathname.replace(/^\//, '') + '.html');
+
+    if (fs.existsSync(htmlPath) && fs.statSync(htmlPath).isFile()) {
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      fs.createReadStream(htmlPath).pipe(res);
       return;
     }
 
-    try {
-      const parsedUrl = url.parse(req.url, true);
-      handle(req, res, parsedUrl);
-    } catch (err) {
-      console.error('Error handling request:', req.url, err);
-      res.statusCode = 500;
-      res.end('Internal server error');
+    // 3. Fallback dinámico a Next.js Handler si está preparado
+    if (isPrepared) {
+      try {
+        handle(req, res, parsedUrl);
+      } catch (err) {
+        console.error('Error handling request:', req.url, err);
+        res.statusCode = 500;
+        res.end('Internal server error');
+      }
+      return;
     }
+
+    // Si aún se está preparando, esperar la resolución
+    preparePromise.then(function() {
+      try {
+        handle(req, res, parsedUrl);
+      } catch (err) {
+        console.error('Error handling request:', req.url, err);
+        res.statusCode = 500;
+        res.end('Internal server error');
+      }
+    }).catch(function(err) {
+      console.error('Error in prepare before handling request:', err);
+      res.statusCode = 500;
+      res.end('Next.js initialization error');
+    });
   });
 
   server.listen(port, function(err) {
