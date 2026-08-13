@@ -31,6 +31,9 @@ if (!appType || appType === 'backend') {
 
 console.log('> Launching app: [' + appType.toUpperCase() + '] from root server.js...');
 
+// Capturar el puerto nativo inyectado por Hostinger ANTES de cargar cualquier archivo .env
+const hostingerPort = process.env.PORT;
+
 function loadEnvFile(filePath) {
   if (fs.existsSync(filePath)) {
     try {
@@ -46,6 +49,10 @@ function loadEnvFile(filePath) {
                 (val.startsWith("'") && val.endsWith("'"))) {
               val = val.substring(1, val.length - 1);
             }
+            // NO sobreescribir el PORT que Hostinger asignó al proceso
+            if (key === 'PORT' && hostingerPort) {
+              return;
+            }
             if (!process.env[key]) {
               process.env[key] = val;
             }
@@ -60,7 +67,7 @@ function loadEnvFile(filePath) {
 }
 
 function resolvePort() {
-  const p = process.env.PORT;
+  const p = hostingerPort || process.env.PORT;
   if (!p) return 3000;
   if (typeof p === 'string' && (p === 'passenger' || p.startsWith('/') || p.startsWith('\\\\') || p.includes('.sock'))) {
     return p;
