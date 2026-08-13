@@ -161,37 +161,50 @@ if (appType === 'backend') {
     const parsedUrl = url.parse(req.url, true);
     let pathname = parsedUrl.pathname || '/';
 
-    // 1. Servir archivos estáticos directamente desde .next/static o public con consumo mínimo de RAM
+    // 1. Servir archivos estáticos directamente desde .next/static o frontend/public con consumo mínimo de RAM
     if (pathname.startsWith('/_next/static/')) {
-      const filePath = path.join(targetDir, '.next/static', pathname.replace('/_next/static/', ''));
-      if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
-        const ext = path.extname(filePath).toLowerCase();
-        const mimeTypes = {
-          '.js': 'application/javascript; charset=utf-8',
-          '.css': 'text/css; charset=utf-8',
-          '.json': 'application/json',
-          '.png': 'image/png',
-          '.jpg': 'image/jpeg',
-          '.svg': 'image/svg+xml',
-          '.woff2': 'font/woff2',
-          '.webp': 'image/webp'
-        };
-        res.setHeader('Content-Type', mimeTypes[ext] || 'application/octet-stream');
-        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-        fs.createReadStream(filePath).pipe(res);
-        return;
+      const subpath = pathname.replace('/_next/static/', '');
+      const candidates = [
+        path.join(targetDir, '.next/static', subpath),
+        path.join(__dirname, '.next/static', subpath),
+        path.join(__dirname, 'frontend/.next/static', subpath),
+        path.join(__dirname, 'admin/.next/static', subpath)
+      ];
+      for (const candidate of candidates) {
+        if (fs.existsSync(candidate) && fs.statSync(candidate).isFile()) {
+          const ext = path.extname(candidate).toLowerCase();
+          const mimeTypes = {
+            '.js': 'application/javascript; charset=utf-8',
+            '.css': 'text/css; charset=utf-8',
+            '.json': 'application/json',
+            '.png': 'image/png',
+            '.jpg': 'image/jpeg',
+            '.svg': 'image/svg+xml',
+            '.woff2': 'font/woff2',
+            '.webp': 'image/webp'
+          };
+          res.setHeader('Content-Type', mimeTypes[ext] || 'application/octet-stream');
+          res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+          fs.createReadStream(candidate).pipe(res);
+          return;
+        }
       }
     }
 
-    // 2. Servir páginas pre-renderizadas HTML directamente desde .next/server/app
-    const htmlPath = pathname === '/'
-      ? path.join(targetDir, '.next/server/app/index.html')
-      : path.join(targetDir, '.next/server/app', pathname.replace(/^\//, '') + '.html');
+    // 2. Servir páginas pre-renderizadas HTML directamente desde .next/server/app o dist
+    const htmlCandidates = [
+      pathname === '/' ? path.join(targetDir, '.next/server/app/index.html') : path.join(targetDir, '.next/server/app', pathname.replace(/^\//, '') + '.html'),
+      pathname === '/' ? path.join(__dirname, '.next/server/app/index.html') : path.join(__dirname, '.next/server/app', pathname.replace(/^\//, '') + '.html'),
+      pathname === '/' ? path.join(__dirname, 'frontend/.next/server/app/index.html') : path.join(__dirname, 'frontend/.next/server/app', pathname.replace(/^\//, '') + '.html'),
+      pathname === '/' ? path.join(__dirname, 'admin/.next/server/app/index.html') : path.join(__dirname, 'admin/.next/server/app', pathname.replace(/^\//, '') + '.html')
+    ];
 
-    if (fs.existsSync(htmlPath) && fs.statSync(htmlPath).isFile()) {
-      res.setHeader('Content-Type', 'text/html; charset=utf-8');
-      fs.createReadStream(htmlPath).pipe(res);
-      return;
+    for (const htmlCandidate of htmlCandidates) {
+      if (fs.existsSync(htmlCandidate) && fs.statSync(htmlCandidate).isFile()) {
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        fs.createReadStream(htmlCandidate).pipe(res);
+        return;
+      }
     }
 
     // 3. Fallback dinámico a Next.js Handler si está preparado
@@ -206,7 +219,7 @@ if (appType === 'backend') {
       return;
     }
 
-    // Si aún se está preparando, esperar la resolución
+    // Si aún se está preparando, intentar esperar o servir index.html de respaldo
     preparePromise.then(function() {
       try {
         handle(req, res, parsedUrl);
