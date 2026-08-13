@@ -18,15 +18,11 @@ const appType = (process.env.APP_TYPE || 'backend').toLowerCase().trim();
 
 console.log('> Launching app: [' + appType.toUpperCase() + '] from root server.js...');
 
-// ── BACKEND ───────────────────────────────────────────────────────────────────
-if (appType === 'backend') {
-
-  // Load backend .env manually (CWD may differ from repo root on Hostinger)
-  const envPath = path.resolve(__dirname, 'backend/.env');
-  if (fs.existsSync(envPath)) {
+function loadEnvFile(filePath) {
+  if (fs.existsSync(filePath)) {
     try {
-      const envContent = fs.readFileSync(envPath, 'utf8');
-      envContent.split('\n').forEach(function(line) {
+      const content = fs.readFileSync(filePath, 'utf8');
+      content.split('\n').forEach(function(line) {
         const trimmed = line.trim();
         if (trimmed && !trimmed.startsWith('#')) {
           const firstEqual = trimmed.indexOf('=');
@@ -43,13 +39,27 @@ if (appType === 'backend') {
           }
         }
       });
-      console.log('> Loaded environment variables from backend/.env');
+      console.log('> Loaded environment variables from: ' + filePath);
     } catch (err) {
-      console.error('Warning: Failed to load backend/.env:', err.message);
+      console.error('Warning: Failed to load env file ' + filePath + ':', err.message);
     }
   }
+}
 
-  // Use dynamic import() inside an async wrapper — try dist/server.js first, fallback to src/server.js
+function resolvePort() {
+  const p = process.env.PORT;
+  if (!p) return 3000;
+  if (typeof p === 'string' && (p === 'passenger' || p.startsWith('/') || p.startsWith('\\\\') || p.includes('.sock'))) {
+    return p;
+  }
+  const parsed = parseInt(p, 10);
+  return isNaN(parsed) ? p : parsed;
+}
+
+// ── BACKEND ───────────────────────────────────────────────────────────────────
+if (appType === 'backend') {
+  loadEnvFile(path.resolve(__dirname, 'backend/.env'));
+
   const backendPath = fs.existsSync(path.resolve(__dirname, 'backend/dist/server.js'))
     ? './backend/dist/server.js'
     : './backend/src/server.js';
@@ -70,13 +80,18 @@ if (appType === 'backend') {
 
 // ── FRONTEND / ADMIN (Next.js) ────────────────────────────────────────────────
 } else {
-  const dir = path.resolve(__dirname, appType === 'admin' ? 'admin' : 'frontend');
-  const port = parseInt(process.env.PORT || '3000', 10);
+  const subappDir = appType === 'admin' ? 'admin' : 'frontend';
+  const dir = path.resolve(__dirname, subappDir);
+
+  // Cargar variables de entorno del subapp (.env.production o .env)
+  loadEnvFile(path.join(dir, '.env.production'));
+  loadEnvFile(path.join(dir, '.env'));
+
+  const port = resolvePort();
   const dev = process.env.NODE_ENV === 'development';
 
   console.log('> Starting Next.js [' + appType.toUpperCase() + '] from: ' + dir);
 
-  // Load Next.js from the subapp or root node_modules (monorepo friendly)
   let nextModule;
   try {
     const subappRequire = createRequire(path.join(dir, 'package.json'));
@@ -91,7 +106,6 @@ if (appType === 'backend') {
     }
   }
 
-  // Check if .next is in subapp dir or root dir
   const subappNext = path.join(dir, '.next');
   const rootNext = path.join(__dirname, '.next');
   const targetDir = fs.existsSync(subappNext) ? dir : (fs.existsSync(rootNext) ? __dirname : dir);
@@ -102,12 +116,12 @@ if (appType === 'backend') {
   const app = next({ dev: dev, dir: targetDir });
   const handle = app.getRequestHandler();
 
-  app.prepare()
+  const serverPromise = app.prepare()
     .then(function() {
       const http = require('http');
       const url = require('url');
 
-      http.createServer(function(req, res) {
+      const server = http.createServer(function(req, res) {
         try {
           const parsedUrl = url.parse(req.url, true);
           handle(req, res, parsedUrl);
@@ -116,13 +130,19 @@ if (appType === 'backend') {
           res.statusCode = 500;
           res.end('Internal server error');
         }
-      }).listen(port, function(err) {
-        if (err) throw err;
-        console.log('> Next.js [' + appType.toUpperCase() + '] running on port ' + port);
       });
+
+      server.listen(port, function(err) {
+        if (err) throw err;
+        console.log('> Next.js [' + appType.toUpperCase() + '] running on port/socket:', port);
+      });
+
+      return server;
     })
     .catch(function(err) {
       console.error('> Next.js failed to start:', err);
       process.exit(1);
     });
+
+  module.exports = serverPromise;
 }
