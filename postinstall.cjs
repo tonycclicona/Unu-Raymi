@@ -74,12 +74,32 @@ if (appType === 'backend') {
 else if (appType === 'frontend') {
   console.log('[postinstall] === FRONTEND setup ===');
   run('pnpm run build', 'frontend'); // Next.js build
+  try {
+    const srcNext = path.join(process.cwd(), 'frontend', '.next');
+    const destNext = path.join(process.cwd(), '.next');
+    if (fs.existsSync(srcNext)) {
+      fs.cpSync(srcNext, destNext, { recursive: true });
+      console.log('[postinstall] Copied frontend/.next to root .next');
+    }
+  } catch (e) {
+    console.error('Warning: Failed to copy frontend/.next to root:', e.message);
+  }
 }
 
 // ── ADMIN ─────────────────────────────────────────────────────────────────────
 else if (appType === 'admin') {
   console.log('[postinstall] === ADMIN setup ===');
   run('pnpm run build', 'admin'); // Next.js build
+  try {
+    const srcNext = path.join(process.cwd(), 'admin', '.next');
+    const destNext = path.join(process.cwd(), '.next');
+    if (fs.existsSync(srcNext)) {
+      fs.cpSync(srcNext, destNext, { recursive: true });
+      console.log('[postinstall] Copied admin/.next to root .next');
+    }
+  } catch (e) {
+    console.error('Warning: Failed to copy admin/.next to root:', e.message);
+  }
 }
 
 else {
