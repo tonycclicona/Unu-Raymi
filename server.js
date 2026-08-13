@@ -14,7 +14,20 @@ const fs = require('fs');
 const path = require('path');
 const { createRequire } = require('module');
 
-const appType = (process.env.APP_TYPE || 'backend').toLowerCase().trim();
+let appType = (process.env.APP_TYPE || '').toLowerCase().trim();
+
+if (!appType || appType === 'backend') {
+  const cwd = (process.cwd() || process.env.PWD || __dirname).toLowerCase();
+  if (cwd.includes('admin')) {
+    appType = 'admin';
+  } else if (cwd.includes('api') || cwd.includes('backend')) {
+    appType = 'backend';
+  } else if (cwd.includes('unu-raymi.com') || cwd.includes('frontend')) {
+    appType = 'frontend';
+  } else {
+    appType = process.env.APP_TYPE ? process.env.APP_TYPE.toLowerCase().trim() : 'backend';
+  }
+}
 
 console.log('> Launching app: [' + appType.toUpperCase() + '] from root server.js...');
 
