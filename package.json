@@ -23,7 +23,6 @@
   "workspaces": [
     "backend",
     "admin",
-    "frontend",
-    "docs"
+    "frontend"
   ]
 }

@@ -10,6 +10,8 @@ Thumbs.db
 
 # Gemini / AI Agent
 .gemini/
+*AGENTS.md
+*CLAUDE.md
 
 # Logs
 *.log
