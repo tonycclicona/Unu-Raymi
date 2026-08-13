@@ -22,11 +22,15 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
-      - name: Generate Prisma Client (Backend)
-        run: npm --workspace=backend run db:generate
+      - name: Generate Prisma Client (SQLite — local schema para CI)
+        run: npm --workspace=backend run db:local:generate
+        env:
+          DATABASE_URL: "file:./prisma/dev.db"
 
       - name: Build Backend
         run: npm --workspace=backend run build
+        env:
+          DATABASE_URL: "file:./prisma/dev.db"
 
       - name: Build Admin
         run: npm --workspace=admin run build
