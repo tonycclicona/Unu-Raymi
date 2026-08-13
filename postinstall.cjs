@@ -5,7 +5,18 @@ const { execSync } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 
-const appType = (process.env.APP_TYPE || '').toLowerCase().trim();
+let appType = (process.env.APP_TYPE || '').toLowerCase().trim();
+
+if (!appType) {
+  const cwd = process.cwd().toLowerCase();
+  if (cwd.includes('admin')) {
+    appType = 'admin';
+  } else if (cwd.includes('api') || cwd.includes('backend')) {
+    appType = 'backend';
+  } else if (cwd.includes('frontend') || cwd.includes('unu-raymi.com')) {
+    appType = 'frontend';
+  }
+}
 
 console.log(`\n[postinstall] APP_TYPE="${appType || '(none - skipping subapp setup)'}"\n`);
 
