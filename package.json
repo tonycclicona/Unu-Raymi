@@ -32,6 +32,9 @@
     "docs"
   ],
   "pnpm": {
+    "onlyBuiltDependencies": [
+      "*"
+    ],
     "workspaces": [
       "backend",
       "admin",
