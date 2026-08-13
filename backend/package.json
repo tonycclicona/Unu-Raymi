@@ -8,7 +8,7 @@
     "dev": "nodemon src/server.js",
     "start": "node dist/server.js",
     "build": "node -e \"const fs = require('fs'); if (fs.existsSync('.env.production') && !fs.existsSync('.env')) fs.copyFileSync('.env.production', '.env'); if (!fs.existsSync('dist')) fs.mkdirSync('dist'); fs.cpSync('src', 'dist/src', { recursive: true }); fs.writeFileSync('dist/server.js', 'import(\"./src/server.js\");');\" && npx prisma generate",
-    "postinstall": "node -e \"const fs = require('fs'); if (fs.existsSync('.env.production') && !fs.existsSync('.env')) fs.copyFileSync('.env.production', '.env'); if (!fs.existsSync('dist')) fs.mkdirSync('dist'); fs.cpSync('src', 'dist/src', { recursive: true }); fs.writeFileSync('dist/server.js', 'import(\"./src/server.js\");');\" && npx prisma generate",
+    "postinstall": "node -e \"const fs = require('fs'); if (fs.existsSync('.env.production') && !fs.existsSync('.env')) fs.copyFileSync('.env.production', '.env'); if (!fs.existsSync('dist')) fs.mkdirSync('dist'); fs.cpSync('src', 'dist/src', { recursive: true }); fs.writeFileSync('dist/server.js', 'import(\"./src/server.js\");');\"",
     "db:generate": "npx prisma generate",
     "db:push": "npx prisma db push",
     "db:studio": "npx prisma studio",
