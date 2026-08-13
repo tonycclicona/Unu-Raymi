@@ -41,14 +41,6 @@ function run(cmd, subdir) {
 
   if (pm === 'npx pnpm') {
     finalCmd = cmd.replace(/^pnpm\s+/, 'npx pnpm ');
-  } else if (pm === 'npm') {
-    if (cmd.startsWith('pnpm install')) {
-      finalCmd = 'npm install --legacy-peer-deps';
-    } else if (cmd.startsWith('pnpm run ')) {
-      finalCmd = cmd.replace(/^pnpm run\s+/, 'npm run ');
-    } else if (cmd.startsWith('pnpm ')) {
-      finalCmd = cmd.replace(/^pnpm\s+/, 'npx pnpm ');
-    }
   }
 
   console.log(`[postinstall] Running: ${finalCmd}`);
