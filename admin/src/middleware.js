@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-export function proxy(request) {
+export function middleware(request) {
   const token = request.cookies.get('session_token')?.value;
   const { pathname } = request.nextUrl;
 
@@ -18,6 +18,8 @@ export function proxy(request) {
 
   return NextResponse.next();
 }
+
+export default middleware;
 
 // Proteger todas las rutas excepto archivos estáticos, favicon y api routes internas
 export const config = {
