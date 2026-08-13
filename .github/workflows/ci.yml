@@ -19,22 +19,17 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 11.5.3
-
       - name: Install Dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: npm install
 
       - name: Generate Prisma Client (Backend)
-        run: pnpm --filter unu-raymi-backend run db:generate
+        run: npm --workspace=backend run db:generate
 
       - name: Build Backend
-        run: pnpm --filter unu-raymi-backend run build
+        run: npm --workspace=backend run build
 
       - name: Build Admin
-        run: pnpm --filter admin run build
+        run: npm --workspace=admin run build
 
       - name: Build Frontend
-        run: pnpm --filter frontend run build
+        run: npm --workspace=frontend run build

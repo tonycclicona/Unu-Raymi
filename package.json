@@ -2,26 +2,19 @@
   "name": "unu-raymi",
   "version": "1.0.0",
   "private": true,
-  "packageManager": "pnpm@11.5.3",
   "scripts": {
-    "dev": "pnpm --recursive --parallel run dev",
-    "dev:backend": "pnpm --filter backend dev",
-    "dev:frontend": "pnpm --filter frontend dev",
-    "dev:admin": "pnpm --filter admin dev",
+    "dev": "npm run dev --workspaces --if-present",
+    "dev:backend": "npm --workspace=backend run dev",
+    "dev:frontend": "npm --workspace=frontend run dev",
+    "dev:admin": "npm --workspace=admin run dev",
     "start": "node server.js",
     "build": "node postinstall.cjs",
     "postinstall": "node postinstall.cjs",
-
-    "install:backend": "pnpm --filter backend install",
-    "build:backend": "pnpm --filter backend build",
+    "build:backend": "npm --workspace=backend run build",
     "start:backend": "APP_TYPE=backend node server.js",
-
-    "install:admin": "pnpm --filter admin install",
-    "build:admin": "pnpm --filter admin build",
+    "build:admin": "npm --workspace=admin run build",
     "start:admin": "APP_TYPE=admin node server.js",
-
-    "install:frontend": "pnpm --filter frontend install",
-    "build:frontend": "pnpm --filter frontend build",
+    "build:frontend": "npm --workspace=frontend run build",
     "start:frontend": "APP_TYPE=frontend node server.js"
   },
   "main": "server.js",
@@ -30,20 +23,5 @@
     "admin",
     "frontend",
     "docs"
-  ],
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "@prisma/client",
-      "@prisma/engines",
-      "prisma",
-      "sharp",
-      "@swc/core"
-    ],
-    "workspaces": [
-      "backend",
-      "admin",
-      "frontend",
-      "docs"
-    ]
-  }
+  ]
 }
