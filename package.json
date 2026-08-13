@@ -32,6 +32,13 @@
     "docs"
   ],
   "pnpm": {
+    "onlyBuiltDependencies": [
+      "@prisma/client",
+      "@prisma/engines",
+      "prisma",
+      "sharp",
+      "@swc/core"
+    ],
     "workspaces": [
       "backend",
       "admin",

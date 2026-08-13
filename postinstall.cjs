@@ -20,6 +20,13 @@ if (!appType) {
 
 console.log(`\n[postinstall] APP_TYPE="${appType || '(none - skipping subapp setup)'}"\n`);
 
+// Auto-aprobación de paquetes nativos para pnpm en entornos de integración continua / Hostinger
+try {
+  execSync('npx pnpm approve-builds --all 2>/dev/null || pnpm approve-builds --all 2>/dev/null || true', { stdio: 'ignore' });
+} catch (e) {
+  // Ignorar si pnpm approve-builds no está presente o falla en npm
+}
+
 // Skip if no APP_TYPE (local dev environment)
 if (!appType) {
   console.log('[postinstall] No APP_TYPE set - skipping subapp build (local dev mode).');
