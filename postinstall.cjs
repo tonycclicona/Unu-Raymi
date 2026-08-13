@@ -27,7 +27,7 @@ function getPackageManager() {
       execSync('npx pnpm --version', { stdio: 'ignore' });
       return 'npx pnpm';
     } catch (err) {
-      return 'pnpm';
+      return 'npm';
     }
   }
 }
@@ -38,6 +38,7 @@ console.log(`[postinstall] Configured package manager: "${pm}"`);
 function run(cmd, subdir) {
   const cwd = path.join(process.cwd(), subdir);
   let finalCmd = cmd;
+
   if (pm === 'npx pnpm') {
     finalCmd = cmd.replace(/^pnpm\s+/, 'npx pnpm ');
   } else if (pm === 'npm') {
@@ -45,6 +46,8 @@ function run(cmd, subdir) {
       finalCmd = 'npm install --legacy-peer-deps';
     } else if (cmd.startsWith('pnpm run ')) {
       finalCmd = cmd.replace(/^pnpm run\s+/, 'npm run ');
+    } else if (cmd.startsWith('pnpm ')) {
+      finalCmd = cmd.replace(/^pnpm\s+/, 'npx pnpm ');
     }
   }
 
@@ -53,6 +56,17 @@ function run(cmd, subdir) {
   try {
     execSync(finalCmd, { cwd, stdio: 'inherit', env: process.env });
   } catch (err) {
+    // If pnpm was attempted directly and failed with command not found, retry via npx pnpm
+    if (cmd.startsWith('pnpm') && pm === 'pnpm') {
+      const fallbackCmd = cmd.replace(/^pnpm\s+/, 'npx --yes pnpm ');
+      console.log(`[postinstall] Retrying with fallback: ${fallbackCmd}`);
+      try {
+        execSync(fallbackCmd, { cwd, stdio: 'inherit', env: process.env });
+        return;
+      } catch (retryErr) {
+        console.error(`[postinstall] FAILED fallback: ${fallbackCmd}`);
+      }
+    }
     console.error(`[postinstall] FAILED: ${finalCmd}`);
     console.error(err.message);
     process.exit(1);
