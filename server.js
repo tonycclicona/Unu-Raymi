@@ -113,7 +113,13 @@ if (appType === 'backend') {
   console.log('> Starting Next.js [' + appType.toUpperCase() + '] using directory: ' + targetDir);
 
   const next = nextModule.default || nextModule;
-  const app = next({ dev: dev, dir: targetDir });
+  const app = next({
+    dev: dev,
+    dir: targetDir,
+    conf: {
+      distDir: fs.existsSync(path.join(targetDir, '.next')) ? '.next' : undefined
+    }
+  });
   const handle = app.getRequestHandler();
 
   const http = require('http');
@@ -143,7 +149,7 @@ if (appType === 'backend') {
       }).catch(function(err) {
         console.error('Error in prepare before handling request:', err);
         res.statusCode = 500;
-        res.end('Next.js initialization error');
+        res.end('Next.js initialization error: ' + (err ? err.message : 'Unknown error'));
       });
       return;
     }
@@ -158,12 +164,13 @@ if (appType === 'backend') {
     }
   });
 
-  if (typeof port === 'number' || (typeof port === 'string' && !port.startsWith('/') && port !== 'passenger')) {
-    server.listen(port, function(err) {
-      if (err) throw err;
-      console.log('> Next.js [' + appType.toUpperCase() + '] listening on port:', port);
-    });
-  }
+  server.listen(port, function(err) {
+    if (err) {
+      console.error('Server listen error:', err.message);
+      return;
+    }
+    console.log('> Next.js [' + appType.toUpperCase() + '] listening on port/socket:', port);
+  });
 
   module.exports = server;
 }
