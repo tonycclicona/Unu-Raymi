@@ -52,6 +52,27 @@ if (appType === 'backend') {
   run('npm run build', 'backend');
 }
 
+function copyToAllPublicHtml(srcDir, label) {
+  if (!fs.existsSync(srcDir)) return;
+  
+  // Buscar todas las posibles carpetas public_html subiendo hasta la raiz del hosting
+  let current = process.cwd();
+  for (let i = 0; i < 6; i++) {
+    const pubCandidate = path.join(current, 'public_html');
+    if (fs.existsSync(pubCandidate) && pubCandidate !== srcDir) {
+      try {
+        fs.cpSync(srcDir, pubCandidate, { recursive: true });
+        console.log(`[postinstall] ✅ Copied ${label} to: ${pubCandidate}`);
+      } catch (err) {
+        console.error(`Warning: Failed to copy to ${pubCandidate}:`, err.message);
+      }
+    }
+    const parent = path.dirname(current);
+    if (parent === current) break;
+    current = parent;
+  }
+}
+
 // ── FRONTEND ──────────────────────────────────────────────────────────────────
 else if (appType === 'frontend') {
   console.log('[postinstall] === FRONTEND setup ===');
@@ -64,22 +85,7 @@ else if (appType === 'frontend') {
       console.log('[postinstall] Copied frontend/out to root out');
     }
 
-    // Copiar archivos directamente a public_html en todas las ubicaciones de Hostinger
-    const targetPublicHtmlDirs = [
-      path.join(process.cwd(), 'public_html'),
-      path.resolve(process.cwd(), '../public_html'),
-      path.resolve(process.cwd(), '../../public_html'),
-      path.resolve(process.cwd(), '../../../public_html')
-    ];
-
-    for (const pubDir of targetPublicHtmlDirs) {
-      try {
-        if (fs.existsSync(pubDir)) {
-          fs.cpSync(srcOut, pubDir, { recursive: true });
-          console.log(`[postinstall] ✅ Copied static site directly to: ${pubDir}`);
-        }
-      } catch (errDir) {}
-    }
+    copyToAllPublicHtml(srcOut, 'frontend static export');
 
     const srcNext = path.join(process.cwd(), 'frontend', '.next');
     const destNext = path.join(process.cwd(), '.next');
@@ -104,22 +110,7 @@ else if (appType === 'admin') {
       console.log('[postinstall] Copied admin/out to root out');
     }
 
-    // Copiar archivos directamente a public_html de admin en Hostinger
-    const targetPublicHtmlDirs = [
-      path.join(process.cwd(), 'public_html'),
-      path.resolve(process.cwd(), '../public_html'),
-      path.resolve(process.cwd(), '../../public_html'),
-      path.resolve(process.cwd(), '../../../public_html')
-    ];
-
-    for (const pubDir of targetPublicHtmlDirs) {
-      try {
-        if (fs.existsSync(pubDir)) {
-          fs.cpSync(srcOut, pubDir, { recursive: true });
-          console.log(`[postinstall] ✅ Copied admin static site directly to: ${pubDir}`);
-        }
-      } catch (errDir) {}
-    }
+    copyToAllPublicHtml(srcOut, 'admin static export');
 
     const srcNext = path.join(process.cwd(), 'admin', '.next');
     const destNext = path.join(process.cwd(), '.next');
