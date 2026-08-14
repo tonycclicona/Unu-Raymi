@@ -129,12 +129,15 @@ if (appType === 'backend') {
     });
   }
 
-  app.listen(port, function(err) {
-    if (err) {
-      console.error('> Server listen error:', err);
-      return;
-    }
-    console.log('> Web App [' + appType.toUpperCase() + '] escuchando en:', port);
+  const serverInstance = app.listen(port, function() {
+    console.log('> ==========================================');
+    console.log('> Web App [' + appType.toUpperCase() + '] RUNNING on port:', port);
+    console.log('> Out directory:', outDir);
+    console.log('> ==========================================');
+  });
+
+  serverInstance.on('error', function(err) {
+    console.error('> [Server Error] Failed to bind on port ' + port + ':', err.message);
   });
 
   module.exports = app;

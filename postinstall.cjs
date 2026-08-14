@@ -5,18 +5,25 @@ const { execSync } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 
-console.log('\n[postinstall] === Starting Full Monorepo Build & Setup ===\n');
+console.log('\n[postinstall] ==========================================');
+console.log('[postinstall] Starting Full Monorepo Build & Setup');
+console.log('[postinstall] CWD:', process.cwd());
+console.log('[postinstall] APP_TYPE:', process.env.APP_TYPE || 'all');
+console.log('[postinstall] ==========================================\n');
 
 function run(cmd, subdir) {
   const cwd = path.join(process.cwd(), subdir);
-  console.log(`[postinstall] Running: ${cmd}`);
-  console.log(`[postinstall]     in: ${cwd}`);
+  if (!fs.existsSync(cwd)) {
+    console.log(`[postinstall] Skipping ${subdir} (directory does not exist)`);
+    return;
+  }
+  console.log(`[postinstall] Running: "${cmd}" in: ${cwd}`);
   try {
     execSync(cmd, { cwd, stdio: 'inherit', env: process.env });
+    console.log(`[postinstall] ✅ Finished: "${cmd}" in: ${subdir}`);
   } catch (err) {
-    console.error(`[postinstall] FAILED: ${cmd}`);
-    console.error(err.message);
-    process.exit(1);
+    console.error(`[postinstall] ❌ ERROR running "${cmd}" in ${subdir}:`, err.message);
+    // En entornos compartidos de Hostinger, continuar para permitir que las demás apps compilen
   }
 }
 
