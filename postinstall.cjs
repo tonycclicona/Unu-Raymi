@@ -1,30 +1,11 @@
 // postinstall.cjs — Runs after install in the root
-// Automatically builds the correct subapp based on the APP_TYPE environment variable in Hostinger.
+// Automatically builds all subapps (backend, frontend, admin) and delivers them to public_html and runtime directories.
 
 const { execSync } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 
-let appType = (process.env.APP_TYPE || '').toLowerCase().trim();
-
-if (!appType) {
-  const cwd = process.cwd().toLowerCase();
-  if (cwd.includes('admin')) {
-    appType = 'admin';
-  } else if (cwd.includes('api') || cwd.includes('backend')) {
-    appType = 'backend';
-  } else if (cwd.includes('frontend') || cwd.includes('unu-raymi.com')) {
-    appType = 'frontend';
-  }
-}
-
-console.log(`\n[postinstall] APP_TYPE="${appType || '(none - skipping subapp setup)'}"\n`);
-
-// Skip if no APP_TYPE (local dev environment)
-if (!appType) {
-  console.log('[postinstall] No APP_TYPE set - skipping subapp build (local dev mode).');
-  process.exit(0);
-}
+console.log('\n[postinstall] === Starting Full Monorepo Build & Setup ===\n');
 
 function run(cmd, subdir) {
   const cwd = path.join(process.cwd(), subdir);
@@ -39,23 +20,9 @@ function run(cmd, subdir) {
   }
 }
 
-// ── BACKEND ───────────────────────────────────────────────────────────────────
-if (appType === 'backend') {
-  console.log('[postinstall] === BACKEND setup ===');
-  try {
-    const nodeModulesPath = path.join(process.cwd(), 'node_modules');
-    execSync(`find "${nodeModulesPath}" -name "schema-engine*" -exec chmod +x {} + 2>/dev/null || true`, { stdio: 'ignore' });
-    execSync(`find "${nodeModulesPath}" -name "query-engine*" -exec chmod +x {} + 2>/dev/null || true`, { stdio: 'ignore' });
-  } catch (e) {
-    // Ignorar en entornos donde no aplica find/chmod
-  }
-  run('npm run build', 'backend');
-}
-
 function copyToAllPublicHtml(srcDir, label) {
   if (!fs.existsSync(srcDir)) return;
   
-  // Buscar todas las posibles carpetas public_html subiendo hasta la raiz del hosting
   let current = process.cwd();
   for (let i = 0; i < 6; i++) {
     const pubCandidate = path.join(current, 'public_html');
@@ -73,58 +40,41 @@ function copyToAllPublicHtml(srcDir, label) {
   }
 }
 
-// ── FRONTEND ──────────────────────────────────────────────────────────────────
-else if (appType === 'frontend') {
-  console.log('[postinstall] === FRONTEND setup ===');
-  run('npm run build', 'frontend');
-  try {
-    const srcOut = path.join(process.cwd(), 'frontend', 'out');
-    const destOut = path.join(process.cwd(), 'out');
-    if (fs.existsSync(srcOut)) {
-      fs.cpSync(srcOut, destOut, { recursive: true });
-      console.log('[postinstall] Copied frontend/out to root out');
-    }
+// ── 1. BUILD BACKEND ──────────────────────────────────────────────────────────
+console.log('[postinstall] === 1/3 BACKEND setup ===');
+try {
+  const nodeModulesPath = path.join(process.cwd(), 'node_modules');
+  execSync(`find "${nodeModulesPath}" -name "schema-engine*" -exec chmod +x {} + 2>/dev/null || true`, { stdio: 'ignore' });
+  execSync(`find "${nodeModulesPath}" -name "query-engine*" -exec chmod +x {} + 2>/dev/null || true`, { stdio: 'ignore' });
+} catch (e) {}
+run('npm run build', 'backend');
 
-    copyToAllPublicHtml(srcOut, 'frontend static export');
-
-    const srcNext = path.join(process.cwd(), 'frontend', '.next');
-    const destNext = path.join(process.cwd(), '.next');
-    if (fs.existsSync(srcNext)) {
-      fs.cpSync(srcNext, destNext, { recursive: true });
-      console.log('[postinstall] Copied frontend/.next to root .next');
-    }
-  } catch (e) {
-    console.error('Warning: Failed to copy frontend build output to root:', e.message);
+// ── 2. BUILD FRONTEND ─────────────────────────────────────────────────────────
+console.log('[postinstall] === 2/3 FRONTEND setup ===');
+run('npm run build', 'frontend');
+try {
+  const srcOut = path.join(process.cwd(), 'frontend', 'out');
+  const destOut = path.join(process.cwd(), 'out');
+  if (fs.existsSync(srcOut)) {
+    fs.cpSync(srcOut, destOut, { recursive: true });
+    console.log('[postinstall] Copied frontend/out to root out');
   }
+  copyToAllPublicHtml(srcOut, 'frontend static export');
+} catch (e) {
+  console.error('Warning: Failed to copy frontend build:', e.message);
 }
 
-// ── ADMIN ─────────────────────────────────────────────────────────────────────
-else if (appType === 'admin') {
-  console.log('[postinstall] === ADMIN setup ===');
-  run('npm run build', 'admin');
-  try {
-    const srcOut = path.join(process.cwd(), 'admin', 'out');
-    const destOut = path.join(process.cwd(), 'out');
-    if (fs.existsSync(srcOut)) {
-      fs.cpSync(srcOut, destOut, { recursive: true });
-      console.log('[postinstall] Copied admin/out to root out');
-    }
-
+// ── 3. BUILD ADMIN ────────────────────────────────────────────────────────────
+console.log('[postinstall] === 3/3 ADMIN setup ===');
+run('npm run build', 'admin');
+try {
+  const srcOut = path.join(process.cwd(), 'admin', 'out');
+  if (fs.existsSync(srcOut)) {
     copyToAllPublicHtml(srcOut, 'admin static export');
-
-    const srcNext = path.join(process.cwd(), 'admin', '.next');
-    const destNext = path.join(process.cwd(), '.next');
-    if (fs.existsSync(srcNext)) {
-      fs.cpSync(srcNext, destNext, { recursive: true });
-      console.log('[postinstall] Copied admin/.next to root .next');
-    }
-  } catch (e) {
-    console.error('Warning: Failed to copy admin build output to root:', e.message);
   }
+} catch (e) {
+  console.error('Warning: Failed to copy admin build:', e.message);
 }
 
-else {
-  console.log(`[postinstall] Unknown APP_TYPE: "${appType}" - nothing to do.`);
-}
-
-console.log('\n[postinstall] ✅ Done.\n');
+console.log('\n[postinstall] ✅ All subapps built and delivered successfully.\n');
+process.exit(0);
