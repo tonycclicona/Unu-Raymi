@@ -6,9 +6,11 @@ const __dirname = path.dirname(__filename);
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone',
+  output: 'export',
+  trailingSlash: true,
   poweredByHeader: false,
   images: {
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'http',

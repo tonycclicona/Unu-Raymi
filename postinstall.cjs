@@ -57,6 +57,12 @@ else if (appType === 'frontend') {
   console.log('[postinstall] === FRONTEND setup ===');
   run('npm run build', 'frontend');
   try {
+    const srcOut = path.join(process.cwd(), 'frontend', 'out');
+    const destOut = path.join(process.cwd(), 'out');
+    if (fs.existsSync(srcOut)) {
+      fs.cpSync(srcOut, destOut, { recursive: true });
+      console.log('[postinstall] Copied frontend/out to root out');
+    }
     const srcNext = path.join(process.cwd(), 'frontend', '.next');
     const destNext = path.join(process.cwd(), '.next');
     if (fs.existsSync(srcNext)) {
@@ -64,7 +70,7 @@ else if (appType === 'frontend') {
       console.log('[postinstall] Copied frontend/.next to root .next');
     }
   } catch (e) {
-    console.error('Warning: Failed to copy frontend/.next to root:', e.message);
+    console.error('Warning: Failed to copy frontend build output to root:', e.message);
   }
 }
 
@@ -73,6 +79,12 @@ else if (appType === 'admin') {
   console.log('[postinstall] === ADMIN setup ===');
   run('npm run build', 'admin');
   try {
+    const srcOut = path.join(process.cwd(), 'admin', 'out');
+    const destOut = path.join(process.cwd(), 'out');
+    if (fs.existsSync(srcOut)) {
+      fs.cpSync(srcOut, destOut, { recursive: true });
+      console.log('[postinstall] Copied admin/out to root out');
+    }
     const srcNext = path.join(process.cwd(), 'admin', '.next');
     const destNext = path.join(process.cwd(), '.next');
     if (fs.existsSync(srcNext)) {
@@ -80,7 +92,7 @@ else if (appType === 'admin') {
       console.log('[postinstall] Copied admin/.next to root .next');
     }
   } catch (e) {
-    console.error('Warning: Failed to copy admin/.next to root:', e.message);
+    console.error('Warning: Failed to copy admin build output to root:', e.message);
   }
 }
 

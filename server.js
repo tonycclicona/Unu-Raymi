@@ -123,57 +123,82 @@ if (appType === 'backend') {
   // Deshabilitar header x-powered-by
   app.disable('x-powered-by');
 
-  // 1. Servir carpeta static de Next.js
-  const staticCandidates = [
-    path.join(targetDir, '.next/static'),
-    path.join(__dirname, '.next/static'),
-    path.join(__dirname, 'frontend/.next/static'),
-    path.join(__dirname, 'admin/.next/static')
+  // 1. Servir carpeta de Exportación Estática (out) directamente si existe
+  const outCandidates = [
+    path.join(dir, 'out'),
+    path.join(__dirname, 'out'),
+    path.join(__dirname, 'frontend/out'),
+    path.join(__dirname, 'admin/out')
   ];
-  for (const staticDir of staticCandidates) {
-    if (fs.existsSync(staticDir)) {
-      app.use('/_next/static', express.static(staticDir, { maxAge: '365d', immutable: true }));
+
+  let outDir = null;
+  for (const candidate of outCandidates) {
+    if (fs.existsSync(candidate) && fs.existsSync(path.join(candidate, 'index.html'))) {
+      outDir = candidate;
       break;
     }
   }
 
-  // 2. Servir carpeta public del subapp
-  const publicDir = path.join(dir, 'public');
-  if (fs.existsSync(publicDir)) {
-    app.use(express.static(publicDir));
-  }
-
-  // 3. Servir páginas HTML pre-renderizadas
-  const serverAppCandidates = [
-    path.join(targetDir, '.next/server/app'),
-    path.join(__dirname, '.next/server/app'),
-    path.join(__dirname, 'frontend/.next/server/app'),
-    path.join(__dirname, 'admin/.next/server/app')
-  ];
-
-  let appHtmlDir = null;
-  for (const candidate of serverAppCandidates) {
-    if (fs.existsSync(candidate)) {
-      appHtmlDir = candidate;
-      break;
+  if (outDir) {
+    console.log('> Serving static export from:', outDir);
+    app.use(express.static(outDir, { extensions: ['html'] }));
+    app.all('*', function(req, res) {
+      const indexPath = path.join(outDir, 'index.html');
+      if (fs.existsSync(indexPath)) {
+        return res.sendFile(indexPath);
+      }
+      res.status(404).sendFile(path.join(outDir, '404.html'));
+    });
+  } else {
+    // Fallback: Servir carpeta static y .next/server/app
+    const staticCandidates = [
+      path.join(targetDir, '.next/static'),
+      path.join(__dirname, '.next/static'),
+      path.join(__dirname, 'frontend/.next/static'),
+      path.join(__dirname, 'admin/.next/static')
+    ];
+    for (const staticDir of staticCandidates) {
+      if (fs.existsSync(staticDir)) {
+        app.use('/_next/static', express.static(staticDir, { maxAge: '365d', immutable: true }));
+        break;
+      }
     }
-  }
 
-  if (appHtmlDir) {
-    app.use(express.static(appHtmlDir, { extensions: ['html'] }));
-  }
+    const publicDir = path.join(dir, 'public');
+    if (fs.existsSync(publicDir)) {
+      app.use(express.static(publicDir));
+    }
 
-  // 4. Ruta raíz / y comodín
-  app.all('*', function(req, res) {
-    if (appHtmlDir && fs.existsSync(path.join(appHtmlDir, 'index.html'))) {
-      return res.sendFile(path.join(appHtmlDir, 'index.html'));
+    const serverAppCandidates = [
+      path.join(targetDir, '.next/server/app'),
+      path.join(__dirname, '.next/server/app'),
+      path.join(__dirname, 'frontend/.next/server/app'),
+      path.join(__dirname, 'admin/.next/server/app')
+    ];
+
+    let appHtmlDir = null;
+    for (const candidate of serverAppCandidates) {
+      if (fs.existsSync(candidate)) {
+        appHtmlDir = candidate;
+        break;
+      }
     }
-    const rootHtml = path.join(__dirname, '.next/server/app/index.html');
-    if (fs.existsSync(rootHtml)) {
-      return res.sendFile(rootHtml);
+
+    if (appHtmlDir) {
+      app.use(express.static(appHtmlDir, { extensions: ['html'] }));
     }
-    res.status(200).send('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Unu-Raymi</title></head><body><div id="root">Cargando Unu-Raymi...</div></body></html>');
-  });
+
+    app.all('*', function(req, res) {
+      if (appHtmlDir && fs.existsSync(path.join(appHtmlDir, 'index.html'))) {
+        return res.sendFile(path.join(appHtmlDir, 'index.html'));
+      }
+      const rootHtml = path.join(__dirname, '.next/server/app/index.html');
+      if (fs.existsSync(rootHtml)) {
+        return res.sendFile(rootHtml);
+      }
+      res.status(200).send('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Unu-Raymi</title></head><body><div id="root">Cargando Unu-Raymi...</div></body></html>');
+    });
+  }
 
   const server = app.listen(port, function(err) {
     if (err) {
