@@ -23,10 +23,16 @@ import formEngineRoutes from "./routes/formEngineRoutes.js";
 import gisRoutes from "./routes/gisRoutes.js";
 import attractionsRoutes from "./routes/attractionsRoutes.js";
 import errorHandler from "./middlewares/errorHandler.js";
+import { ensureTablesExist } from "./lib/initDb.js";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
 const isProduction = process.env.NODE_ENV === "production";
+
+// Auto-crear / validar todas las tablas de MySQL en segundo plano al iniciar
+ensureTablesExist().catch((err) => {
+  console.error("Error inicializando tablas:", err.message);
+});
 
 // ── Middlewares Globales ─────────────────────────────────────
 
