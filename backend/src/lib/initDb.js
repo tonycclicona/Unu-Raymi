@@ -32,16 +32,19 @@ export async function ensureTablesExist() {
     const addColumnSafe = async (table, column, def) => {
       try {
         await prisma.$executeRawUnsafe(`ALTER TABLE \`${table}\` ADD COLUMN \`${column}\` ${def};`);
+        console.log(`[initDb] Column ${table}.${column} added successfully.`);
       } catch (e) {
-        // Ignorar si la columna ya existe (Duplicate column name)
+        // Ignorar si la columna ya existe
       }
     };
 
     await addColumnSafe('tours', 'itinerario', 'LONGTEXT NULL');
-    await addColumnSafe('tours', 'fechas_disponibles', 'LONGTEXT NOT NULL');
-    await addColumnSafe('tours', 'pais', "VARCHAR(50) NOT NULL DEFAULT 'Perú'");
-    await addColumnSafe('tours', 'categoria', "VARCHAR(50) NOT NULL DEFAULT 'Trekking'");
-    await addColumnSafe('tours', 'ciudad', "VARCHAR(50) NOT NULL DEFAULT 'Cusco'");
+    await addColumnSafe('tours', 'fechas_disponibles', 'LONGTEXT NOT NULL DEFAULT "[]"');
+    await addColumnSafe('tours', 'pais', 'VARCHAR(50) NOT NULL DEFAULT "Perú"');
+    await addColumnSafe('tours', 'categoria', 'VARCHAR(50) NOT NULL DEFAULT "Trekking"');
+    await addColumnSafe('tours', 'ciudad', 'VARCHAR(50) NOT NULL DEFAULT "Cusco"');
+    await addColumnSafe('tours', 'activo', 'BOOLEAN NOT NULL DEFAULT TRUE');
+    await addColumnSafe('tours', 'destacado', 'BOOLEAN NOT NULL DEFAULT FALSE');
 
     // 2. Tabla: imagenes
     await prisma.$executeRawUnsafe(`

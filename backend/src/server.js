@@ -134,6 +134,23 @@ app.get("/api/health", (req, res) => {
   });
 });
 
+// Endpoint público para forzar sincronización / reparación de esquema MySQL
+app.get("/api/db-sync", async (req, res) => {
+  try {
+    await ensureTablesExist();
+    res.status(200).json({
+      success: true,
+      message: "Tablas y columnas de MySQL verificadas y sincronizadas exitosamente.",
+      timestamp: new Date().toISOString(),
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      error: err.message,
+    });
+  }
+});
+
 // ── Rutas de la API ──────────────────────────────────────────
 app.use("/api/auth", authRoutes);
 app.use("/api/tours", tourRoutes);
