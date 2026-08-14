@@ -123,22 +123,22 @@ if (appType === 'backend') {
       
       // Intentar encontrar un HTML específico para la sub-ruta (ej. /tours/[id]/editar -> tours/1/editar.html o tours/1/editar/index.html)
       if (segments.length >= 3 && segments[0] === 'tours' && segments[2] === 'editar') {
-        const candidateEdit = path.join(outDir, 'tours', '1', 'editar.html');
-        if (fs.existsSync(candidateEdit)) {
-          return res.sendFile(candidateEdit);
-        }
+        const candidateEditFile = path.join(outDir, 'tours', '1', 'editar.html');
+        const candidateEditIndex = path.join(outDir, 'tours', '1', 'editar', 'index.html');
+        if (fs.existsSync(candidateEditFile)) return res.sendFile(candidateEditFile);
+        if (fs.existsSync(candidateEditIndex)) return res.sendFile(candidateEditIndex);
       }
       if (segments.length >= 3 && segments[0] === 'guias' && segments[2] === 'editar') {
-        const candidateEdit = path.join(outDir, 'guias', '1', 'editar.html');
-        if (fs.existsSync(candidateEdit)) {
-          return res.sendFile(candidateEdit);
-        }
+        const candidateEditFile = path.join(outDir, 'guias', '1', 'editar.html');
+        const candidateEditIndex = path.join(outDir, 'guias', '1', 'editar', 'index.html');
+        if (fs.existsSync(candidateEditFile)) return res.sendFile(candidateEditFile);
+        if (fs.existsSync(candidateEditIndex)) return res.sendFile(candidateEditIndex);
       }
       if (segments.length >= 3 && segments[0] === 'garantias' && segments[2] === 'editar') {
-        const candidateEdit = path.join(outDir, 'garantias', '1', 'editar.html');
-        if (fs.existsSync(candidateEdit)) {
-          return res.sendFile(candidateEdit);
-        }
+        const candidateEditFile = path.join(outDir, 'garantias', '1', 'editar.html');
+        const candidateEditIndex = path.join(outDir, 'garantias', '1', 'editar', 'index.html');
+        if (fs.existsSync(candidateEditFile)) return res.sendFile(candidateEditFile);
+        if (fs.existsSync(candidateEditIndex)) return res.sendFile(candidateEditIndex);
       }
 
       // Si la ruta comienza con una sección (ej. /tours, /guias), intentar su archivo .html

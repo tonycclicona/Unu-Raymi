@@ -1,14 +1,28 @@
 'use client';
 
 import { use } from 'react';
+import { useParams, usePathname } from 'next/navigation';
 import useSWR from 'swr';
 import { fetcher } from '@/lib/api';
 import TourForm from '@/components/TourForm';
 
 export default function EditarTourClient({ params }) {
-  const resolvedParams = use(params);
-  const { id } = resolvedParams;
-  const { data: tour, error } = useSWR(`/tours/${id}`, fetcher);
+  const nextParams = useParams();
+  const pathname = usePathname();
+  
+  // Extraer ID ya sea de props, useParams o directamente del pathname de la URL
+  let id = params ? (typeof params.then === 'function' ? use(params)?.id : params?.id) : null;
+  if (!id && nextParams?.id) id = nextParams.id;
+  if (!id && typeof window !== 'undefined') {
+    const match = window.location.pathname.match(/\/tours\/([^/]+)\/editar/);
+    if (match) id = match[1];
+  }
+  if (!id && pathname) {
+    const match = pathname.match(/\/tours\/([^/]+)\/editar/);
+    if (match) id = match[1];
+  }
+
+  const { data: tour, error } = useSWR(id ? `/tours/${id}` : null, fetcher);
 
   if (error) {
     return (
