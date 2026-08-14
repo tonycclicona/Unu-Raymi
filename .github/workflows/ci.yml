@@ -1,11 +1,13 @@
-name: CI/CD Production Deploy to Hostinger
+name: CI Build & Test Check
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
 
 jobs:
-  build-and-deploy:
+  build-and-test:
     runs-on: ubuntu-latest
 
     steps:
@@ -16,7 +18,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
 
       - name: 📦 Install Dependencies
         run: npm ci
@@ -40,31 +41,3 @@ jobs:
         run: npm --workspace=admin run build
         env:
           NEXT_PUBLIC_API_URL: "https://api.unu-raymi.com/api"
-
-      # 🚀 Despliegue Automático Directo de Frontend a public_html vía FTP/FTPS
-      - name: 🚀 Deploy Frontend to Hostinger public_html
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        if: env.FTP_SERVER != ''
-        env:
-          FTP_SERVER: ${{ secrets.HOSTINGER_FTP_SERVER }}
-        with:
-          server: ${{ secrets.HOSTINGER_FTP_SERVER }}
-          username: ${{ secrets.HOSTINGER_FTP_USERNAME }}
-          password: ${{ secrets.HOSTINGER_FTP_PASSWORD }}
-          local-dir: ./frontend/out/
-          server-dir: ./domains/unu-raymi.com/public_html/
-          dangerous-clean-slate: false
-
-      # 🚀 Despliegue Automático Directo de Admin a su carpeta public_html vía FTP/FTPS
-      - name: 🚀 Deploy Admin to Hostinger public_html
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        if: env.FTP_SERVER != ''
-        env:
-          FTP_SERVER: ${{ secrets.HOSTINGER_FTP_SERVER }}
-        with:
-          server: ${{ secrets.HOSTINGER_FTP_SERVER }}
-          username: ${{ secrets.HOSTINGER_FTP_USERNAME }}
-          password: ${{ secrets.HOSTINGER_FTP_PASSWORD }}
-          local-dir: ./admin/out/
-          server-dir: ./domains/unu-raymi.com/public_html/admin/
-          dangerous-clean-slate: false
