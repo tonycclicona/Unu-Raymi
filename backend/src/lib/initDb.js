@@ -78,6 +78,10 @@ export async function ensureTablesExist() {
         FOREIGN KEY (\`tourId\`) REFERENCES \`tours\`(\`id\`) ON DELETE CASCADE ON UPDATE CASCADE
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     `);
+    await addColumnSafe('tour_variantes', 'itinerario', 'LONGTEXT NULL');
+    await addColumnSafe('tour_variantes', 'servicios_incluidos', 'LONGTEXT NULL');
+    await addColumnSafe('tour_variantes', 'servicios_excluidos', 'LONGTEXT NULL');
+    await addColumnSafe('tour_variantes', 'fechas_disponibles', 'LONGTEXT NULL');
 
     // 4. Tabla: guias
     await prisma.$executeRawUnsafe(`
