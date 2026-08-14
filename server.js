@@ -200,16 +200,14 @@ if (appType === 'backend') {
     });
   }
 
-  // En Phusion Passenger / LiteSpeed: app.listen se llama automaticamente o se exporta la app de Express
-  if (typeof port === 'number' && port > 0) {
-    app.listen(port, function(err) {
-      if (err) {
-        console.error('Server listen error:', err);
-        return;
-      }
-      console.log('> Web App [' + appType.toUpperCase() + '] corriendo en el puerto TCP:', port);
-    });
-  }
+  // En Phusion Passenger / LiteSpeed: llamar app.listen siempre para enganchar socket/puerto
+  app.listen(port, function(err) {
+    if (err) {
+      console.error('Server listen error:', err);
+      return;
+    }
+    console.log('> Web App [' + appType.toUpperCase() + '] corriendo en el puerto/socket:', port);
+  });
 
   module.exports = app;
 }
