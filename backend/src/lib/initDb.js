@@ -98,7 +98,21 @@ export async function ensureTablesExist() {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     `);
 
-    // 6. Tabla: tour_imagenes
+    // 6. Tabla: imagenes
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS \`imagenes\` (
+        \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+        \`tourId\` INT NOT NULL,
+        \`url\` VARCHAR(500) NOT NULL,
+        \`altText\` VARCHAR(255) NULL,
+        \`orden\` INT NOT NULL DEFAULT 0,
+        \`esPortada\` BOOLEAN NOT NULL DEFAULT FALSE,
+        \`createdAt\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+        FOREIGN KEY (\`tourId\`) REFERENCES \`tours\`(\`id\`) ON DELETE CASCADE ON UPDATE CASCADE
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `);
+
+    // Alias retrocompatible por si acaso
     await prisma.$executeRawUnsafe(`
       CREATE TABLE IF NOT EXISTS \`tour_imagenes\` (
         \`id\` INT AUTO_INCREMENT PRIMARY KEY,
