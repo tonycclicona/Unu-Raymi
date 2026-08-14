@@ -141,6 +141,24 @@ if (appType === 'backend') {
 
   if (outDir) {
     console.log('> Serving static export from:', outDir);
+
+    // Sincronizar automáticamente hacia todas las posibles carpetas public_html en Hostinger
+    try {
+      let currentDir = __dirname;
+      for (let i = 0; i < 6; i++) {
+        const pubHtmlCandidate = path.join(currentDir, 'public_html');
+        if (fs.existsSync(pubHtmlCandidate) && pubHtmlCandidate !== outDir) {
+          fs.cpSync(outDir, pubHtmlCandidate, { recursive: true });
+          console.log('> Synced static assets to public_html at:', pubHtmlCandidate);
+        }
+        const parentDir = path.dirname(currentDir);
+        if (parentDir === currentDir) break;
+        currentDir = parentDir;
+      }
+    } catch (syncErr) {
+      console.warn('> Warning on public_html sync:', syncErr.message);
+    }
+
     app.use(express.static(outDir, { extensions: ['html'] }));
     app.all('*', function(req, res) {
       const indexPath = path.join(outDir, 'index.html');
