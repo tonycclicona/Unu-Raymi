@@ -29,9 +29,24 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 const isProduction = process.env.NODE_ENV === "production";
 
-// Auto-crear / validar todas las tablas de MySQL en segundo plano al iniciar
-ensureTablesExist().catch((err) => {
-  console.error("Error inicializando tablas:", err.message);
+let dbInitialized = false;
+let dbInitPromise = ensureTablesExist()
+  .then(() => {
+    dbInitialized = true;
+    console.log("✅ [initDb] Esquema MySQL sincronizado al 100%.");
+  })
+  .catch((err) => {
+    console.error("⚠️ [initDb] Error inicializando tablas:", err.message);
+  });
+
+// Middleware para asegurar que la inicialización de tablas termine antes de procesar mutaciones
+app.use(async (req, res, next) => {
+  if (!dbInitialized) {
+    try {
+      await dbInitPromise;
+    } catch (e) {}
+  }
+  next();
 });
 
 // ── Middlewares Globales ─────────────────────────────────────
