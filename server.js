@@ -110,135 +110,70 @@ if (appType === 'backend') {
 
   console.log('> Starting Next.js [' + appType.toUpperCase() + '] from: ' + dir);
 
-  let nextModule;
-  try {
-    const subappRequire = createRequire(path.join(dir, 'package.json'));
-    nextModule = subappRequire('next');
-  } catch (e) {
-    try {
-      nextModule = require('next');
-    } catch (errRoot) {
-      console.error('> ERROR: Could not load next from ' + dir + ' or root node_modules');
-      console.error(e.message);
-      process.exit(1);
+  const express = require('express');
+  const app = express();
+
+  // Deshabilitar header x-powered-by
+  app.disable('x-powered-by');
+
+  // 1. Servir carpeta static de Next.js
+  const staticCandidates = [
+    path.join(targetDir, '.next/static'),
+    path.join(__dirname, '.next/static'),
+    path.join(__dirname, 'frontend/.next/static'),
+    path.join(__dirname, 'admin/.next/static')
+  ];
+  for (const staticDir of staticCandidates) {
+    if (fs.existsSync(staticDir)) {
+      app.use('/_next/static', express.static(staticDir, { maxAge: '365d', immutable: true }));
+      break;
     }
   }
 
-  let chosenDir = dir;
-  if (!fs.existsSync(path.join(chosenDir, 'package.json')) && fs.existsSync(path.join(__dirname, 'package.json'))) {
-    chosenDir = __dirname;
+  // 2. Servir carpeta public del subapp
+  const publicDir = path.join(dir, 'public');
+  if (fs.existsSync(publicDir)) {
+    app.use(express.static(publicDir));
   }
 
-  const subappNext = path.join(chosenDir, '.next');
-  const rootNext = path.join(__dirname, '.next');
-  const targetDir = fs.existsSync(subappNext) ? chosenDir : (fs.existsSync(rootNext) ? __dirname : chosenDir);
+  // 3. Servir páginas HTML pre-renderizadas
+  const serverAppCandidates = [
+    path.join(targetDir, '.next/server/app'),
+    path.join(__dirname, '.next/server/app'),
+    path.join(__dirname, 'frontend/.next/server/app'),
+    path.join(__dirname, 'admin/.next/server/app')
+  ];
 
-  console.log('> Starting Next.js [' + appType.toUpperCase() + '] using directory: ' + targetDir);
-
-  const next = nextModule.default || nextModule;
-  const app = next({
-    dev: dev,
-    dir: targetDir
-  });
-  const handle = app.getRequestHandler();
-
-  const http = require('http');
-  const url = require('url');
-
-  let isPrepared = false;
-  const preparePromise = app.prepare()
-    .then(function() {
-      isPrepared = true;
-      console.log('> Next.js [' + appType.toUpperCase() + '] app.prepare() completed successfully.');
-    })
-    .catch(function(err) {
-      console.error('> Next.js failed to prepare:', err);
-    });
-
-  const server = http.createServer(function(req, res) {
-    const parsedUrl = url.parse(req.url, true);
-    let pathname = parsedUrl.pathname || '/';
-
-    // 1. Servir archivos estáticos directamente desde .next/static o frontend/public con consumo mínimo de RAM
-    if (pathname.startsWith('/_next/static/')) {
-      const subpath = pathname.replace('/_next/static/', '');
-      const candidates = [
-        path.join(targetDir, '.next/static', subpath),
-        path.join(__dirname, '.next/static', subpath),
-        path.join(__dirname, 'frontend/.next/static', subpath),
-        path.join(__dirname, 'admin/.next/static', subpath)
-      ];
-      for (const candidate of candidates) {
-        if (fs.existsSync(candidate) && fs.statSync(candidate).isFile()) {
-          const ext = path.extname(candidate).toLowerCase();
-          const mimeTypes = {
-            '.js': 'application/javascript; charset=utf-8',
-            '.css': 'text/css; charset=utf-8',
-            '.json': 'application/json',
-            '.png': 'image/png',
-            '.jpg': 'image/jpeg',
-            '.svg': 'image/svg+xml',
-            '.woff2': 'font/woff2',
-            '.webp': 'image/webp'
-          };
-          res.setHeader('Content-Type', mimeTypes[ext] || 'application/octet-stream');
-          res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-          fs.createReadStream(candidate).pipe(res);
-          return;
-        }
-      }
+  let appHtmlDir = null;
+  for (const candidate of serverAppCandidates) {
+    if (fs.existsSync(candidate)) {
+      appHtmlDir = candidate;
+      break;
     }
+  }
 
-    // 2. Servir páginas pre-renderizadas HTML directamente desde .next/server/app o dist
-    const htmlCandidates = [
-      pathname === '/' ? path.join(targetDir, '.next/server/app/index.html') : path.join(targetDir, '.next/server/app', pathname.replace(/^\//, '') + '.html'),
-      pathname === '/' ? path.join(__dirname, '.next/server/app/index.html') : path.join(__dirname, '.next/server/app', pathname.replace(/^\//, '') + '.html'),
-      pathname === '/' ? path.join(__dirname, 'frontend/.next/server/app/index.html') : path.join(__dirname, 'frontend/.next/server/app', pathname.replace(/^\//, '') + '.html'),
-      pathname === '/' ? path.join(__dirname, 'admin/.next/server/app/index.html') : path.join(__dirname, 'admin/.next/server/app', pathname.replace(/^\//, '') + '.html')
-    ];
+  if (appHtmlDir) {
+    app.use(express.static(appHtmlDir, { extensions: ['html'] }));
+  }
 
-    for (const htmlCandidate of htmlCandidates) {
-      if (fs.existsSync(htmlCandidate) && fs.statSync(htmlCandidate).isFile()) {
-        res.setHeader('Content-Type', 'text/html; charset=utf-8');
-        fs.createReadStream(htmlCandidate).pipe(res);
-        return;
-      }
+  // 4. Ruta raíz / y comodín
+  app.all('*', function(req, res) {
+    if (appHtmlDir && fs.existsSync(path.join(appHtmlDir, 'index.html'))) {
+      return res.sendFile(path.join(appHtmlDir, 'index.html'));
     }
-
-    // 3. Fallback dinámico a Next.js Handler si está preparado
-    if (isPrepared) {
-      try {
-        handle(req, res, parsedUrl);
-      } catch (err) {
-        console.error('Error handling request:', req.url, err);
-        res.statusCode = 500;
-        res.end('Internal server error');
-      }
-      return;
+    const rootHtml = path.join(__dirname, '.next/server/app/index.html');
+    if (fs.existsSync(rootHtml)) {
+      return res.sendFile(rootHtml);
     }
-
-    // Si aún se está preparando, intentar esperar o servir index.html de respaldo
-    preparePromise.then(function() {
-      try {
-        handle(req, res, parsedUrl);
-      } catch (err) {
-        console.error('Error handling request:', req.url, err);
-        res.statusCode = 500;
-        res.end('Internal server error');
-      }
-    }).catch(function(err) {
-      console.error('Error in prepare before handling request:', err);
-      res.statusCode = 500;
-      res.end('Next.js initialization error');
-    });
+    res.status(200).send('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Unu-Raymi</title></head><body><div id="root">Cargando Unu-Raymi...</div></body></html>');
   });
 
-  server.listen(port, function(err) {
+  const server = app.listen(port, function(err) {
     if (err) {
       console.error('Server listen error:', err);
       return;
     }
-    console.log('> Next.js [' + appType.toUpperCase() + '] listening on port/socket:', port);
+    console.log('> Web App [' + appType.toUpperCase() + '] corriendo exitosamente en el puerto:', port);
   });
 
   module.exports = server;
