@@ -1,39 +1,70 @@
-name: CI Build & Compatibility Check
+name: CI/CD Production Deploy to Hostinger
 
 on:
   push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
+    branches: [ main ]
 
 jobs:
-  build-and-test:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
+      - name: 📥 Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: 🟢 Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
 
-      - name: Install Dependencies
-        run: npm install
+      - name: 📦 Install Dependencies
+        run: npm ci
 
-      - name: Generate Prisma Client (SQLite — local schema para CI)
+      - name: 🗄️ Generate Prisma Client
         run: npm --workspace=backend run db:local:generate
         env:
           DATABASE_URL: "file:./prisma/dev.db"
 
-      - name: Build Backend
+      - name: ⚙️ Build Backend API
         run: npm --workspace=backend run build
         env:
           DATABASE_URL: "file:./prisma/dev.db"
 
-      - name: Build Admin
-        run: npm --workspace=admin run build
-
-      - name: Build Frontend
+      - name: 🎨 Build Frontend (Static Export)
         run: npm --workspace=frontend run build
+        env:
+          NEXT_PUBLIC_API_URL: "https://api.unu-raymi.com/api"
+
+      - name: 🛡️ Build Admin (Static Export)
+        run: npm --workspace=admin run build
+        env:
+          NEXT_PUBLIC_API_URL: "https://api.unu-raymi.com/api"
+
+      # 🚀 Despliegue Automático Directo de Frontend a public_html vía FTP/FTPS
+      - name: 🚀 Deploy Frontend to Hostinger public_html
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        if: env.FTP_SERVER != ''
+        env:
+          FTP_SERVER: ${{ secrets.HOSTINGER_FTP_SERVER }}
+        with:
+          server: ${{ secrets.HOSTINGER_FTP_SERVER }}
+          username: ${{ secrets.HOSTINGER_FTP_USERNAME }}
+          password: ${{ secrets.HOSTINGER_FTP_PASSWORD }}
+          local-dir: ./frontend/out/
+          server-dir: ./domains/unu-raymi.com/public_html/
+          dangerous-clean-slate: false
+
+      # 🚀 Despliegue Automático Directo de Admin a su carpeta public_html vía FTP/FTPS
+      - name: 🚀 Deploy Admin to Hostinger public_html
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        if: env.FTP_SERVER != ''
+        env:
+          FTP_SERVER: ${{ secrets.HOSTINGER_FTP_SERVER }}
+        with:
+          server: ${{ secrets.HOSTINGER_FTP_SERVER }}
+          username: ${{ secrets.HOSTINGER_FTP_USERNAME }}
+          password: ${{ secrets.HOSTINGER_FTP_PASSWORD }}
+          local-dir: ./admin/out/
+          server-dir: ./domains/unu-raymi.com/public_html/admin/
+          dangerous-clean-slate: false
