@@ -1,18 +1,42 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Sidebar from '@/components/Sidebar';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Menu } from 'lucide-react';
 import '@/app/globals.css';
 
 export default function LayoutContent({ children }) {
   const pathname = usePathname();
-  const isLoginPage = pathname === '/login';
+  const router = useRouter();
+  const isLoginPage = pathname === '/login' || pathname.startsWith('/login');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [authorized, setAuthorized] = useState(false);
+
+  useEffect(() => {
+    if (isLoginPage) {
+      setAuthorized(true);
+      return;
+    }
+
+    const hasCookie = typeof document !== 'undefined' && document.cookie.includes('session_token=');
+    if (!hasCookie) {
+      router.push('/login');
+    } else {
+      setAuthorized(true);
+    }
+  }, [pathname, isLoginPage, router]);
 
   if (isLoginPage) {
     return <>{children}</>;
+  }
+
+  if (!authorized) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-[#dbeafe] text-[#4a5759] text-sm font-medium">
+        Verificando sesión...
+      </div>
+    );
   }
 
   return (
