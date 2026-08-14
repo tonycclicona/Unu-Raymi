@@ -41,9 +41,15 @@ export default function EditarTourClient({ params }) {
   }
 
   // Mapear los datos de la API al formato esperado por el formulario
-  const formData = tour?.data ? {
-    ...tour.data,
-  } : null;
+  const formData = tour?.data || (tour?.id ? tour : null);
+
+  if (!formData && !error) {
+    return (
+      <div className="py-8 text-center text-[#6c7a7c]/80 text-sm">
+        Cargando información del tour...
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
