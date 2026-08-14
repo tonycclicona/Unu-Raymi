@@ -74,61 +74,35 @@ function resolvePort() {
   return isNaN(parsed) ? p : parsed;
 }
 
-// ── BACKEND ───────────────────────────────────────────────────────────────────
+// ── FRONTEND / ADMIN / BACKEND ─────────────────────────────────────────────
+const express = require('express');
+const app = express();
+app.disable('x-powered-by');
+
+const port = resolvePort();
+
 if (appType === 'backend') {
   loadEnvFile(path.resolve(__dirname, 'backend/.env'));
-
   const backendPath = fs.existsSync(path.resolve(__dirname, 'backend/dist/server.js'))
     ? './backend/dist/server.js'
     : './backend/src/server.js';
 
   console.log('> Loading backend entrypoint from: ' + backendPath);
-
-  const backendPromise = import(backendPath)
-    .then(function(m) {
-      console.log('> Backend Express app loaded successfully.');
-      return m.default || m;
-    })
-    .catch(function(err) {
-      console.error('> FATAL: Failed to start backend:', err);
-      process.exit(1);
-    });
-
-  module.exports = backendPromise;
-
-// ── FRONTEND / ADMIN (Next.js) ────────────────────────────────────────────────
+  module.exports = import(backendPath).then(function(m) {
+    console.log('> Backend Express app loaded successfully.');
+    return m.default || m;
+  });
 } else {
   const subappDir = appType === 'admin' ? 'admin' : 'frontend';
   const dir = path.resolve(__dirname, subappDir);
 
-  // Cargar variables de entorno del subapp (.env.production o .env)
   loadEnvFile(path.join(dir, '.env.production'));
   loadEnvFile(path.join(dir, '.env'));
 
-  const port = resolvePort();
-  const dev = process.env.NODE_ENV === 'development';
-
-  let chosenDir = dir;
-  if (!fs.existsSync(path.join(chosenDir, 'package.json')) && fs.existsSync(path.join(__dirname, 'package.json'))) {
-    chosenDir = __dirname;
-  }
-
-  const subappNext = path.join(chosenDir, '.next');
-  const rootNext = path.join(__dirname, '.next');
-  const targetDir = fs.existsSync(subappNext) ? chosenDir : (fs.existsSync(rootNext) ? __dirname : chosenDir);
-
-  const express = require('express');
-  const app = express();
-
-  // Deshabilitar header x-powered-by
-  app.disable('x-powered-by');
-
-  // 1. Servir carpeta de Exportación Estática (out) directamente si existe
   const outCandidates = [
     path.join(dir, 'out'),
     path.join(__dirname, 'out'),
-    path.join(__dirname, 'frontend/out'),
-    path.join(__dirname, 'admin/out')
+    path.join(__dirname, subappDir, 'out')
   ];
 
   let outDir = null;
@@ -140,27 +114,9 @@ if (appType === 'backend') {
   }
 
   if (outDir) {
-    console.log('> Serving static export from:', outDir);
-
-    // Sincronizar automáticamente hacia todas las posibles carpetas public_html en Hostinger
-    try {
-      let currentDir = __dirname;
-      for (let i = 0; i < 6; i++) {
-        const pubHtmlCandidate = path.join(currentDir, 'public_html');
-        if (fs.existsSync(pubHtmlCandidate) && pubHtmlCandidate !== outDir) {
-          fs.cpSync(outDir, pubHtmlCandidate, { recursive: true });
-          console.log('> Synced static assets to public_html at:', pubHtmlCandidate);
-        }
-        const parentDir = path.dirname(currentDir);
-        if (parentDir === currentDir) break;
-        currentDir = parentDir;
-      }
-    } catch (syncErr) {
-      console.warn('> Warning on public_html sync:', syncErr.message);
-    }
-
+    console.log('> [Express Static] Serving from:', outDir);
     app.use(express.static(outDir, { extensions: ['html'] }));
-    app.all('*', function(req, res) {
+    app.use(function(req, res) {
       const indexPath = path.join(outDir, 'index.html');
       if (fs.existsSync(indexPath)) {
         return res.sendFile(indexPath);
@@ -168,63 +124,17 @@ if (appType === 'backend') {
       res.status(404).sendFile(path.join(outDir, '404.html'));
     });
   } else {
-    // Fallback: Servir carpeta static y .next/server/app
-    const staticCandidates = [
-      path.join(targetDir, '.next/static'),
-      path.join(__dirname, '.next/static'),
-      path.join(__dirname, 'frontend/.next/static'),
-      path.join(__dirname, 'admin/.next/static')
-    ];
-    for (const staticDir of staticCandidates) {
-      if (fs.existsSync(staticDir)) {
-        app.use('/_next/static', express.static(staticDir, { maxAge: '365d', immutable: true }));
-        break;
-      }
-    }
-
-    const publicDir = path.join(dir, 'public');
-    if (fs.existsSync(publicDir)) {
-      app.use(express.static(publicDir));
-    }
-
-    const serverAppCandidates = [
-      path.join(targetDir, '.next/server/app'),
-      path.join(__dirname, '.next/server/app'),
-      path.join(__dirname, 'frontend/.next/server/app'),
-      path.join(__dirname, 'admin/.next/server/app')
-    ];
-
-    let appHtmlDir = null;
-    for (const candidate of serverAppCandidates) {
-      if (fs.existsSync(candidate)) {
-        appHtmlDir = candidate;
-        break;
-      }
-    }
-
-    if (appHtmlDir) {
-      app.use(express.static(appHtmlDir, { extensions: ['html'] }));
-    }
-
-    app.all('*', function(req, res) {
-      if (appHtmlDir && fs.existsSync(path.join(appHtmlDir, 'index.html'))) {
-        return res.sendFile(path.join(appHtmlDir, 'index.html'));
-      }
-      const rootHtml = path.join(__dirname, '.next/server/app/index.html');
-      if (fs.existsSync(rootHtml)) {
-        return res.sendFile(rootHtml);
-      }
+    app.use(function(req, res) {
       res.status(200).send('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Unu-Raymi</title></head><body><div id="root">Cargando Unu-Raymi...</div></body></html>');
     });
   }
 
-  // En Phusion Passenger / LiteSpeed: llamar app.listen siempre para enganchar socket/puerto
   app.listen(port, function(err) {
     if (err) {
-      console.error('Server listen error:', err);
+      console.error('> Server listen error:', err);
       return;
     }
-    console.log('> Web App [' + appType.toUpperCase() + '] corriendo en el puerto/socket:', port);
+    console.log('> Web App [' + appType.toUpperCase() + '] escuchando en:', port);
   });
 
   module.exports = app;
