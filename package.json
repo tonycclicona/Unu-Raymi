@@ -24,5 +24,8 @@
     "backend",
     "admin",
     "frontend"
-  ]
+  ],
+  "dependencies": {
+    "express": "^4.19.2"
+  }
 }

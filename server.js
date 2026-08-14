@@ -108,7 +108,14 @@ if (appType === 'backend') {
   const port = resolvePort();
   const dev = process.env.NODE_ENV === 'development';
 
-  console.log('> Starting Next.js [' + appType.toUpperCase() + '] from: ' + dir);
+  let chosenDir = dir;
+  if (!fs.existsSync(path.join(chosenDir, 'package.json')) && fs.existsSync(path.join(__dirname, 'package.json'))) {
+    chosenDir = __dirname;
+  }
+
+  const subappNext = path.join(chosenDir, '.next');
+  const rootNext = path.join(__dirname, '.next');
+  const targetDir = fs.existsSync(subappNext) ? chosenDir : (fs.existsSync(rootNext) ? __dirname : chosenDir);
 
   const express = require('express');
   const app = express();
