@@ -200,13 +200,16 @@ if (appType === 'backend') {
     });
   }
 
-  const server = app.listen(port, function(err) {
-    if (err) {
-      console.error('Server listen error:', err);
-      return;
-    }
-    console.log('> Web App [' + appType.toUpperCase() + '] corriendo exitosamente en el puerto:', port);
-  });
+  // En Phusion Passenger / LiteSpeed: app.listen se llama automaticamente o se exporta la app de Express
+  if (typeof port === 'number' && port > 0) {
+    app.listen(port, function(err) {
+      if (err) {
+        console.error('Server listen error:', err);
+        return;
+      }
+      console.log('> Web App [' + appType.toUpperCase() + '] corriendo en el puerto TCP:', port);
+    });
+  }
 
-  module.exports = server;
+  module.exports = app;
 }
