@@ -63,6 +63,24 @@ else if (appType === 'frontend') {
       fs.cpSync(srcOut, destOut, { recursive: true });
       console.log('[postinstall] Copied frontend/out to root out');
     }
+
+    // Copiar archivos directamente a public_html en todas las ubicaciones de Hostinger
+    const targetPublicHtmlDirs = [
+      path.join(process.cwd(), 'public_html'),
+      path.resolve(process.cwd(), '../public_html'),
+      path.resolve(process.cwd(), '../../public_html'),
+      path.resolve(process.cwd(), '../../../public_html')
+    ];
+
+    for (const pubDir of targetPublicHtmlDirs) {
+      try {
+        if (fs.existsSync(pubDir)) {
+          fs.cpSync(srcOut, pubDir, { recursive: true });
+          console.log(`[postinstall] ✅ Copied static site directly to: ${pubDir}`);
+        }
+      } catch (errDir) {}
+    }
+
     const srcNext = path.join(process.cwd(), 'frontend', '.next');
     const destNext = path.join(process.cwd(), '.next');
     if (fs.existsSync(srcNext)) {
@@ -85,6 +103,24 @@ else if (appType === 'admin') {
       fs.cpSync(srcOut, destOut, { recursive: true });
       console.log('[postinstall] Copied admin/out to root out');
     }
+
+    // Copiar archivos directamente a public_html de admin en Hostinger
+    const targetPublicHtmlDirs = [
+      path.join(process.cwd(), 'public_html'),
+      path.resolve(process.cwd(), '../public_html'),
+      path.resolve(process.cwd(), '../../public_html'),
+      path.resolve(process.cwd(), '../../../public_html')
+    ];
+
+    for (const pubDir of targetPublicHtmlDirs) {
+      try {
+        if (fs.existsSync(pubDir)) {
+          fs.cpSync(srcOut, pubDir, { recursive: true });
+          console.log(`[postinstall] ✅ Copied admin static site directly to: ${pubDir}`);
+        }
+      } catch (errDir) {}
+    }
+
     const srcNext = path.join(process.cwd(), 'admin', '.next');
     const destNext = path.join(process.cwd(), '.next');
     if (fs.existsSync(srcNext)) {
