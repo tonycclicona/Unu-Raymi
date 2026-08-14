@@ -17,43 +17,11 @@ export default function Guias() {
     setActiveGuiaId(prev => prev === id ? null : id);
   };
 
-  const mockGuias = [
-    {
-      id: 1,
-      nombre: 'Edgar Quispe',
-      rol: language === 'es' ? 'Guía de Alta Montaña' : 'High Mountain Guide',
-      experiencia: language === 'es' ? '12 años de experiencia' : '12 years of experience',
-      idiomas: language === 'es' ? 'Español, Inglés, Quechua' : 'Spanish, English, Quechua',
-      foto: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&h=500&q=80&fm=webp',
-      descripcion: language === 'es'
-        ? 'Experto en escalada en hielo en el Nevado Ausangate. Ha liderado más de 200 expediciones clásicas de trekking.'
-        : 'Expert in ice climbing at Nevado Ausangate. Has led more than 200 classic trekking expeditions.',
-    },
-    {
-      id: 2,
-      nombre: 'Camila Ospina',
-      rol: language === 'es' ? 'Líder de Aventura y Flora' : 'Adventure & Flora Leader',
-      experiencia: language === 'es' ? '8 años de experiencia' : '8 years of experience',
-      idiomas: language === 'es' ? 'Español, Inglés, Francés' : 'Spanish, English, French',
-      foto: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&h=500&q=80&fm=webp',
-      descripcion: language === 'es'
-        ? 'Bióloga y guía certificada. Apasionada de la historia precolombina y la botánica andina en el Valle de Cocora.'
-        : 'Biologist and certified guide. Passionate about pre-Columbian history and Andean botany in the Cocora Valley.',
-    },
-    {
-      id: 3,
-      nombre: 'Roberto Rojas',
-      rol: language === 'es' ? 'Especialista en Glaciología y Clima' : 'Glaciology & Climate Specialist',
-      experiencia: language === 'es' ? '15 años de experiencia' : '15 years of experience',
-      idiomas: language === 'es' ? 'Español, Inglés, Alemán' : 'Spanish, English, German',
-      foto: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=400&h=500&q=80&fm=webp',
-      descripcion: language === 'es'
-        ? 'Ex-rescatista de montaña en la Patagonia. Ha cruzado los campos de hielo sur y norte en Chile en múltiples ocasiones.'
-        : 'Former mountain rescuer in Patagonia. Has crossed the Southern and Northern Ice Fields in Chile on multiple occasions.',
-    },
-  ];
+  const guias = dbGuias;
 
-  const guias = dbGuias.length > 0 ? dbGuias : mockGuias;
+  if (guias.length === 0) {
+    return null; // Si no hay guias en la base de datos, no mostrar seccion vacia
+  }
 
   return (
     <section

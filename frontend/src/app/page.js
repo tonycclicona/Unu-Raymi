@@ -39,68 +39,14 @@ export default function Home() {
 
 
 
-  // Cargar tours de la API
+  // Cargar tours de la API en tiempo real
   const { data: response, error } = useSWR('/tours?activo=true', fetcher);
   const toursList = response?.data || [];
 
-  // Mocks de fallback de alta calidad por si la base de datos está vacía/inactiva
-  const mockTours = [
-    {
-      id: 101,
-      nombre: language === 'es' ? 'Camino Inca Clásico a Machupicchu' : 'Classic Inca Trail to Machu Picchu',
-      slug: 'camino-inca-clasico',
-      descripcion: language === 'es'
-        ? 'La ruta de trekking más famosa de América. Camina por senderos ancestrales y descubre el místico santuario inca de Machupicchu.'
-        : 'America\'s most famous trekking route. Hike along ancient trails and discover the mystical Inca sanctuary of Machu Picchu.',
-      precio_adulto: 650.00,
-      precio_nino: 450.00,
-      duracion_dias: 4,
-      cupos_disponibles: 8,
-      pais: 'Perú',
-      categoria: 'Trekking',
-      ciudad: 'Cusco',
-      imagenes: [{ url: 'https://images.unsplash.com/photo-1587590227264-0ac64ce63ce8?auto=format&fit=crop&w=800&q=80' }],
-    },
-    {
-      id: 102,
-      nombre: language === 'es' ? 'Aventura al Valle de Cocora y Cafetales' : 'Cocora Valley & Coffee Farms Adventure',
-      slug: 'valle-cocora-cafe',
-      descripcion: language === 'es'
-        ? 'Explora las palmas de cera gigantes más altas del mundo en Quindío y sumérgete en la cultura cafetera de Colombia.'
-        : 'Explore the world\'s tallest giant wax palms in Quindío and immerse yourself in Colombia\'s coffee culture.',
-      precio_adulto: 280.00,
-      precio_nino: 180.00,
-      duracion_dias: 3,
-      cupos_disponibles: 12,
-      pais: 'Colombia',
-      categoria: 'Trekking',
-      ciudad: 'Salento',
-      imagenes: [{ url: 'https://images.unsplash.com/photo-1534067783941-51c9c23eccfd?auto=format&fit=crop&w=800&q=80' }],
-    },
-    {
-      id: 103,
-      nombre: language === 'es' ? 'Cruce Andino por los Lagos de la Patagonia' : 'Andean Crossing through Patagonia Lakes',
-      slug: 'cruce-andino-patagonia',
-      descripcion: language === 'es'
-        ? 'Cruza la imponente cordillera de los Andes navegando entre lagos cristalinos y volcanes cubiertos de nieve en el sur de Chile.'
-        : 'Cross the imposing Andes mountain range sailing between crystal clear lakes and snow-capped volcanoes in southern Chile.',
-      precio_adulto: 490.00,
-      precio_nino: 350.00,
-      duracion_dias: 5,
-      cupos_disponibles: 6,
-      pais: 'Chile',
-      categoria: 'Trekking',
-      ciudad: 'Puerto Natales',
-      imagenes: [{ url: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80' }],
-    }
-  ];
-
-  // Si la API devuelve tours, los usamos; si no, caemos en el mock. Normalizamos campos.
-  const rawTours = toursList.length > 0 ? toursList : mockTours;
-  const activeTours = rawTours.map(tour => ({
+  const activeTours = toursList.map(tour => ({
     ...tour,
     categoria: tour.categoria || 'Trekking',
-    ciudad: tour.ciudad || (tour.pais === 'Perú' ? 'Cusco' : tour.pais === 'Colombia' ? 'Santa Marta' : 'Puerto Natales'),
+    ciudad: tour.ciudad || (tour.pais === 'Perú' ? 'Cusco' : tour.pais === 'Colombia' ? 'Salento' : 'Puerto Natales'),
   }));
 
   // Filtrado reactivo en base al mapa interactivo, chips y búsqueda
