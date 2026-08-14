@@ -116,7 +116,39 @@ if (appType === 'backend') {
   if (outDir) {
     console.log('> [Express Static] Serving from:', outDir);
     app.use(express.static(outDir, { extensions: ['html'] }));
+    
     app.use(function(req, res) {
+      const parsedPath = req.path.replace(/^\/+|\/+$/g, '');
+      const segments = parsedPath.split('/');
+      
+      // Intentar encontrar un HTML específico para la sub-ruta (ej. /tours/[id]/editar -> tours/1/editar.html o tours/1/editar/index.html)
+      if (segments.length >= 3 && segments[0] === 'tours' && segments[2] === 'editar') {
+        const candidateEdit = path.join(outDir, 'tours', '1', 'editar.html');
+        if (fs.existsSync(candidateEdit)) {
+          return res.sendFile(candidateEdit);
+        }
+      }
+      if (segments.length >= 3 && segments[0] === 'guias' && segments[2] === 'editar') {
+        const candidateEdit = path.join(outDir, 'guias', '1', 'editar.html');
+        if (fs.existsSync(candidateEdit)) {
+          return res.sendFile(candidateEdit);
+        }
+      }
+      if (segments.length >= 3 && segments[0] === 'garantias' && segments[2] === 'editar') {
+        const candidateEdit = path.join(outDir, 'garantias', '1', 'editar.html');
+        if (fs.existsSync(candidateEdit)) {
+          return res.sendFile(candidateEdit);
+        }
+      }
+
+      // Si la ruta comienza con una sección (ej. /tours, /guias), intentar su archivo .html
+      if (segments[0]) {
+        const sectionHtml = path.join(outDir, `${segments[0]}.html`);
+        if (fs.existsSync(sectionHtml)) {
+          return res.sendFile(sectionHtml);
+        }
+      }
+
       const indexPath = path.join(outDir, 'index.html');
       if (fs.existsSync(indexPath)) {
         return res.sendFile(indexPath);
