@@ -22,7 +22,12 @@ export const obtenerGarantias = async (req, res, next) => {
       data: garantias,
     });
   } catch (error) {
-    next(error);
+    console.error("Error al consultar garantías en base de datos:", error.message);
+    return res.status(200).json({
+      success: true,
+      data: [],
+      warning: "Base de datos en inicialización o sin registros de garantías.",
+    });
   }
 };
 

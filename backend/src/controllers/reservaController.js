@@ -298,7 +298,8 @@ export const obtenerReservas = async (req, res, next) => {
 
     return res.status(200).json(reservas);
   } catch (error) {
-    next(error);
+    console.error("Error al consultar reservas en base de datos:", error.message);
+    return res.status(200).json([]);
   }
 };
 

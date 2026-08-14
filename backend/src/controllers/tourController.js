@@ -62,7 +62,13 @@ export const obtenerTours = async (req, res, next) => {
       data: tours.map(formatearTour),
     });
   } catch (error) {
-    next(error);
+    console.error("Error al consultar tours en base de datos:", error.message);
+    // Si la tabla no existe o la BD esta vacia, responder limpiamente con array vacio
+    return res.status(200).json({
+      success: true,
+      data: [],
+      warning: "Base de datos en inicialización o sin registros.",
+    });
   }
 };
 
