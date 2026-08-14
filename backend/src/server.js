@@ -84,12 +84,31 @@ app.use("/uploads", express.static(uploadsPath, {
   maxAge: isProduction ? "7d" : 0, // Cache de 7 días en producción
 }));
 
-// ── Health Check ─────────────────────────────────────────────
+// ── Health & Root Check ───────────────────────────────────────
+app.get(["/", "/api"], (req, res) => {
+  res.status(200).json({
+    success: true,
+    name: "Unu-Raymi API Server",
+    message: "La API de Unu-Raymi está operativa.",
+    endpoints: {
+      health: "/api/health",
+      tours: "/api/tours",
+      guias: "/api/guias",
+      garantias: "/api/garantias",
+      formEngine: "/api/form-engine/schema",
+      gis: "/api/gis/countries",
+      reservas: "/api/reservas"
+    },
+    environment: process.env.NODE_ENV || "production",
+    timestamp: new Date().toISOString(),
+  });
+});
+
 app.get("/api/health", (req, res) => {
   res.status(200).json({
     success: true,
     message: "Unu-Raymi API está funcionando correctamente.",
-    environment: process.env.NODE_ENV,
+    environment: process.env.NODE_ENV || "production",
     timestamp: new Date().toISOString(),
   });
 });
