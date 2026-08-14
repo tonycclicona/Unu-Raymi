@@ -1,7 +1,10 @@
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 
+  (typeof window !== 'undefined' && window.location.hostname.includes('unu-raymi.com') 
+    ? 'https://api.unu-raymi.com/api' 
+    : 'http://localhost:4000/api');
 
 export const API_ASSETS_URL = process.env.NEXT_PUBLIC_API_ASSETS_URL || 
-  (process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace(/\/api$/, '') : 'http://localhost:4000');
+  API_BASE_URL.replace(/\/api$/, '');
 
 export async function fetcher(url) {
   const res = await fetch(`${API_BASE_URL}${url}`);
