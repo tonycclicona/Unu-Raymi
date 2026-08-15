@@ -163,6 +163,28 @@ try {
   console.error('Warning: Failed to copy frontend build:', e.message);
 }
 
+// ── 3. BUILD ADMIN ────────────────────────────────────────────────────────────
+console.log('[postinstall] === 3/3 ADMIN setup ===');
+run('npm run build', 'admin');
+try {
+  const srcOut = path.join(process.cwd(), 'admin', 'out');
+  const adminTargets = [
+    path.join(process.cwd(), 'public_html', 'admin'),
+    '/home/u209525223/domains/unu-raymi.com/public_html/admin',
+    '/home/u209525223/public_html/admin'
+  ];
+
+  adminTargets.forEach(target => {
+    try {
+      fs.mkdirSync(target, { recursive: true });
+      fs.cpSync(srcOut, target, { recursive: true });
+      console.log(`[postinstall] ✅ Copied admin static export to: ${target}`);
+    } catch (err) {}
+  });
+} catch (e) {
+  console.error('Warning: Failed to copy admin build:', e.message);
+}
+
 // ── 4. SINCRONIZACIÓN AUTOMÁTICA A CURRENT / NODEJS Y PUBLIC_HTML ───────────
 console.log('\n[postinstall] === Syncing build artifacts to runtime directories ===');
 try {
