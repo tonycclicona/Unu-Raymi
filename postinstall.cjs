@@ -123,27 +123,35 @@ try {
   console.error('Warning: Failed to copy frontend build:', e.message);
 }
 
-// ── 3. BUILD ADMIN ────────────────────────────────────────────────────────────
-console.log('[postinstall] === 3/3 ADMIN setup ===');
-run('npm run build', 'admin');
+// ── 4. SINCRONIZACIÓN AUTOMÁTICA A CURRENT / NODEJS Y PUBLIC_HTML ───────────
+console.log('\n[postinstall] === Syncing build artifacts to runtime directories ===');
 try {
-  const srcOut = path.join(process.cwd(), 'admin', 'out');
-  const adminTargets = [
-    path.join(process.cwd(), 'public_html', 'admin'),
-    '/home/u209525223/domains/unu-raymi.com/public_html/admin',
-    '/home/u209525223/public_html/admin'
+  const currentDirs = [
+    '/home/u209525223/domains/unu-raymi.com/hbuilds/current/nodejs',
+    path.resolve(process.cwd(), '../current/nodejs'),
+    path.resolve(process.cwd(), '../../current/nodejs')
   ];
 
-  adminTargets.forEach(target => {
-    try {
-      fs.mkdirSync(target, { recursive: true });
-      fs.cpSync(srcOut, target, { recursive: true });
-      console.log(`[postinstall] ✅ Copied admin static export to: ${target}`);
-    } catch (err) {}
+  currentDirs.forEach(target => {
+    if (fs.existsSync(path.dirname(target))) {
+      try {
+        fs.mkdirSync(target, { recursive: true });
+        // Copiar server.js, package.json y carpetas compiladas
+        const itemsToCopy = ['server.js', 'package.json', 'out', 'frontend', 'admin', 'backend', '.env', '.env.production'];
+        itemsToCopy.forEach(item => {
+          const itemSrc = path.join(process.cwd(), item);
+          const itemDest = path.join(target, item);
+          if (fs.existsSync(itemSrc)) {
+            fs.cpSync(itemSrc, itemDest, { recursive: true });
+          }
+        });
+        console.log(`[postinstall] ✅ Automatically synced app files to: ${target}`);
+      } catch (err) {
+        console.error(`Warning: Failed to sync to ${target}:`, err.message);
+      }
+    }
   });
-} catch (e) {
-  console.error('Warning: Failed to copy admin build:', e.message);
-}
+} catch (e) {}
 
 console.log('\n[postinstall] ✅ All subapps built and delivered successfully.\n');
 process.exit(0);
