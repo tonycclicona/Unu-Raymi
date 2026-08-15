@@ -192,22 +192,17 @@ app.use(function(req, res) {
   res.status(200).send('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Unu-Raymi</title></head><body><div id="root">Cargando Unu-Raymi...</div></body></html>');
 });
 
-// En entornos Phusion Passenger / Hostinger lsnode, module.exports = app es obligatorio
-if (typeof PhusionPassenger !== 'undefined' || port === 'passenger') {
-  console.log('> [UNU-RAYMI CENTRAL ENGINE] Running under Phusion Passenger / LiteSpeed');
-} else {
-  const serverInstance = app.listen(port, function() {
-    console.log('> ========================================================');
-    console.log('> [UNU-RAYMI CENTRAL ENGINE] Activo en puerto:', port);
-    console.log('> Host Frontend: unu-raymi.com');
-    console.log('> Host Admin:    admin.unu-raymi.com');
-    console.log('> Host API:      api.unu-raymi.com');
-    console.log('> ========================================================');
-  });
+const serverInstance = app.listen(port, function() {
+  console.log('> ========================================================');
+  console.log('> [UNU-RAYMI CENTRAL ENGINE] Activo en puerto:', port);
+  console.log('> Host Frontend: unu-raymi.com');
+  console.log('> Host Admin:    admin.unu-raymi.com');
+  console.log('> Host API:      api.unu-raymi.com');
+  console.log('> ========================================================');
+});
 
-  serverInstance.on('error', function(err) {
-    console.error('> [Server Error]:', err.message);
-  });
-}
+serverInstance.on('error', function(err) {
+  console.error('> [Server Error]:', err.message);
+});
 
 module.exports = app;
