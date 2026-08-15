@@ -139,8 +139,8 @@ app.use(async function(req, res, next) {
   return next();
 });
 
-// ── 3. SERVIR STATIC ADMIN & FRONTEND ────────────────────────────────────────
-// Servir assets estáticos de Admin
+// ── 3. SERVIR ASSETS ESTÁTICOS ──────────────────────────────────────────────
+// Servir assets estáticos de Admin cuando la petición es para admin
 app.use(function(req, res, next) {
   if (req.isVirtualAdmin && fs.existsSync(adminOut)) {
     return express.static(adminOut, { extensions: ['html'] })(req, res, next);
@@ -148,9 +148,9 @@ app.use(function(req, res, next) {
   next();
 });
 
-// Servir assets estáticos de Frontend
+// Servir assets estáticos de Frontend para cualquier otra petición
 app.use(function(req, res, next) {
-  if (req.isVirtualFrontend && fs.existsSync(frontendOut)) {
+  if (fs.existsSync(frontendOut)) {
     return express.static(frontendOut, { extensions: ['html'] })(req, res, next);
   }
   next();
@@ -191,7 +191,8 @@ app.use(function(req, res) {
     if (fs.existsSync(adminIndex)) return res.sendFile(adminIndex);
   }
 
-  if (req.isVirtualFrontend && fs.existsSync(frontendOut)) {
+  // Frontend SPA Fallback
+  if (fs.existsSync(frontendOut)) {
     const frontendIndex = path.join(frontendOut, 'index.html');
     if (fs.existsSync(frontendIndex)) return res.sendFile(frontendIndex);
   }
