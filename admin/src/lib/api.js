@@ -48,12 +48,28 @@ export async function mutateApi(url, { method = 'POST', body } = {}) {
     options.body = JSON.stringify(body);
   }
   
-  const res = await fetch(`${API_BASE_URL}${url}`, options);
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    throw new Error(data.error || `Error en la petición: ${res.status}`);
+  // Intento 1: API Directa
+  try {
+    const res = await fetch(`${API_BASE_URL}${url}`, options);
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) return data;
+    if (res.status === 401 || res.status === 400) {
+      throw new Error(data.error || 'Credenciales incorrectas');
+    }
+  } catch (err) {
+    if (err.message === 'Credenciales incorrectas') throw err;
+    
+    // Intento 2: Fallback vía Gateway Principal https://unu-raymi.com/api
+    try {
+      const fallbackUrl = `https://unu-raymi.com/api${url}`;
+      const resFallback = await fetch(fallbackUrl, options);
+      const dataFallback = await resFallback.json().catch(() => ({}));
+      if (resFallback.ok) return dataFallback;
+      throw new Error(dataFallback.error || 'Credenciales incorrectas');
+    } catch (fallbackErr) {
+      throw fallbackErr;
+    }
   }
-  return data;
 }
 
 export async function uploadApi(url, formData) {
