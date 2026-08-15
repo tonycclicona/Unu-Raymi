@@ -148,13 +148,11 @@ app.use(function(req, res, next) {
   next();
 });
 
-// Servir assets estáticos de Frontend para cualquier otra petición
-app.use(function(req, res, next) {
-  if (fs.existsSync(frontendOut)) {
-    return express.static(frontendOut, { extensions: ['html'] })(req, res, next);
-  }
-  next();
-});
+// Servir assets estáticos de Frontend desde frontendOut o public_html
+app.use(express.static(frontendOut, { extensions: ['html'] }));
+if (fs.existsSync(path.resolve(__dirname, 'public_html'))) {
+  app.use(express.static(path.resolve(__dirname, 'public_html'), { extensions: ['html'] }));
+}
 
 // ── 4. SPA FALLBACK HANDLER PARA ADMIN Y FRONTEND ─────────────────────────────
 app.use(function(req, res) {
@@ -162,7 +160,6 @@ app.use(function(req, res) {
   const segments = parsedPath.split('/');
 
   if (req.isVirtualAdmin && fs.existsSync(adminOut)) {
-    // Rutas dinámicas de edición de tours, guías, garantías
     if (segments.length >= 3 && segments[0] === 'tours' && segments[2] === 'editar') {
       const p1 = path.join(adminOut, 'tours', '1', 'editar', 'index.html');
       const p2 = path.join(adminOut, 'tours', '1', 'editar.html');
@@ -191,41 +188,37 @@ app.use(function(req, res) {
     if (fs.existsSync(adminIndex)) return res.sendFile(adminIndex);
   }
 
-  // Frontend SPA Fallback
-  if (fs.existsSync(frontendOut)) {
-    const frontendIndex = path.join(frontendOut, 'index.html');
-    if (fs.existsSync(frontendIndex)) return res.sendFile(frontendIndex);
+  // Frontend SPA Fallback - probar frontendOut y public_html
+  const candidatesIndex = [
+    path.join(frontendOut, 'index.html'),
+    path.resolve(__dirname, 'out', 'index.html'),
+    path.resolve(__dirname, 'frontend', 'out', 'index.html'),
+    path.resolve(process.cwd(), 'out', 'index.html'),
+    path.resolve(__dirname, 'public_html', 'index.html'),
+    '/home/u209525223/domains/unu-raymi.com/public_html/index.html'
+  ];
+
+  for (const idx of candidatesIndex) {
+    if (fs.existsSync(idx)) {
+      return res.sendFile(idx);
+    }
   }
 
   res.status(200).send('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Unu-Raymi</title></head><body><div id="root">Cargando Unu-Raymi...</div></body></html>');
 });
 
-function startServer() {
-  if (typeof port === 'string' && port.toLowerCase() === 'passenger') {
-    // Cuando Passenger inyecta 'passenger', se llama a app.listen('passenger')
-    try {
-      app.listen('passenger', function() {
-        console.log('> [UNU-RAYMI CENTRAL ENGINE] Listening on Phusion Passenger socket');
-      });
-    } catch (e) {
-      console.log('> [Passenger fallback]:', e.message);
-    }
-  } else {
-    const serverInstance = app.listen(port, function() {
-      console.log('> ========================================================');
-      console.log('> [UNU-RAYMI CENTRAL ENGINE] Activo en puerto/socket:', port);
-      console.log('> Host Frontend: unu-raymi.com');
-      console.log('> Host Admin:    admin.unu-raymi.com');
-      console.log('> Host API:      api.unu-raymi.com');
-      console.log('> ========================================================');
-    });
+// En entornos Express / Passenger de Hostinger
+const serverInstance = app.listen(port, function() {
+  console.log('> ========================================================');
+  console.log('> [UNU-RAYMI CENTRAL ENGINE] Activo en puerto/socket:', port);
+  console.log('> Host Frontend: unu-raymi.com');
+  console.log('> Host Admin:    admin.unu-raymi.com');
+  console.log('> Host API:      api.unu-raymi.com');
+  console.log('> ========================================================');
+});
 
-    serverInstance.on('error', function(err) {
-      console.error('> [Server Error]:', err.message);
-    });
-  }
-}
-
-startServer();
+serverInstance.on('error', function(err) {
+  console.error('> [Server Error]:', err.message);
+});
 
 module.exports = app;
