@@ -56,6 +56,40 @@ try {
 } catch (e) {}
 run('npm run build', 'backend');
 
+// Crear un index.php / .htaccess dentro de public_html/api/ para evitar el 403 Forbidden de directorio vacío en Apache
+try {
+  let current = process.cwd();
+  for (let i = 0; i < 6; i++) {
+    const pubApiCandidate = path.join(current, 'public_html', 'api');
+    if (fs.existsSync(path.dirname(pubApiCandidate))) {
+      try {
+        fs.mkdirSync(pubApiCandidate, { recursive: true });
+        const apiIndexContent = `<?php
+// Proxy/Redirect de subdominio api hacia el motor Node.js
+header('Content-Type: application/json; charset=utf-8');
+echo json_encode([
+    "success" => true,
+    "service" => "Unu-Raymi API Gateway",
+    "status" => "active",
+    "version" => "1.0.0",
+    "endpoints" => [
+        "health" => "/api/health",
+        "tours" => "/api/tours",
+        "guias" => "/api/guias",
+        "reservas" => "/api/reservas"
+    ]
+]);
+`;
+        fs.writeFileSync(path.join(pubApiCandidate, 'index.php'), apiIndexContent);
+        console.log(`[postinstall] ✅ Created index.php gateway in: ${pubApiCandidate}`);
+      } catch (err) {}
+    }
+    const parent = path.dirname(current);
+    if (parent === current) break;
+    current = parent;
+  }
+} catch (e) {}
+
 // ── 2. BUILD FRONTEND ─────────────────────────────────────────────────────────
 console.log('[postinstall] === 2/3 FRONTEND setup ===');
 run('npm run build', 'frontend');
