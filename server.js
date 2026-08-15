@@ -151,8 +151,13 @@ app.use(function(req, res, next) {
 
 // Servir assets estáticos de Frontend desde frontendOut o public_html
 app.use(express.static(frontendOut, { extensions: ['html'] }));
-if (fs.existsSync(path.resolve(__dirname, 'public_html'))) {
-  app.use(express.static(path.resolve(__dirname, 'public_html'), { extensions: ['html'] }));
+const rootOut = path.resolve(__dirname, 'out');
+if (fs.existsSync(rootOut)) {
+  app.use(express.static(rootOut, { extensions: ['html'] }));
+}
+const pubDir = path.resolve(__dirname, 'public_html');
+if (fs.existsSync(pubDir)) {
+  app.use(express.static(pubDir, { extensions: ['html'] }));
 }
 
 // ── 4. SPA FALLBACK HANDLER PARA ADMIN Y FRONTEND ─────────────────────────────
@@ -189,13 +194,13 @@ app.use(function(req, res) {
     if (fs.existsSync(adminIndex)) return res.sendFile(adminIndex);
   }
 
-  // Frontend SPA Fallback - probar frontendOut y public_html
+  // Frontend SPA Fallback - probar todas las ubicaciones posibles
   const candidatesIndex = [
     path.join(frontendOut, 'index.html'),
-    path.resolve(__dirname, 'out', 'index.html'),
-    path.resolve(__dirname, 'frontend', 'out', 'index.html'),
+    path.join(rootOut, 'index.html'),
+    path.join(pubDir, 'index.html'),
     path.resolve(process.cwd(), 'out', 'index.html'),
-    path.resolve(__dirname, 'public_html', 'index.html'),
+    path.resolve(process.cwd(), 'frontend', 'out', 'index.html'),
     '/home/u209525223/domains/unu-raymi.com/public_html/index.html'
   ];
 
@@ -205,21 +210,18 @@ app.use(function(req, res) {
     }
   }
 
-  res.status(200).send('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Unu-Raymi</title></head><body><div id="root">Cargando Unu-Raymi...</div></body></html>');
+  return res.status(200).send('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Unu-Raymi</title></head><body><div id="root">Unu-Raymi</div></body></html>');
 });
 
-// En entornos Express / Passenger de Hostinger
-const serverInstance = app.listen(port, function() {
-  console.log('> ========================================================');
-  console.log('> [UNU-RAYMI CENTRAL ENGINE] Activo en puerto/socket:', port);
-  console.log('> Host Frontend: unu-raymi.com');
-  console.log('> Host Admin:    admin.unu-raymi.com');
-  console.log('> Host API:      api.unu-raymi.com');
-  console.log('> ========================================================');
+// En Express / Passenger de Hostinger
+const server = app.listen(port, function() {
+  console.log('> [UNU-RAYMI CENTRAL ENGINE] Server running on port/socket:', port);
 });
 
-serverInstance.on('error', function(err) {
-  console.error('> [Server Error]:', err.message);
+server.on('error', function(err) {
+  if (err.code !== 'EADDRINUSE') {
+    console.error('> [Server Error]:', err.message);
+  }
 });
 
 module.exports = app;
