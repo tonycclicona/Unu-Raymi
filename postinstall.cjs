@@ -64,8 +64,8 @@ try {
   const destOut = path.join(process.cwd(), 'out');
   if (fs.existsSync(srcOut)) {
     fs.cpSync(srcOut, destOut, { recursive: true });
-    console.log('[postinstall] Copied frontend/out to root out');
   }
+  // Copiar a public_html raíz
   copyToAllPublicHtml(srcOut, 'frontend static export');
 } catch (e) {
   console.error('Warning: Failed to copy frontend build:', e.message);
@@ -76,8 +76,20 @@ console.log('[postinstall] === 3/3 ADMIN setup ===');
 run('npm run build', 'admin');
 try {
   const srcOut = path.join(process.cwd(), 'admin', 'out');
-  if (fs.existsSync(srcOut)) {
-    copyToAllPublicHtml(srcOut, 'admin static export');
+  // Copiar a public_html/admin/ para que el subdominio admin.unu-raymi.com lo sirva directamente
+  let current = process.cwd();
+  for (let i = 0; i < 6; i++) {
+    const pubAdminCandidate = path.join(current, 'public_html', 'admin');
+    if (fs.existsSync(path.dirname(pubAdminCandidate))) {
+      try {
+        fs.mkdirSync(pubAdminCandidate, { recursive: true });
+        fs.cpSync(srcOut, pubAdminCandidate, { recursive: true });
+        console.log(`[postinstall] ✅ Copied admin static export to: ${pubAdminCandidate}`);
+      } catch (err) {}
+    }
+    const parent = path.dirname(current);
+    if (parent === current) break;
+    current = parent;
   }
 } catch (e) {
   console.error('Warning: Failed to copy admin build:', e.message);
