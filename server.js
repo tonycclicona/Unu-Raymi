@@ -58,13 +58,19 @@ function resolvePort() {
 
 const port = resolvePort();
 
-// Resolver directorios compilados con fallbacks
+// Resolver directorios compilados con fallbacks exhaustivos
 function resolveOutDir(subapp) {
   const candidates = [
     path.resolve(__dirname, subapp, 'out'),
+    path.resolve(process.cwd(), subapp, 'out'),
     path.resolve(__dirname, 'out'),
+    path.resolve(process.cwd(), 'out'),
     path.resolve(__dirname, 'public_html', subapp),
-    path.resolve(__dirname, 'public_html')
+    path.resolve(process.cwd(), 'public_html', subapp),
+    path.resolve(__dirname, 'public_html'),
+    path.resolve(process.cwd(), 'public_html'),
+    '/home/u209525223/domains/unu-raymi.com/public_html/' + subapp,
+    '/home/u209525223/domains/unu-raymi.com/public_html'
   ];
   for (const c of candidates) {
     if (fs.existsSync(path.join(c, 'index.html'))) {
@@ -77,6 +83,7 @@ function resolveOutDir(subapp) {
 const frontendOut = resolveOutDir('frontend');
 const adminOut = resolveOutDir('admin');
 
+console.log('> [VHost] CWD:', process.cwd());
 console.log('> [VHost] Frontend Out Dir:', frontendOut);
 console.log('> [VHost] Admin Out Dir:', adminOut);
 
