@@ -1,6 +1,5 @@
 // ==============================================================================
-// server.js — Centralized Unified Entry Point (Virtual Host Engine)
-// Handles: unu-raymi.com (Frontend), admin.unu-raymi.com (Admin), api.unu-raymi.com (Backend API)
+// server.js — Unu-Raymi Single Web App Engine
 // ==============================================================================
 
 'use strict';
@@ -12,221 +11,120 @@ const express = require('express');
 const app = express();
 app.disable('x-powered-by');
 
-// Capturar el puerto nativo inyectado por Hostinger
-const hostingerPort = process.env.PORT;
-
-function loadEnvFile(filePath) {
-  if (fs.existsSync(filePath)) {
+// Cargar variables de entorno
+function loadEnv(file) {
+  if (fs.existsSync(file)) {
     try {
-      const content = fs.readFileSync(filePath, 'utf8');
-      content.split('\n').forEach(function(line) {
-        const trimmed = line.trim();
-        if (trimmed && !trimmed.startsWith('#')) {
-          const firstEqual = trimmed.indexOf('=');
-          if (firstEqual !== -1) {
-            const key = trimmed.substring(0, firstEqual).trim();
-            let val = trimmed.substring(firstEqual + 1).trim();
-            if ((val.startsWith('"') && val.endsWith('"')) ||
-                (val.startsWith("'") && val.endsWith("'"))) {
-              val = val.substring(1, val.length - 1);
+      const lines = fs.readFileSync(file, 'utf8').split('\n');
+      lines.forEach(function(l) {
+        const t = l.trim();
+        if (t && !t.startsWith('#')) {
+          const eq = t.indexOf('=');
+          if (eq !== -1) {
+            const k = t.substring(0, eq).trim();
+            let v = t.substring(eq + 1).trim();
+            if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) {
+              v = v.substring(1, v.length - 1);
             }
-            if (key === 'PORT' && hostingerPort) return;
-            if (!process.env[key]) {
-              process.env[key] = val;
-            }
+            if (k === 'PORT' && process.env.PORT) return;
+            if (!process.env[k]) process.env[k] = v;
           }
         }
       });
-    } catch (err) {}
+    } catch (e) {}
   }
 }
 
-// Cargar variables de entorno
-loadEnvFile(path.resolve(__dirname, '.env.production'));
-loadEnvFile(path.resolve(__dirname, '.env'));
-loadEnvFile(path.resolve(__dirname, 'backend/.env.production'));
-loadEnvFile(path.resolve(__dirname, 'backend/.env'));
+loadEnv(path.resolve(__dirname, '.env.production'));
+loadEnv(path.resolve(__dirname, '.env'));
+loadEnv(path.resolve(__dirname, 'backend/.env.production'));
+loadEnv(path.resolve(__dirname, 'backend/.env'));
 
-function resolvePort() {
-  const p = hostingerPort || process.env.PORT;
-  if (!p) return 3000;
-  if (typeof p === 'string' && (p === 'passenger' || p.startsWith('/') || p.startsWith('\\\\') || p.includes('.sock'))) {
-    return p;
-  }
-  const parsed = parseInt(p, 10);
-  return isNaN(parsed) ? p : parsed;
-}
+// Directorios de compilación
+const frontendDir = fs.existsSync(path.resolve(__dirname, 'frontend/out'))
+  ? path.resolve(__dirname, 'frontend/out')
+  : path.resolve(__dirname, 'out');
 
-const port = resolvePort();
+const adminDir = path.resolve(__dirname, 'admin/out');
 
-// Resolver directorios compilados con fallbacks exhaustivos
-function resolveOutDir(subapp) {
-  const candidates = [
-    path.resolve(__dirname, subapp, 'out'),
-    path.resolve(process.cwd(), subapp, 'out'),
-    path.resolve(__dirname, 'out'),
-    path.resolve(process.cwd(), 'out'),
-    path.resolve(__dirname, 'public_html', subapp),
-    path.resolve(process.cwd(), 'public_html', subapp),
-    path.resolve(__dirname, 'public_html'),
-    path.resolve(process.cwd(), 'public_html'),
-    '/home/u209525223/domains/unu-raymi.com/public_html/' + subapp,
-    '/home/u209525223/domains/unu-raymi.com/public_html'
-  ];
-  for (const c of candidates) {
-    if (fs.existsSync(path.join(c, 'index.html'))) {
-      return c;
-    }
-  }
-  return path.resolve(__dirname, subapp, 'out');
-}
+console.log('> [Server] Frontend dir:', frontendDir);
+console.log('> [Server] Admin dir:', adminDir);
 
-const frontendOut = resolveOutDir('frontend');
-const adminOut = resolveOutDir('admin');
-
-console.log('> [VHost] CWD:', process.cwd());
-console.log('> [VHost] Frontend Out Dir:', frontendOut);
-console.log('> [VHost] Admin Out Dir:', adminOut);
-
-// ── 1. CARGAR BACKEND EXPRESS API (NO BLOQUEANTE) ─────────────────────────────
+// ── 1. CARGAR BACKEND API (ASÍNCRONO) ─────────────────────────────────────────
 let backendApp = null;
-let backendInitError = null;
-
 const backendPath = fs.existsSync(path.resolve(__dirname, 'backend/dist/server.js'))
   ? './backend/dist/server.js'
   : './backend/src/server.js';
 
-// Carga en segundo plano sin congelar el hilo principal
-setTimeout(function() {
-  import(backendPath)
-    .then(function(m) {
-      backendApp = m.default || m;
-      console.log('> [VHost] Backend Express API montado exitosamente.');
-    })
-    .catch(function(err) {
-      backendInitError = err.message;
-      console.error('> [VHost] Error cargando backend API:', err.message);
-    });
-}, 0);
+import(backendPath)
+  .then(function(m) {
+    backendApp = m.default || m;
+    console.log('> [Server] Backend API montado exitosamente.');
+  })
+  .catch(function(err) {
+    console.error('> [Server] Error backend API:', err.message);
+  });
 
-// ── 2. MIDDLEWARE DE ENRUTAMIENTO VIRTUAL HOST ────────────────────────────────
+// ── 2. RUTEO DE API ──────────────────────────────────────────────────────────
 app.use(function(req, res, next) {
   const host = (req.headers.host || '').toLowerCase();
-  const urlPath = req.url || '';
-
-  // CASO A: API (Petición a api.unu-raymi.com O prefijo /api)
-  if (host.startsWith('api.') || urlPath.startsWith('/api')) {
+  if (host.startsWith('api.') || req.url.startsWith('/api')) {
     if (backendApp) {
       return backendApp(req, res, next);
-    } else {
-      return res.status(200).json({ 
-        success: true, 
-        service: "Unu-Raymi API Gateway",
-        status: "starting",
-        message: "API inicializándose. Por favor recarga en un segundo."
-      });
     }
-  }
-
-  // CASO B: ADMIN (Petición a admin.unu-raymi.com O subcarpeta /admin)
-  if (host.startsWith('admin.') || urlPath.startsWith('/admin')) {
-    req.isVirtualAdmin = true;
-    return next();
-  }
-
-  // CASO C: FRONTEND (unu-raymi.com o por defecto)
-  req.isVirtualFrontend = true;
-  return next();
-});
-
-// ── 3. SERVIR ASSETS ESTÁTICOS ──────────────────────────────────────────────
-// Servir assets estáticos de Admin cuando la petición es para admin
-app.use(function(req, res, next) {
-  if (req.isVirtualAdmin && fs.existsSync(adminOut)) {
-    return express.static(adminOut, { extensions: ['html'] })(req, res, next);
+    return res.status(200).json({ success: true, status: 'starting', service: 'Unu-Raymi API' });
   }
   next();
 });
 
-// Servir assets estáticos de Frontend desde frontendOut o public_html
-app.use(express.static(frontendOut, { extensions: ['html'] }));
-const rootOut = path.resolve(__dirname, 'out');
-if (fs.existsSync(rootOut)) {
-  app.use(express.static(rootOut, { extensions: ['html'] }));
-}
-const pubDir = path.resolve(__dirname, 'public_html');
-if (fs.existsSync(pubDir)) {
-  app.use(express.static(pubDir, { extensions: ['html'] }));
-}
-
-// ── 4. SPA FALLBACK HANDLER PARA ADMIN Y FRONTEND ─────────────────────────────
-app.use(function(req, res) {
-  const parsedPath = req.path.replace(/^\/+|\/+$/g, '');
-  const segments = parsedPath.split('/');
-
-  if (req.isVirtualAdmin && fs.existsSync(adminOut)) {
-    if (segments.length >= 3 && segments[0] === 'tours' && segments[2] === 'editar') {
-      const p1 = path.join(adminOut, 'tours', '1', 'editar', 'index.html');
-      const p2 = path.join(adminOut, 'tours', '1', 'editar.html');
-      if (fs.existsSync(p1)) return res.sendFile(p1);
-      if (fs.existsSync(p2)) return res.sendFile(p2);
-    }
-    if (segments.length >= 3 && segments[0] === 'guias' && segments[2] === 'editar') {
-      const p1 = path.join(adminOut, 'guias', '1', 'editar', 'index.html');
-      const p2 = path.join(adminOut, 'guias', '1', 'editar.html');
-      if (fs.existsSync(p1)) return res.sendFile(p1);
-      if (fs.existsSync(p2)) return res.sendFile(p2);
-    }
-    if (segments.length >= 3 && segments[0] === 'garantias' && segments[2] === 'editar') {
-      const p1 = path.join(adminOut, 'garantias', '1', 'editar', 'index.html');
-      const p2 = path.join(adminOut, 'garantias', '1', 'editar.html');
-      if (fs.existsSync(p1)) return res.sendFile(p1);
-      if (fs.existsSync(p2)) return res.sendFile(p2);
-    }
-
-    if (segments[0]) {
-      const sectionHtml = path.join(adminOut, `${segments[0]}.html`);
-      if (fs.existsSync(sectionHtml)) return res.sendFile(sectionHtml);
-    }
-
-    const adminIndex = path.join(adminOut, 'index.html');
-    if (fs.existsSync(adminIndex)) return res.sendFile(adminIndex);
-  }
-
-  // Frontend SPA Fallback - probar todas las ubicaciones posibles
-  const candidatesIndex = [
-    path.join(frontendOut, 'index.html'),
-    path.join(rootOut, 'index.html'),
-    path.join(pubDir, 'index.html'),
-    path.resolve(process.cwd(), 'out', 'index.html'),
-    path.resolve(process.cwd(), 'frontend', 'out', 'index.html'),
-    '/home/u209525223/domains/unu-raymi.com/public_html/index.html'
-  ];
-
-  for (const idx of candidatesIndex) {
-    if (fs.existsSync(idx)) {
-      return res.sendFile(idx);
+// ── 3. RUTEO DE ADMIN ────────────────────────────────────────────────────────
+app.use(function(req, res, next) {
+  const host = (req.headers.host || '').toLowerCase();
+  if (host.startsWith('admin.') || req.url.startsWith('/admin')) {
+    if (fs.existsSync(adminDir)) {
+      return express.static(adminDir, { extensions: ['html'] })(req, res, function() {
+        const parsed = req.path.replace(/^\/+|\/+$/g, '').split('/');
+        if (parsed.length >= 3 && parsed[2] === 'editar') {
+          const editPage = path.join(adminDir, parsed[0], '1', 'editar', 'index.html');
+          if (fs.existsSync(editPage)) return res.sendFile(editPage);
+        }
+        res.sendFile(path.join(adminDir, 'index.html'));
+      });
     }
   }
-
-  return res.status(200).send('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Unu-Raymi</title></head><body><div id="root">Unu-Raymi</div></body></html>');
+  next();
 });
 
-// En Express / Passenger de Hostinger:
-// Si Passenger maneja la conexión, module.exports = app es el estándar oficial.
-// Si se ejecuta como proceso independiente con un puerto, se llama a app.listen(port).
-if (typeof PhusionPassenger !== 'undefined' || process.env.PASSENGER_APP_ENV || (typeof port === 'string' && port.includes('passenger'))) {
-  console.log('> [UNU-RAYMI CENTRAL ENGINE] Initialized for Phusion Passenger / Hostinger.');
-} else {
-  const server = app.listen(port, function() {
-    console.log('> [UNU-RAYMI CENTRAL ENGINE] Server running on port/socket:', port);
-  });
-
-  server.on('error', function(err) {
-    if (err.code !== 'EADDRINUSE') {
-      console.error('> [Server Error]:', err.message);
-    }
-  });
+// ── 4. RUTEO DE FRONTEND (DEFAULT) ───────────────────────────────────────────
+if (fs.existsSync(frontendDir)) {
+  app.use(express.static(frontendDir, { extensions: ['html'] }));
 }
+
+// Fallback SPA Frontend
+app.use(function(req, res) {
+  const candidates = [
+    path.join(frontendDir, 'index.html'),
+    path.resolve(__dirname, 'out/index.html'),
+    path.resolve(__dirname, 'public_html/index.html')
+  ];
+  for (const c of candidates) {
+    if (fs.existsSync(c)) {
+      return res.sendFile(c);
+    }
+  }
+  res.status(200).send('<!DOCTYPE html><html><head><title>Unu-Raymi</title></head><body>Unu-Raymi</body></html>');
+});
+
+// En entornos Hostinger LiteSpeed
+const port = process.env.PORT || 3000;
+const server = app.listen(port, function() {
+  console.log('> [Server] Unu-Raymi corriendo en puerto:', port);
+});
+
+server.on('error', function(err) {
+  if (err.code !== 'EADDRINUSE') {
+    console.error('> [Server Error]:', err.message);
+  }
+});
 
 module.exports = app;
