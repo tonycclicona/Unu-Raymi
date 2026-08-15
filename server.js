@@ -212,15 +212,21 @@ app.use(function(req, res) {
   return res.status(200).send('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Unu-Raymi</title></head><body><div id="root">Unu-Raymi</div></body></html>');
 });
 
-// En Express / Passenger de Hostinger
-const server = app.listen(port, function() {
-  console.log('> [UNU-RAYMI CENTRAL ENGINE] Server running on port/socket:', port);
-});
+// En Express / Passenger de Hostinger:
+// Si Passenger maneja la conexión, module.exports = app es el estándar oficial.
+// Si se ejecuta como proceso independiente con un puerto, se llama a app.listen(port).
+if (typeof PhusionPassenger !== 'undefined' || process.env.PASSENGER_APP_ENV || (typeof port === 'string' && port.includes('passenger'))) {
+  console.log('> [UNU-RAYMI CENTRAL ENGINE] Initialized for Phusion Passenger / Hostinger.');
+} else {
+  const server = app.listen(port, function() {
+    console.log('> [UNU-RAYMI CENTRAL ENGINE] Server running on port/socket:', port);
+  });
 
-server.on('error', function(err) {
-  if (err.code !== 'EADDRINUSE') {
-    console.error('> [Server Error]:', err.message);
-  }
-});
+  server.on('error', function(err) {
+    if (err.code !== 'EADDRINUSE') {
+      console.error('> [Server Error]:', err.message);
+    }
+  });
+}
 
 module.exports = app;
