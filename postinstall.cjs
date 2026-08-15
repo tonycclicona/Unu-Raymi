@@ -56,7 +56,7 @@ try {
 } catch (e) {}
 run('npm run build', 'backend');
 
-// Crear un index.php / .htaccess dentro de public_html/api/ para evitar el 403 Forbidden de directorio vacío en Apache
+// Crear un index.php dentro de public_html/api/ que actúe como PROXY DINÁMICO hacia Node.js
 try {
   let current = process.cwd();
   for (let i = 0; i < 6; i++) {
@@ -65,23 +65,63 @@ try {
       try {
         fs.mkdirSync(pubApiCandidate, { recursive: true });
         const apiIndexContent = `<?php
-// Proxy/Redirect de subdominio api hacia el motor Node.js
-header('Content-Type: application/json; charset=utf-8');
-echo json_encode([
-    "success" => true,
-    "service" => "Unu-Raymi API Gateway",
-    "status" => "active",
-    "version" => "1.0.0",
-    "endpoints" => [
-        "health" => "/api/health",
-        "tours" => "/api/tours",
-        "guias" => "/api/guias",
-        "reservas" => "/api/reservas"
-    ]
-]);
+// ==============================================================================
+// Unu-Raymi API Dynamic Reverse Proxy (LiteSpeed / PHP -> Node.js Gateway)
+// ==============================================================================
+
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Credentials: true");
+header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS, PATCH");
+header("Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept, Authorization");
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit(0);
+}
+
+$requestUri = $_SERVER['REQUEST_URI'];
+if (strpos($requestUri, '/api') !== 0) {
+    $requestUri = '/api' . $requestUri;
+}
+
+$targetUrl = 'https://unu-raymi.com' . $requestUri;
+
+$ch = curl_init($targetUrl);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $_SERVER['REQUEST_METHOD']);
+curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+
+$headers = [];
+foreach (getallheaders() as $name => $value) {
+    if (strtolower($name) !== 'host') {
+        $headers[] = "$name: $value";
+    }
+}
+$headers[] = "Host: unu-raymi.com";
+curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+
+if (in_array($_SERVER['REQUEST_METHOD'], ['POST', 'PUT', 'PATCH', 'DELETE'])) {
+    $body = file_get_contents('php://input');
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
+}
+
+$response = curl_exec($ch);
+$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+$contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
+
+curl_close($ch);
+
+if ($contentType) {
+    header("Content-Type: $contentType");
+}
+http_response_code($httpCode ?: 200);
+echo $response;
+exit(0);
 `;
         fs.writeFileSync(path.join(pubApiCandidate, 'index.php'), apiIndexContent);
-        console.log(`[postinstall] ✅ Created index.php gateway in: ${pubApiCandidate}`);
+        console.log(`[postinstall] ✅ Created dynamic API proxy index.php in: ${pubApiCandidate}`);
       } catch (err) {}
     }
     const parent = path.dirname(current);
