@@ -1,10 +1,8 @@
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 
-  (typeof window !== 'undefined' && window.location.hostname.includes('unu-raymi.com') 
-    ? 'https://api.unu-raymi.com/api' 
-    : 'http://localhost:4000/api');
+export const API_BASE_URL = typeof window !== 'undefined' && window.location.hostname.includes('unu-raymi.com')
+  ? 'https://unu-raymi.com/api'
+  : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api');
 
-export const API_ASSETS_URL = process.env.NEXT_PUBLIC_API_ASSETS_URL || 
-  API_BASE_URL.replace(/\/api$/, '');
+export const API_ASSETS_URL = 'https://unu-raymi.com';
 
 function getCookie(name) {
   if (typeof document === 'undefined') return null;
