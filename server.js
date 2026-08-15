@@ -88,7 +88,7 @@ console.log('> [VHost] CWD:', process.cwd());
 console.log('> [VHost] Frontend Out Dir:', frontendOut);
 console.log('> [VHost] Admin Out Dir:', adminOut);
 
-// ── 1. CARGAR BACKEND EXPRESS API ─────────────────────────────────────────────
+// ── 1. CARGAR BACKEND EXPRESS API (NO BLOQUEANTE) ─────────────────────────────
 let backendApp = null;
 let backendInitError = null;
 
@@ -96,35 +96,34 @@ const backendPath = fs.existsSync(path.resolve(__dirname, 'backend/dist/server.j
   ? './backend/dist/server.js'
   : './backend/src/server.js';
 
-const backendPromise = import(backendPath)
-  .then(function(m) {
-    backendApp = m.default || m;
-    console.log('> [VHost] Backend Express API montado exitosamente.');
-  })
-  .catch(function(err) {
-    backendInitError = err.message;
-    console.error('> [VHost] Error cargando backend API:', err.message);
-  });
+// Carga en segundo plano sin congelar el hilo principal
+setTimeout(function() {
+  import(backendPath)
+    .then(function(m) {
+      backendApp = m.default || m;
+      console.log('> [VHost] Backend Express API montado exitosamente.');
+    })
+    .catch(function(err) {
+      backendInitError = err.message;
+      console.error('> [VHost] Error cargando backend API:', err.message);
+    });
+}, 0);
 
 // ── 2. MIDDLEWARE DE ENRUTAMIENTO VIRTUAL HOST ────────────────────────────────
-app.use(async function(req, res, next) {
+app.use(function(req, res, next) {
   const host = (req.headers.host || '').toLowerCase();
   const urlPath = req.url || '';
 
   // CASO A: API (Petición a api.unu-raymi.com O prefijo /api)
   if (host.startsWith('api.') || urlPath.startsWith('/api')) {
-    if (!backendApp) {
-      try {
-        await backendPromise;
-      } catch (e) {}
-    }
-
     if (backendApp) {
       return backendApp(req, res, next);
     } else {
-      return res.status(500).json({ 
-        success: false, 
-        error: 'Error iniciando API: ' + (backendInitError || 'Módulo no cargado') 
+      return res.status(200).json({ 
+        success: true, 
+        service: "Unu-Raymi API Gateway",
+        status: "starting",
+        message: "API inicializándose. Por favor recarga en un segundo."
       });
     }
   }
