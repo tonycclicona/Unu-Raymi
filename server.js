@@ -197,6 +197,9 @@ app.use(function(req, res) {
     if (fs.existsSync(frontendIndex)) return res.sendFile(frontendIndex);
   }
 
+  res.status(200).send('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Unu-Raymi</title></head><body><div id="root">Cargando Unu-Raymi...</div></body></html>');
+});
+
 function startServer() {
   if (typeof port === 'string' && port.toLowerCase() === 'passenger') {
     // Cuando Passenger inyecta 'passenger', se llama a app.listen('passenger')
