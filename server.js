@@ -50,6 +50,22 @@ const adminDir = path.resolve(__dirname, 'admin/out');
 console.log('> [Server] Frontend dir:', frontendDir);
 console.log('> [Server] Admin dir:', adminDir);
 
+// ── Sincronizar frontend/out a public_html en tiempo de ejecución ────────────
+try {
+  const pubTargets = [
+    path.resolve(__dirname, 'public_html'),
+    '/home/u209525223/domains/unu-raymi.com/public_html'
+  ];
+  pubTargets.forEach(target => {
+    if (fs.existsSync(target) && fs.existsSync(frontendDir) && target !== frontendDir) {
+      fs.cpSync(frontendDir, target, { recursive: true });
+      console.log('> [Server] Synchronized frontend files to:', target);
+    }
+  });
+} catch (e) {
+  console.error('> [Server] Warning syncing to public_html:', e.message);
+}
+
 // ── 1. CARGAR BACKEND API (ASÍNCRONO) ─────────────────────────────────────────
 let backendApp = null;
 const backendPath = fs.existsSync(path.resolve(__dirname, 'backend/dist/server.js'))
