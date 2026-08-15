@@ -1,35 +1,17 @@
 // ==============================================================================
-// server.js — Unified Entry Point for Hostinger Node.js (LiteSpeed lsnode.js)
-//
-// IMPORTANT: Hostinger LiteSpeed loads this file via require(), NOT import().
-// Therefore this file MUST be CommonJS-compatible:
-//   - No top-level await
-//   - No import statements
-//   - Use require() and async function wrapper instead
+// server.js — Centralized Unified Entry Point (Virtual Host Engine)
+// Handles: unu-raymi.com (Frontend), admin.unu-raymi.com (Admin), api.unu-raymi.com (Backend API)
 // ==============================================================================
 
 'use strict';
 
 const fs = require('fs');
 const path = require('path');
-const { createRequire } = require('module');
+const express = require('express');
 
-let appType = (process.env.APP_TYPE || '').toLowerCase().trim();
+const app = express();
+app.disable('x-powered-by');
 
-if (!appType) {
-  const cwd = (process.cwd() || process.env.PWD || __dirname).toLowerCase();
-  if (cwd.includes('admin')) {
-    appType = 'admin';
-  } else if (cwd.includes('api') || cwd.includes('backend')) {
-    appType = 'backend';
-  } else {
-    appType = 'frontend';
-  }
-}
-
-console.log('> Initialized appType: [' + appType.toUpperCase() + '] in root server.js');
-
-// Capturar el puerto nativo inyectado por Hostinger ANTES de cargar cualquier archivo .env
 const hostingerPort = process.env.PORT;
 
 function loadEnvFile(filePath) {
@@ -47,22 +29,22 @@ function loadEnvFile(filePath) {
                 (val.startsWith("'") && val.endsWith("'"))) {
               val = val.substring(1, val.length - 1);
             }
-            // NO sobreescribir el PORT que Hostinger asignó al proceso
-            if (key === 'PORT' && hostingerPort) {
-              return;
-            }
+            if (key === 'PORT' && hostingerPort) return;
             if (!process.env[key]) {
               process.env[key] = val;
             }
           }
         }
       });
-      console.log('> Loaded environment variables from: ' + filePath);
-    } catch (err) {
-      console.error('Warning: Failed to load env file ' + filePath + ':', err.message);
-    }
+    } catch (err) {}
   }
 }
+
+// Cargar variables de entorno principales
+loadEnvFile(path.resolve(__dirname, '.env.production'));
+loadEnvFile(path.resolve(__dirname, '.env'));
+loadEnvFile(path.resolve(__dirname, 'backend/.env.production'));
+loadEnvFile(path.resolve(__dirname, 'backend/.env'));
 
 function resolvePort() {
   const p = hostingerPort || process.env.PORT;
@@ -74,103 +56,123 @@ function resolvePort() {
   return isNaN(parsed) ? p : parsed;
 }
 
-// ── FRONTEND / ADMIN / BACKEND ─────────────────────────────────────────────
-const express = require('express');
-const app = express();
-app.disable('x-powered-by');
-
 const port = resolvePort();
 
-if (appType === 'backend') {
-  loadEnvFile(path.resolve(__dirname, 'backend/.env'));
-  const backendPath = fs.existsSync(path.resolve(__dirname, 'backend/dist/server.js'))
-    ? './backend/dist/server.js'
-    : './backend/src/server.js';
+// Resolver directorios compilados
+const frontendOut = path.resolve(__dirname, 'frontend/out');
+const adminOut = path.resolve(__dirname, 'admin/out');
 
-  console.log('> Loading backend entrypoint from: ' + backendPath);
-  module.exports = import(backendPath).then(function(m) {
-    console.log('> Backend Express app loaded successfully.');
-    return m.default || m;
+// ── 1. CARGAR BACKEND EXPRESS API ─────────────────────────────────────────────
+let backendApp = null;
+const backendPath = fs.existsSync(path.resolve(__dirname, 'backend/dist/server.js'))
+  ? './backend/dist/server.js'
+  : './backend/src/server.js';
+
+import(backendPath)
+  .then(function(m) {
+    backendApp = m.default || m;
+    console.log('> [VHost] Backend Express API montado exitosamente.');
+  })
+  .catch(function(err) {
+    console.error('> [VHost] Error cargando backend API:', err.message);
   });
-} else {
-  const subappDir = appType === 'admin' ? 'admin' : 'frontend';
-  const dir = path.resolve(__dirname, subappDir);
 
-  loadEnvFile(path.join(dir, '.env.production'));
-  loadEnvFile(path.join(dir, '.env'));
+// ── 2. MIDDLEWARE DE ENRUTAMIENTO VIRTUAL HOST ────────────────────────────────
+app.use(function(req, res, next) {
+  const host = (req.headers.host || '').toLowerCase();
+  const urlPath = req.url || '';
 
-  const outCandidates = [
-    path.join(dir, 'out'),
-    path.join(__dirname, 'out'),
-    path.join(__dirname, subappDir, 'out')
-  ];
-
-  let outDir = null;
-  for (const candidate of outCandidates) {
-    if (fs.existsSync(candidate) && fs.existsSync(path.join(candidate, 'index.html'))) {
-      outDir = candidate;
-      break;
+  // CASO A: API (Petición a api.unu-raymi.com O prefijo /api)
+  if (host.startsWith('api.') || urlPath.startsWith('/api')) {
+    if (backendApp) {
+      return backendApp(req, res, next);
+    } else {
+      return res.status(503).json({ success: false, error: 'API inicializándose. Por favor recarga en un segundo.' });
     }
   }
 
-  if (outDir) {
-    console.log('> [Express Static] Serving from:', outDir);
-    app.use(express.static(outDir, { extensions: ['html'] }));
-    
-    app.use(function(req, res) {
-      const parsedPath = req.path.replace(/^\/+|\/+$/g, '');
-      const segments = parsedPath.split('/');
-      
-      // Intentar encontrar un HTML específico para la sub-ruta (ej. /tours/[id]/editar -> tours/1/editar.html o tours/1/editar/index.html)
-      if (segments.length >= 3 && segments[0] === 'tours' && segments[2] === 'editar') {
-        const candidateEditFile = path.join(outDir, 'tours', '1', 'editar.html');
-        const candidateEditIndex = path.join(outDir, 'tours', '1', 'editar', 'index.html');
-        if (fs.existsSync(candidateEditFile)) return res.sendFile(candidateEditFile);
-        if (fs.existsSync(candidateEditIndex)) return res.sendFile(candidateEditIndex);
-      }
-      if (segments.length >= 3 && segments[0] === 'guias' && segments[2] === 'editar') {
-        const candidateEditFile = path.join(outDir, 'guias', '1', 'editar.html');
-        const candidateEditIndex = path.join(outDir, 'guias', '1', 'editar', 'index.html');
-        if (fs.existsSync(candidateEditFile)) return res.sendFile(candidateEditFile);
-        if (fs.existsSync(candidateEditIndex)) return res.sendFile(candidateEditIndex);
-      }
-      if (segments.length >= 3 && segments[0] === 'garantias' && segments[2] === 'editar') {
-        const candidateEditFile = path.join(outDir, 'garantias', '1', 'editar.html');
-        const candidateEditIndex = path.join(outDir, 'garantias', '1', 'editar', 'index.html');
-        if (fs.existsSync(candidateEditFile)) return res.sendFile(candidateEditFile);
-        if (fs.existsSync(candidateEditIndex)) return res.sendFile(candidateEditIndex);
-      }
-
-      // Si la ruta comienza con una sección (ej. /tours, /guias), intentar su archivo .html
-      if (segments[0]) {
-        const sectionHtml = path.join(outDir, `${segments[0]}.html`);
-        if (fs.existsSync(sectionHtml)) {
-          return res.sendFile(sectionHtml);
-        }
-      }
-
-      const indexPath = path.join(outDir, 'index.html');
-      if (fs.existsSync(indexPath)) {
-        return res.sendFile(indexPath);
-      }
-      res.status(404).sendFile(path.join(outDir, '404.html'));
-    });
-  } else {
-    app.use(function(req, res) {
-      res.status(200).send('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Unu-Raymi</title></head><body><div id="root">Cargando Unu-Raymi...</div></body></html>');
-    });
+  // CASO B: ADMIN (Petición a admin.unu-raymi.com O subcarpeta /admin)
+  if (host.startsWith('admin.') || urlPath.startsWith('/admin')) {
+    req.isVirtualAdmin = true;
+    return next();
   }
 
-  const serverInstance = app.listen(port, function() {
-    console.log('> ==========================================');
-    console.log('> Web App [' + appType.toUpperCase() + '] RUNNING on port:', port);
-    console.log('> Out directory:', outDir);
-    console.log('> ==========================================');
-  });
+  // CASO C: FRONTEND (unu-raymi.com o por defecto)
+  req.isVirtualFrontend = true;
+  return next();
+});
 
-  serverInstance.on('error', function(err) {
-    console.error('> [Server Error] Failed to bind on port ' + port + ':', err.message);
-  });
+// ── 3. SERVIR STATIC ADMIN & FRONTEND ────────────────────────────────────────
+// Servir assets estáticos de Admin
+app.use(function(req, res, next) {
+  if (req.isVirtualAdmin && fs.existsSync(adminOut)) {
+    return express.static(adminOut, { extensions: ['html'] })(req, res, next);
+  }
+  next();
+});
 
-  module.exports = app;
-}
+// Servir assets estáticos de Frontend
+app.use(function(req, res, next) {
+  if (req.isVirtualFrontend && fs.existsSync(frontendOut)) {
+    return express.static(frontendOut, { extensions: ['html'] })(req, res, next);
+  }
+  next();
+});
+
+// ── 4. SPA FALLBACK HANDLER PARA ADMIN Y FRONTEND ─────────────────────────────
+app.use(function(req, res) {
+  const parsedPath = req.path.replace(/^\/+|\/+$/g, '');
+  const segments = parsedPath.split('/');
+
+  if (req.isVirtualAdmin && fs.existsSync(adminOut)) {
+    // Rutas dinámicas de edición de tours, guías, garantías
+    if (segments.length >= 3 && segments[0] === 'tours' && segments[2] === 'editar') {
+      const p1 = path.join(adminOut, 'tours', '1', 'editar', 'index.html');
+      const p2 = path.join(adminOut, 'tours', '1', 'editar.html');
+      if (fs.existsSync(p1)) return res.sendFile(p1);
+      if (fs.existsSync(p2)) return res.sendFile(p2);
+    }
+    if (segments.length >= 3 && segments[0] === 'guias' && segments[2] === 'editar') {
+      const p1 = path.join(adminOut, 'guias', '1', 'editar', 'index.html');
+      const p2 = path.join(adminOut, 'guias', '1', 'editar.html');
+      if (fs.existsSync(p1)) return res.sendFile(p1);
+      if (fs.existsSync(p2)) return res.sendFile(p2);
+    }
+    if (segments.length >= 3 && segments[0] === 'garantias' && segments[2] === 'editar') {
+      const p1 = path.join(adminOut, 'garantias', '1', 'editar', 'index.html');
+      const p2 = path.join(adminOut, 'garantias', '1', 'editar.html');
+      if (fs.existsSync(p1)) return res.sendFile(p1);
+      if (fs.existsSync(p2)) return res.sendFile(p2);
+    }
+
+    if (segments[0]) {
+      const sectionHtml = path.join(adminOut, `${segments[0]}.html`);
+      if (fs.existsSync(sectionHtml)) return res.sendFile(sectionHtml);
+    }
+
+    const adminIndex = path.join(adminOut, 'index.html');
+    if (fs.existsSync(adminIndex)) return res.sendFile(adminIndex);
+  }
+
+  if (req.isVirtualFrontend && fs.existsSync(frontendOut)) {
+    const frontendIndex = path.join(frontendOut, 'index.html');
+    if (fs.existsSync(frontendIndex)) return res.sendFile(frontendIndex);
+  }
+
+  res.status(200).send('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Unu-Raymi</title></head><body><div id="root">Cargando Unu-Raymi...</div></body></html>');
+});
+
+const serverInstance = app.listen(port, function() {
+  console.log('> ========================================================');
+  console.log('> [UNU-RAYMI CENTRAL ENGINE] Activo en puerto:', port);
+  console.log('> Host Frontend: unu-raymi.com');
+  console.log('> Host Admin:    admin.unu-raymi.com');
+  console.log('> Host API:      api.unu-raymi.com');
+  console.log('> ========================================================');
+});
+
+serverInstance.on('error', function(err) {
+  console.error('> [Server Error]:', err.message);
+});
+
+module.exports = app;
