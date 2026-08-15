@@ -59,11 +59,21 @@ run('npm run build', 'backend');
 // Crear un index.php dentro de public_html/api/ que actúe como PROXY DINÁMICO hacia Node.js
 try {
   let current = process.cwd();
-  for (let i = 0; i < 6; i++) {
-    const pubApiCandidate = path.join(current, 'public_html', 'api');
+  
+  // Agregar también la ruta absoluta del subdominio de Hostinger
+  const apiCandidates = [
+    '/home/u209525223/domains/api.unu-raymi.com/public_html',
+    path.join(current, 'public_html', 'api')
+  ];
+  
+  for (const pubApiCandidate of apiCandidates) {
     if (fs.existsSync(path.dirname(pubApiCandidate))) {
       try {
         fs.mkdirSync(pubApiCandidate, { recursive: true });
+        // Eliminar default.php de Hostinger si existe
+        if (fs.existsSync(path.join(pubApiCandidate, 'default.php'))) {
+            fs.unlinkSync(path.join(pubApiCandidate, 'default.php'));
+        }
         const apiIndexContent = `<?php
 // ==============================================================================
 // Unu-Raymi API Dynamic Reverse Proxy (LiteSpeed / PHP -> Node.js Gateway)
@@ -126,9 +136,6 @@ exit(0);
         console.log(`[postinstall] ✅ Created dynamic API proxy index.php in: ${pubApiCandidate}`);
       } catch (err) {}
     }
-    const parent = path.dirname(current);
-    if (parent === current) break;
-    current = parent;
   }
 } catch (e) {}
 
@@ -171,6 +178,7 @@ run('npm run build', 'admin');
 try {
   const srcOut = path.join(process.cwd(), 'admin', 'out');
   const adminTargets = [
+    '/home/u209525223/domains/admin.unu-raymi.com/public_html',
     path.join(process.cwd(), 'public_html', 'admin'),
     '/home/u209525223/domains/unu-raymi.com/public_html/admin',
     '/home/u209525223/public_html/admin'
@@ -178,9 +186,15 @@ try {
 
   adminTargets.forEach(target => {
     try {
-      fs.mkdirSync(target, { recursive: true });
-      fs.cpSync(srcOut, target, { recursive: true });
-      console.log(`[postinstall] ✅ Copied admin static export to: ${target}`);
+      if (fs.existsSync(path.dirname(target))) {
+        fs.mkdirSync(target, { recursive: true });
+        // Eliminar default.php si existe
+        if (fs.existsSync(path.join(target, 'default.php'))) {
+          fs.unlinkSync(path.join(target, 'default.php'));
+        }
+        fs.cpSync(srcOut, target, { recursive: true });
+        console.log(`[postinstall] ✅ Copied admin static export to: ${target}`);
+      }
     } catch (err) {}
   });
 } catch (e) {
