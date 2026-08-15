@@ -99,7 +99,25 @@ try {
   if (fs.existsSync(srcOut)) {
     fs.cpSync(srcOut, destOut, { recursive: true });
   }
-  // Copiar a public_html raíz
+
+  // Lista de posibles ubicaciones de public_html en Hostinger
+  const publicHtmlTargets = [
+    path.join(process.cwd(), 'public_html'),
+    '/home/u209525223/domains/unu-raymi.com/public_html',
+    '/home/u209525223/public_html'
+  ];
+
+  publicHtmlTargets.forEach(target => {
+    if (fs.existsSync(target) && target !== srcOut) {
+      try {
+        fs.cpSync(srcOut, target, { recursive: true });
+        console.log(`[postinstall] ✅ Copied frontend static export directly to: ${target}`);
+      } catch (err) {
+        console.error(`Warning: Failed to copy to ${target}:`, err.message);
+      }
+    }
+  });
+
   copyToAllPublicHtml(srcOut, 'frontend static export');
 } catch (e) {
   console.error('Warning: Failed to copy frontend build:', e.message);
@@ -110,21 +128,19 @@ console.log('[postinstall] === 3/3 ADMIN setup ===');
 run('npm run build', 'admin');
 try {
   const srcOut = path.join(process.cwd(), 'admin', 'out');
-  // Copiar a public_html/admin/ para que el subdominio admin.unu-raymi.com lo sirva directamente
-  let current = process.cwd();
-  for (let i = 0; i < 6; i++) {
-    const pubAdminCandidate = path.join(current, 'public_html', 'admin');
-    if (fs.existsSync(path.dirname(pubAdminCandidate))) {
-      try {
-        fs.mkdirSync(pubAdminCandidate, { recursive: true });
-        fs.cpSync(srcOut, pubAdminCandidate, { recursive: true });
-        console.log(`[postinstall] ✅ Copied admin static export to: ${pubAdminCandidate}`);
-      } catch (err) {}
-    }
-    const parent = path.dirname(current);
-    if (parent === current) break;
-    current = parent;
-  }
+  const adminTargets = [
+    path.join(process.cwd(), 'public_html', 'admin'),
+    '/home/u209525223/domains/unu-raymi.com/public_html/admin',
+    '/home/u209525223/public_html/admin'
+  ];
+
+  adminTargets.forEach(target => {
+    try {
+      fs.mkdirSync(target, { recursive: true });
+      fs.cpSync(srcOut, target, { recursive: true });
+      console.log(`[postinstall] ✅ Copied admin static export to: ${target}`);
+    } catch (err) {}
+  });
 } catch (e) {
   console.error('Warning: Failed to copy admin build:', e.message);
 }
