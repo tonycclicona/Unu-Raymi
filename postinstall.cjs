@@ -60,11 +60,17 @@ run('npm run build', 'backend');
 try {
   let current = process.cwd();
   
-  // Agregar también la ruta absoluta del subdominio de Hostinger
+  // Lista de posibles rutas, incluyendo absolutas de Hostinger y la búsqueda hacia arriba
   const apiCandidates = [
-    '/home/u209525223/domains/api.unu-raymi.com/public_html',
-    path.join(current, 'public_html', 'api')
+    '/home/u209525223/domains/api.unu-raymi.com/public_html'
   ];
+  
+  for (let i = 0; i < 6; i++) {
+    apiCandidates.push(path.join(current, 'public_html', 'api'));
+    const parent = path.dirname(current);
+    if (parent === current) break;
+    current = parent;
+  }
   
   for (const pubApiCandidate of apiCandidates) {
     if (fs.existsSync(path.dirname(pubApiCandidate))) {
@@ -111,7 +117,7 @@ foreach (getallheaders() as $name => $value) {
         $headers[] = "$name: $value";
     }
 }
-$headers[] = "Host: unu-raymi.com";
+$headers[] = "Host: api.unu-raymi.com";
 curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 
 if (in_array($_SERVER['REQUEST_METHOD'], ['POST', 'PUT', 'PATCH', 'DELETE'])) {
@@ -177,12 +183,19 @@ console.log('[postinstall] === 3/3 ADMIN setup ===');
 run('npm run build', 'admin');
 try {
   const srcOut = path.join(process.cwd(), 'admin', 'out');
+  let adminCurrent = process.cwd();
   const adminTargets = [
     '/home/u209525223/domains/admin.unu-raymi.com/public_html',
-    path.join(process.cwd(), 'public_html', 'admin'),
     '/home/u209525223/domains/unu-raymi.com/public_html/admin',
     '/home/u209525223/public_html/admin'
   ];
+
+  for (let i = 0; i < 6; i++) {
+    adminTargets.push(path.join(adminCurrent, 'public_html', 'admin'));
+    const parent = path.dirname(adminCurrent);
+    if (parent === adminCurrent) break;
+    adminCurrent = parent;
+  }
 
   adminTargets.forEach(target => {
     try {
