@@ -82,30 +82,42 @@ console.log('> [VHost] Admin Out Dir:', adminOut);
 
 // ── 1. CARGAR BACKEND EXPRESS API ─────────────────────────────────────────────
 let backendApp = null;
+let backendInitError = null;
+
 const backendPath = fs.existsSync(path.resolve(__dirname, 'backend/dist/server.js'))
   ? './backend/dist/server.js'
   : './backend/src/server.js';
 
-import(backendPath)
+const backendPromise = import(backendPath)
   .then(function(m) {
     backendApp = m.default || m;
     console.log('> [VHost] Backend Express API montado exitosamente.');
   })
   .catch(function(err) {
+    backendInitError = err.message;
     console.error('> [VHost] Error cargando backend API:', err.message);
   });
 
 // ── 2. MIDDLEWARE DE ENRUTAMIENTO VIRTUAL HOST ────────────────────────────────
-app.use(function(req, res, next) {
+app.use(async function(req, res, next) {
   const host = (req.headers.host || '').toLowerCase();
   const urlPath = req.url || '';
 
   // CASO A: API (Petición a api.unu-raymi.com O prefijo /api)
   if (host.startsWith('api.') || urlPath.startsWith('/api')) {
+    if (!backendApp) {
+      try {
+        await backendPromise;
+      } catch (e) {}
+    }
+
     if (backendApp) {
       return backendApp(req, res, next);
     } else {
-      return res.status(503).json({ success: false, error: 'API inicializándose. Por favor recarga en un segundo.' });
+      return res.status(500).json({ 
+        success: false, 
+        error: 'Error iniciando API: ' + (backendInitError || 'Módulo no cargado') 
+      });
     }
   }
 
@@ -180,17 +192,22 @@ app.use(function(req, res) {
   res.status(200).send('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Unu-Raymi</title></head><body><div id="root">Cargando Unu-Raymi...</div></body></html>');
 });
 
-const serverInstance = app.listen(port, function() {
-  console.log('> ========================================================');
-  console.log('> [UNU-RAYMI CENTRAL ENGINE] Activo en puerto:', port);
-  console.log('> Host Frontend: unu-raymi.com');
-  console.log('> Host Admin:    admin.unu-raymi.com');
-  console.log('> Host API:      api.unu-raymi.com');
-  console.log('> ========================================================');
-});
+// En entornos Phusion Passenger / Hostinger lsnode, module.exports = app es obligatorio
+if (typeof PhusionPassenger !== 'undefined' || port === 'passenger') {
+  console.log('> [UNU-RAYMI CENTRAL ENGINE] Running under Phusion Passenger / LiteSpeed');
+} else {
+  const serverInstance = app.listen(port, function() {
+    console.log('> ========================================================');
+    console.log('> [UNU-RAYMI CENTRAL ENGINE] Activo en puerto:', port);
+    console.log('> Host Frontend: unu-raymi.com');
+    console.log('> Host Admin:    admin.unu-raymi.com');
+    console.log('> Host API:      api.unu-raymi.com');
+    console.log('> ========================================================');
+  });
 
-serverInstance.on('error', function(err) {
-  console.error('> [Server Error]:', err.message);
-});
+  serverInstance.on('error', function(err) {
+    console.error('> [Server Error]:', err.message);
+  });
+}
 
 module.exports = app;
