@@ -58,9 +58,27 @@ function resolvePort() {
 
 const port = resolvePort();
 
-// Resolver directorios compilados
-const frontendOut = path.resolve(__dirname, 'frontend/out');
-const adminOut = path.resolve(__dirname, 'admin/out');
+// Resolver directorios compilados con fallbacks
+function resolveOutDir(subapp) {
+  const candidates = [
+    path.resolve(__dirname, subapp, 'out'),
+    path.resolve(__dirname, 'out'),
+    path.resolve(__dirname, 'public_html', subapp),
+    path.resolve(__dirname, 'public_html')
+  ];
+  for (const c of candidates) {
+    if (fs.existsSync(path.join(c, 'index.html'))) {
+      return c;
+    }
+  }
+  return path.resolve(__dirname, subapp, 'out');
+}
+
+const frontendOut = resolveOutDir('frontend');
+const adminOut = resolveOutDir('admin');
+
+console.log('> [VHost] Frontend Out Dir:', frontendOut);
+console.log('> [VHost] Admin Out Dir:', adminOut);
 
 // ── 1. CARGAR BACKEND EXPRESS API ─────────────────────────────────────────────
 let backendApp = null;

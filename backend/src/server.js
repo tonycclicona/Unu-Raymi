@@ -174,11 +174,13 @@ app.use((req, res) => {
 // ── Manejador Global de Errores (DEBE ir al final) ───────────
 app.use(errorHandler);
 
-// ── Iniciar servidor ─────────────────────────────────────────
-app.listen(PORT, () => {
-  console.log(`\n🚀 Unu-Raymi API corriendo en http://localhost:${PORT}`);
-  console.log(`📡 Health check: http://localhost:${PORT}/api/health`);
-  console.log(`🌍 Entorno: ${process.env.NODE_ENV || "development"}\n`);
-});
+// ── Iniciar servidor solo si se ejecuta como proceso independiente ──
+if (process.env.APP_TYPE === 'backend' || process.argv[1]?.endsWith('backend/src/server.js')) {
+  app.listen(PORT, () => {
+    console.log(`\n🚀 Unu-Raymi API corriendo en http://localhost:${PORT}`);
+    console.log(`📡 Health check: http://localhost:${PORT}/api/health`);
+    console.log(`🌍 Entorno: ${process.env.NODE_ENV || "development"}\n`);
+  });
+}
 
 export default app;
