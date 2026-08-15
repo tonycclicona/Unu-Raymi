@@ -12,6 +12,7 @@ const express = require('express');
 const app = express();
 app.disable('x-powered-by');
 
+// Capturar el puerto nativo inyectado por Hostinger
 const hostingerPort = process.env.PORT;
 
 function loadEnvFile(filePath) {
@@ -40,7 +41,7 @@ function loadEnvFile(filePath) {
   }
 }
 
-// Cargar variables de entorno principales
+// Cargar variables de entorno
 loadEnvFile(path.resolve(__dirname, '.env.production'));
 loadEnvFile(path.resolve(__dirname, '.env'));
 loadEnvFile(path.resolve(__dirname, 'backend/.env.production'));
