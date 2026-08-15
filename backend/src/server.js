@@ -49,24 +49,24 @@ app.use(async (req, res, next) => {
   next();
 });
 
-// ── Middlewares Globales ─────────────────────────────────────
-
 // CORS: permitir solicitudes desde los distintos orígenes del frontend y panel de administración
-const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(",")
-  : [
-      process.env.FRONTEND_URL || "http://localhost:3000",
-      "http://localhost:3001", // Puerto alternativo de desarrollo
-    ];
-
 app.use(
   cors({
-    origin: allowedOrigins,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    origin: function(origin, callback) {
+      if (!origin) return callback(null, true);
+      if (origin.includes('unu-raymi.com') || origin.includes('localhost') || origin.includes('127.0.0.1')) {
+        return callback(null, true);
+      }
+      return callback(null, true); // En producción permitir todas las llamadas autenticadas
+    },
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
     credentials: true,
   })
 );
+
+// Responder inmediatamente a peticiones preflight OPTIONS
+app.options("*", cors());
 
 // Trust proxy: necesario detrás del reverse proxy de Hostinger (LiteSpeed)
 if (isProduction) {

@@ -81,8 +81,17 @@ import(backendPath)
     console.error('> [Server] Error backend API:', err.message);
   });
 
-// ── 2. RUTEO DE API ──────────────────────────────────────────────────────────
+// ── 2. RUTEO DE API Y CABECERAS CORS ─────────────────────────────────────────
 app.use(function(req, res, next) {
+  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS,PATCH');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+
   const host = (req.headers.host || '').toLowerCase();
   if (host.startsWith('api.') || req.url.startsWith('/api')) {
     if (backendApp) {
