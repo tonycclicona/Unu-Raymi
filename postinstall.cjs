@@ -84,7 +84,9 @@ if (strpos($requestUri, '/api') !== 0) {
     $requestUri = '/api' . $requestUri;
 }
 
-$targetUrl = 'https://unu-raymi.com' . $requestUri;
+// En Hostinger, el Node.js (backend) suele correr en un puerto local.
+// Asumiendo que el puerto por defecto es 4000 como en server.js
+$targetUrl = 'http://127.0.0.1:4000' . $requestUri;
 
 $ch = curl_init($targetUrl);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);

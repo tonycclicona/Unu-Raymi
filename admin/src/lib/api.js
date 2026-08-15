@@ -1,8 +1,10 @@
-export const API_BASE_URL = typeof window !== 'undefined' && window.location.hostname.includes('unu-raymi.com')
-  ? 'https://unu-raymi.com/api'
-  : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api');
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 
+  (typeof window !== 'undefined' && window.location.hostname.includes('unu-raymi.com') 
+    ? 'https://api.unu-raymi.com/api' 
+    : 'http://localhost:4000/api');
 
-export const API_ASSETS_URL = 'https://unu-raymi.com';
+export const API_ASSETS_URL = process.env.NEXT_PUBLIC_API_ASSETS_URL || 
+  API_BASE_URL.replace(/\/api$/, '');
 
 function getCookie(name) {
   if (typeof document === 'undefined') return null;
@@ -51,19 +53,21 @@ export async function mutateApi(url, { method = 'POST', body } = {}) {
     const res = await fetch(`${API_BASE_URL}${url}`, options);
     const data = await res.json().catch(() => ({}));
     if (res.ok) return data;
-    if (res.status === 401 || res.status === 400) {
-      throw new Error(data.error || 'Credenciales incorrectas');
-    }
-  } catch (err) {
-    if (err.message === 'Credenciales incorrectas') throw err;
     
-    // Intento 2: Fallback vía Gateway Principal https://unu-raymi.com/api
+    // Si no es ok, lanzamos error para que no retorne undefined
+    throw new Error(data.error || `Error en la petición: ${res.status}`);
+  } catch (err) {
+    if (err.message && (err.message.includes('Credenciales incorrectas') || err.message.includes('Error en la petición'))) {
+      throw err;
+    }
+    
+    // Intento 2: Fallback vía Gateway Principal https://api.unu-raymi.com/api
     try {
-      const fallbackUrl = `https://unu-raymi.com/api${url}`;
+      const fallbackUrl = `https://api.unu-raymi.com/api${url}`;
       const resFallback = await fetch(fallbackUrl, options);
       const dataFallback = await resFallback.json().catch(() => ({}));
       if (resFallback.ok) return dataFallback;
-      throw new Error(dataFallback.error || 'Credenciales incorrectas');
+      throw new Error(dataFallback.error || `Error en la petición: ${resFallback.status}`);
     } catch (fallbackErr) {
       throw fallbackErr;
     }
