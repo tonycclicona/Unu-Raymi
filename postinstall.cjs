@@ -111,7 +111,8 @@ $contentType = '';
 
 $headers = [];
 foreach (getallheaders() as $name => $value) {
-    if (strtolower($name) !== 'host') {
+    $lower = strtolower($name);
+    if ($lower !== 'host' && $lower !== 'accept-encoding' && $lower !== 'content-length') {
         $headers[] = "$name: $value";
     }
 }
@@ -129,6 +130,7 @@ foreach ($targets as $baseTarget) {
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
     curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+    curl_setopt($ch, CURLOPT_ENCODING, ''); // Decodifica gzip/deflate/br automáticamente
     curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 3);
     curl_setopt($ch, CURLOPT_TIMEOUT, 15);
     
