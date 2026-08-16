@@ -144,8 +144,8 @@ app.use(function(req, res) {
   res.status(200).send('<!DOCTYPE html><html><head><title>Unu-Raymi</title></head><body>Unu-Raymi</body></html>');
 });
 
-// En entornos Hostinger LiteSpeed
-const port = process.env.PORT || 3000;
+// En entornos Hostinger LiteSpeed / Node.js
+const port = process.env.PORT || 4000;
 const server = app.listen(port, function() {
   console.log('> [Server] Unu-Raymi corriendo en puerto:', port);
 });
