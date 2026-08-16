@@ -66,16 +66,17 @@ try {
   console.error('> [Server] Warning syncing to public_html:', e.message);
 }
 
-// ── 1. CARGAR BACKEND API (ASÍNCRONO) ─────────────────────────────────────────
+// ── 1. CARGAR BACKEND API (ASÍNCRONO CON PATH TO FILE URL) ────────────────────
+const { pathToFileURL } = require('url');
 let backendApp = null;
-const backendPath = fs.existsSync(path.resolve(__dirname, 'backend/dist/server.js'))
-  ? './backend/dist/server.js'
-  : './backend/src/server.js';
+const resolvedBackendPath = fs.existsSync(path.resolve(__dirname, 'backend/dist/server.js'))
+  ? path.resolve(__dirname, 'backend/dist/server.js')
+  : path.resolve(__dirname, 'backend/src/server.js');
 
-import(backendPath)
+import(pathToFileURL(resolvedBackendPath).href)
   .then(function(m) {
     backendApp = m.default || m;
-    console.log('> [Server] Backend API montado exitosamente.');
+    console.log('> [Server] Backend API montado exitosamente desde:', resolvedBackendPath);
   })
   .catch(function(err) {
     console.error('> [Server] Error backend API:', err.message);
