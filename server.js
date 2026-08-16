@@ -69,13 +69,13 @@ try {
 // ── 1. CARGAR BACKEND API (ASÍNCRONO CON PATH TO FILE URL) ────────────────────
 const { pathToFileURL } = require('url');
 let backendApp = null;
-const resolvedBackendPath = fs.existsSync(path.resolve(__dirname, 'backend/dist/server.js'))
-  ? path.resolve(__dirname, 'backend/dist/server.js')
-  : path.resolve(__dirname, 'backend/src/server.js');
+const resolvedBackendPath = fs.existsSync(path.resolve(__dirname, 'backend/src/server.js'))
+  ? path.resolve(__dirname, 'backend/src/server.js')
+  : path.resolve(__dirname, 'backend/dist/server.js');
 
 import(pathToFileURL(resolvedBackendPath).href)
   .then(function(m) {
-    backendApp = m.default || m;
+    backendApp = m.default || m.app || m;
     console.log('> [Server] Backend API montado exitosamente desde:', resolvedBackendPath);
   })
   .catch(function(err) {
@@ -95,7 +95,7 @@ app.use(function(req, res, next) {
 
   const host = (req.headers.host || '').toLowerCase();
   if (host.startsWith('api.') || req.url.startsWith('/api')) {
-    if (backendApp) {
+    if (typeof backendApp === 'function') {
       // Si la petición viene a api.unu-raymi.com/auth/login (sin prefijo /api), prefijarla para que Express la reconozca
       if (host.startsWith('api.') && !req.url.startsWith('/api')) {
         req.url = '/api' + req.url;

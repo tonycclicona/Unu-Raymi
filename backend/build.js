@@ -7,4 +7,4 @@ if (!fs.existsSync('dist')) {
   fs.mkdirSync('dist', { recursive: true });
 }
 fs.cpSync('src', 'dist/src', { recursive: true });
-fs.writeFileSync('dist/server.js', "import('./src/server.js');\n");
+fs.writeFileSync('dist/server.js', "export { default } from './src/server.js';\nexport * from './src/server.js';\n");

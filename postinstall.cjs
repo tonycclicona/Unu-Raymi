@@ -100,7 +100,11 @@ if (strpos($requestUri, '/api') !== 0) {
     $requestUri = '/api' . $requestUri;
 }
 
-$ports = [4000, 3000, 8080];
+$targets = [
+    'http://127.0.0.1:4000',
+    'http://127.0.0.1:3000',
+    'https://unu-raymi.com'
+];
 $response = false;
 $httpCode = 0;
 $contentType = '';
@@ -111,24 +115,30 @@ foreach (getallheaders() as $name => $value) {
         $headers[] = "$name: $value";
     }
 }
-$headers[] = "Host: api.unu-raymi.com";
 
 $body = null;
 if (in_array($_SERVER['REQUEST_METHOD'], ['POST', 'PUT', 'PATCH', 'DELETE'])) {
     $body = file_get_contents('php://input');
 }
 
-foreach ($ports as $port) {
-    $targetUrl = 'http://127.0.0.1:' . $port . $requestUri;
+foreach ($targets as $baseTarget) {
+    $targetUrl = $baseTarget . $requestUri;
     $ch = curl_init($targetUrl);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $_SERVER['REQUEST_METHOD']);
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
     curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 3);
     curl_setopt($ch, CURLOPT_TIMEOUT, 15);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+    
+    $reqHeaders = $headers;
+    if (strpos($baseTarget, 'unu-raymi.com') !== false) {
+        $reqHeaders[] = "Host: unu-raymi.com";
+    } else {
+        $reqHeaders[] = "Host: api.unu-raymi.com";
+    }
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $reqHeaders);
 
     if ($body !== null) {
         curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
@@ -139,7 +149,7 @@ foreach ($ports as $port) {
     $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
     curl_close($ch);
 
-    if ($httpCode > 0 && $response !== false) {
+    if ($httpCode >= 200 && $httpCode < 500 && $response !== false) {
         break;
     }
 }
