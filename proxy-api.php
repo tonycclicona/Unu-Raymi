@@ -36,8 +36,34 @@ foreach (getallheaders() as $name => $value) {
     }
 }
 
+$isMultipart = !empty($_FILES) || (isset($_SERVER['CONTENT_TYPE']) && strpos(strtolower($_SERVER['CONTENT_TYPE']), 'multipart/form-data') !== false);
+$postFields = null;
 $body = null;
-if (in_array($_SERVER['REQUEST_METHOD'], ['POST', 'PUT', 'PATCH', 'DELETE'])) {
+
+if ($isMultipart) {
+    $postFields = $_POST;
+    foreach ($_FILES as $field => $fileData) {
+        if (is_array($fileData['tmp_name'])) {
+            foreach ($fileData['tmp_name'] as $idx => $tmpName) {
+                if (!empty($tmpName) && is_uploaded_file($tmpName) && $fileData['error'][$idx] === UPLOAD_ERR_OK) {
+                    $postFields[$field . '[' . $idx . ']'] = new CURLFile(
+                        $tmpName,
+                        $fileData['type'][$idx] ?: 'application/octet-stream',
+                        $fileData['name'][$idx]
+                    );
+                }
+            }
+        } else {
+            if (!empty($fileData['tmp_name']) && is_uploaded_file($fileData['tmp_name']) && $fileData['error'] === UPLOAD_ERR_OK) {
+                $postFields[$field] = new CURLFile(
+                    $fileData['tmp_name'],
+                    $fileData['type'] ?: 'application/octet-stream',
+                    $fileData['name']
+                );
+            }
+        }
+    }
+} else if (in_array($_SERVER['REQUEST_METHOD'], ['POST', 'PUT', 'PATCH', 'DELETE'])) {
     $body = file_get_contents('php://input');
 }
 
@@ -51,7 +77,7 @@ foreach ($targets as $baseTarget) {
     curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
     curl_setopt($ch, CURLOPT_ENCODING, ''); // Decodifica gzip/deflate/br automáticamente
     curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 3);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
     
     $reqHeaders = $headers;
     if (strpos($baseTarget, 'unu-raymi.com') !== false) {
@@ -59,10 +85,19 @@ foreach ($targets as $baseTarget) {
     } else {
         $reqHeaders[] = "Host: api.unu-raymi.com";
     }
-    curl_setopt($ch, CURLOPT_HTTPHEADER, $reqHeaders);
 
-    if ($body !== null) {
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
+    if ($isMultipart) {
+        $filteredHeaders = array_filter($reqHeaders, function($h) {
+            $lh = strtolower($h);
+            return strpos($lh, 'content-type:') !== 0 && strpos($lh, 'content-length:') !== 0;
+        });
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array_values($filteredHeaders));
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $postFields);
+    } else {
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $reqHeaders);
+        if ($body !== null) {
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
+        }
     }
 
     $response = curl_exec($ch);
