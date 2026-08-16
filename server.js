@@ -94,10 +94,10 @@ app.use(function(req, res, next) {
   }
 
   const host = (req.headers.host || '').toLowerCase();
-  if (host.startsWith('api.') || req.url.startsWith('/api')) {
+  if (host.startsWith('api.') || req.url.startsWith('/api') || req.url.startsWith('/uploads')) {
     if (typeof backendApp === 'function') {
-      // Si la petición viene a api.unu-raymi.com/auth/login (sin prefijo /api), prefijarla para que Express la reconozca
-      if (host.startsWith('api.') && !req.url.startsWith('/api')) {
+      // Si la petición viene a api.unu-raymi.com/auth/login (sin prefijo /api y no es uploads), prefijarla para que Express la reconozca
+      if (host.startsWith('api.') && !req.url.startsWith('/api') && !req.url.startsWith('/uploads')) {
         req.url = '/api' + req.url;
       }
       return backendApp(req, res, next);

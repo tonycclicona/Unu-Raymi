@@ -39,12 +39,16 @@ let dbInitPromise = ensureTablesExist()
     console.error("⚠️ [initDb] Error inicializando tablas:", err.message);
   });
 
-// Middleware para asegurar que la inicialización de tablas termine antes de procesar mutaciones
+// Middleware para asegurar que la inicialización de tablas termine y se reintente si falló al arrancar
 app.use(async (req, res, next) => {
   if (!dbInitialized) {
     try {
-      await dbInitPromise;
-    } catch (e) {}
+      await ensureTablesExist();
+      dbInitialized = true;
+      console.log("✅ [initDb] Esquema MySQL sincronizado exitosamente bajo demanda.");
+    } catch (e) {
+      console.error("⚠️ [initDb] Reintento de sincronización de tablas falló:", e.message);
+    }
   }
   next();
 });
@@ -86,23 +90,19 @@ app.use((req, res, next) => {
 });
 
 // ── WEBHOOK (ANTES de express.json) ─────────────────────────
-// CRÍTICO: Stripe necesita el body crudo (Buffer) para verificar
-// la firma HMAC-SHA256. Si express.json() parsea el body primero,
-// la firma no coincidirá y todos los webhooks serán rechazados.
-// rawBodyParser está aplicado a nivel de ruta dentro de webhookRoutes.
 app.use("/api/webhooks", webhookRoutes);
 
 // Parser de JSON con límite de tamaño razonable
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
-// Servir carpeta de subidas estáticamente (ruta absoluta para producción)
+// Servir carpeta de subidas estáticamente (tanto en /uploads como en /api/uploads)
 const uploadsPath = process.env.UPLOADS_PATH
   ? resolve(process.env.UPLOADS_PATH)
   : resolve(__dirname, "../storage/uploads");
 
-app.use("/uploads", express.static(uploadsPath, {
-  maxAge: isProduction ? "7d" : 0, // Cache de 7 días en producción
+app.use(["/uploads", "/api/uploads"], express.static(uploadsPath, {
+  maxAge: isProduction ? "7d" : 0,
 }));
 
 // ── Health & Root Check ───────────────────────────────────────
