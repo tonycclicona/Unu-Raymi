@@ -100,16 +100,10 @@ if (strpos($requestUri, '/api') !== 0) {
     $requestUri = '/api' . $requestUri;
 }
 
-// En Hostinger, el Node.js (backend) suele correr en un puerto local.
-// Asumiendo que el puerto por defecto es 4000 como en server.js
-$targetUrl = 'http://127.0.0.1:4000' . $requestUri;
-
-$ch = curl_init($targetUrl);
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $_SERVER['REQUEST_METHOD']);
-curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+$ports = [4000, 3000, 8080];
+$response = false;
+$httpCode = 0;
+$contentType = '';
 
 $headers = [];
 foreach (getallheaders() as $name => $value) {
@@ -118,28 +112,70 @@ foreach (getallheaders() as $name => $value) {
     }
 }
 $headers[] = "Host: api.unu-raymi.com";
-curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 
+$body = null;
 if (in_array($_SERVER['REQUEST_METHOD'], ['POST', 'PUT', 'PATCH', 'DELETE'])) {
     $body = file_get_contents('php://input');
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
 }
 
-$response = curl_exec($ch);
-$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-$contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
+foreach ($ports as $port) {
+    $targetUrl = 'http://127.0.0.1:' . $port . $requestUri;
+    $ch = curl_init($targetUrl);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $_SERVER['REQUEST_METHOD']);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 
-curl_close($ch);
+    if ($body !== null) {
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
+    }
 
-if ($contentType) {
-    header("Content-Type: $contentType");
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
+    curl_close($ch);
+
+    if ($httpCode > 0 && $response !== false) {
+        break;
+    }
 }
-http_response_code($httpCode ?: 200);
-echo $response;
+
+if ($httpCode > 0 && $response !== false) {
+    if ($contentType) {
+        header("Content-Type: $contentType");
+    }
+    http_response_code($httpCode);
+    echo $response;
+    exit(0);
+}
+
+header("Content-Type: application/json; charset=UTF-8");
+http_response_code(502);
+echo json_encode([
+    "success" => false,
+    "error" => "El servidor Node.js de Unu-Raymi no está respondiendo en los puertos locales (4000/3000). Asegúrate de iniciar la aplicación Node.js en el panel de Hostinger.",
+    "path" => $requestUri,
+    "timestamp" => date("c")
+]);
 exit(0);
 `;
         fs.writeFileSync(path.join(pubApiCandidate, 'index.php'), apiIndexContent);
-        console.log(`[postinstall] ✅ Created dynamic API proxy index.php in: ${pubApiCandidate}`);
+        
+        const apiHtaccessContent = `<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteBase /
+RewriteRule ^index\\.php$ - [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.php [L]
+</IfModule>
+`;
+        fs.writeFileSync(path.join(pubApiCandidate, '.htaccess'), apiHtaccessContent);
+        console.log(`[postinstall] ✅ Created dynamic API proxy index.php & .htaccess in: ${pubApiCandidate}`);
       } catch (err) {}
     }
   }
@@ -206,7 +242,20 @@ try {
           fs.unlinkSync(path.join(target, 'default.php'));
         }
         fs.cpSync(srcOut, target, { recursive: true });
-        console.log(`[postinstall] ✅ Copied admin static export to: ${target}`);
+        
+        const adminHtaccess = `<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteBase /
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME}/index.html -f
+RewriteRule ^(.*)$ $1/index.html [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ /index.html [L]
+</IfModule>
+`;
+        fs.writeFileSync(path.join(target, '.htaccess'), adminHtaccess);
+        console.log(`[postinstall] ✅ Copied admin static export and created .htaccess in: ${target}`);
       }
     } catch (err) {}
   });
