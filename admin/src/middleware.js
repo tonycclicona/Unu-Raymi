@@ -3,15 +3,16 @@ import { NextResponse } from 'next/server';
 export function middleware(request) {
   const token = request.cookies.get('session_token')?.value;
   const { pathname } = request.nextUrl;
+  const cleanPath = pathname.replace(/\/$/, '') || '/';
 
   // 1. Si no hay token y se intenta acceder a una ruta protegida
-  if (!token && pathname !== '/login') {
-    const loginUrl = new URL('/login', request.url);
+  if (!token && cleanPath !== '/login') {
+    const loginUrl = new URL('/login/', request.url);
     return NextResponse.redirect(loginUrl);
   }
 
   // 2. Si ya hay token e intenta acceder al login, redirigir al Dashboard
-  if (token && pathname === '/login') {
+  if (token && cleanPath === '/login') {
     const dashboardUrl = new URL('/', request.url);
     return NextResponse.redirect(dashboardUrl);
   }
