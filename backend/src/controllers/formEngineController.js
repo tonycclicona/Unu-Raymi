@@ -236,6 +236,16 @@ export async function submitPassengerEvaluations(req, res) {
 // ENDPOINTS PARA EL PANEL DE ADMINISTRACIÓN
 // ─────────────────────────────────────────────
 
+const safeJsonParse = (str, fallback = null) => {
+  if (!str) return fallback;
+  if (typeof str === 'object') return str;
+  try {
+    return JSON.parse(str);
+  } catch {
+    return fallback;
+  }
+};
+
 /**
  * Listar preguntas y su configuración (Admin)
  */
@@ -247,12 +257,13 @@ export async function getQuestionsAdmin(req, res) {
 
     const formatted = preguntas.map((q) => ({
       ...q,
-      opciones: q.opciones ? JSON.parse(q.opciones) : [],
-      condicionMostrar: q.condicionMostrar ? JSON.parse(q.condicionMostrar) : null,
+      opciones: safeJsonParse(q.opciones, []),
+      condicionMostrar: safeJsonParse(q.condicionMostrar, null),
     }));
 
     return res.json(formatted);
   } catch (error) {
+    console.error('Error al listar preguntas:', error.message);
     return res.status(500).json({ error: 'Error al listar preguntas.' });
   }
 }
@@ -264,8 +275,17 @@ export async function upsertQuestionAdmin(req, res) {
   try {
     const { id, codigo, seccion, preguntaText, tipoControl, opciones, orden, obligatorio, ayudaText, condicionMostrar } = req.body;
 
-    const form = await prisma.dynamicForm.findFirst({ where: { activo: true } });
-    if (!form) return res.status(400).json({ error: 'No existe un formulario activo.' });
+    let form = await prisma.dynamicForm.findFirst({ where: { activo: true } });
+    if (!form) {
+      form = await prisma.dynamicForm.create({
+        data: {
+          titulo: 'Evaluación Médica y Aptitud Física Unuraymi',
+          descripcion: 'Formulario obligatorio de seguridad y condición física antes de abordar tours de montaña y expediciones.',
+          activo: true,
+          version: 1,
+        },
+      });
+    }
 
     const payload = {
       formId: form.id,
@@ -320,11 +340,12 @@ export async function getRiskRulesAdmin(req, res) {
     const rules = await prisma.riskRule.findMany({ orderBy: { createdAt: 'desc' } });
     const formatted = rules.map((r) => ({
       ...r,
-      condicion: r.condicion ? JSON.parse(r.condicion) : {},
-      tagsRespuesta: r.tagsRespuesta ? JSON.parse(r.tagsRespuesta) : [],
+      condicion: safeJsonParse(r.condicion, {}),
+      tagsRespuesta: safeJsonParse(r.tagsRespuesta, []),
     }));
     return res.json(formatted);
   } catch (error) {
+    console.error('Error al listar reglas de riesgo:', error.message);
     return res.status(500).json({ error: 'Error al listar reglas de riesgo.' });
   }
 }
@@ -343,7 +364,7 @@ export async function upsertRiskRuleAdmin(req, res) {
       condicion: typeof condicion === 'object' ? JSON.stringify(condicion) : condicion,
       dictamenResult,
       mensajeAlerta,
-      tagsRespuesta: Array.isArray(tagsRespuesta) ? JSON.stringify(tagsRespuesta) : '[]',
+      tagsRespuesta: Array.isArray(tagsRespuesta) ? JSON.stringify(tagsRespuesta) : (typeof tagsRespuesta === 'string' ? tagsRespuesta : '[]'),
       activo: Boolean(activo),
     };
 
@@ -389,13 +410,13 @@ export async function getEvaluationsAdmin(req, res) {
 
     const formatted = evaluaciones.map((ev) => ({
       ...ev,
-      respuestasJSON: ev.respuestasJSON ? JSON.parse(ev.respuestasJSON) : {},
-      alertasGeneradas: ev.alertasGeneradas ? JSON.parse(ev.alertasGeneradas) : [],
+      respuestasJSON: safeJsonParse(ev.respuestasJSON, {}),
+      alertasGeneradas: safeJsonParse(ev.alertasGeneradas, []),
     }));
 
     return res.json(formatted);
   } catch (error) {
-    console.error('Error al listar evaluaciones:', error);
+    console.error('Error al listar evaluaciones:', error.message);
     return res.status(500).json({ error: 'Error al listar evaluaciones de pasajeros.' });
   }
 }

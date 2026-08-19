@@ -26,6 +26,8 @@ router.get('/admin/rules', getRiskRulesAdmin);
 router.post('/admin/rules', upsertRiskRuleAdmin);
 
 router.get('/admin/evaluations', getEvaluationsAdmin);
+router.get('/admin/evaluaciones', getEvaluationsAdmin);
 router.put('/admin/evaluations/:id/dictamen', updateEvaluationDictamenAdmin);
+router.put('/admin/evaluaciones/:id/dictamen', updateEvaluationDictamenAdmin);
 
 export default router;

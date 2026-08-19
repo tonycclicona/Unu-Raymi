@@ -2,9 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { ShieldCheck, AlertTriangle, CheckCircle2, FileText, Settings, Plus, Trash2, Edit3, UserCheck, RefreshCw, X, Save, CheckSquare, Square, Compass, Mountain, HeartPulse, Stethoscope, Utensils, Activity, ArrowUp, ArrowDown, ChevronRight, Layers } from 'lucide-react';
-
-const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
-const API_BASE_URL = rawApiUrl.replace(/\/api\/?$/, '') + '/api';
+import { API_BASE_URL, fetcher, mutateApi } from '@/lib/api';
 
 // CATÁLOGO TAXONÓMICO PREDETERMINADO DE PREGUNTAS MÉRICO-TÉCNICAS UNURAYMI
 const TAXONOMY_CATALOG = [
@@ -215,9 +213,9 @@ export default function EvaluationsAdminPage() {
     try {
       setLoading(true);
       const [resEval, resPreg, resReglas] = await Promise.all([
-        fetch(`${API_BASE_URL}/form-engine/admin/evaluaciones`).then((r) => r.json()),
-        fetch(`${API_BASE_URL}/form-engine/admin/questions`).then((r) => r.json()),
-        fetch(`${API_BASE_URL}/form-engine/admin/rules`).then((r) => r.json()),
+        fetcher('/form-engine/admin/evaluaciones').catch(() => fetcher('/form-engine/admin/evaluations').catch(() => [])),
+        fetcher('/form-engine/admin/questions').catch(() => []),
+        fetcher('/form-engine/admin/rules').catch(() => []),
       ]);
 
       setEvaluaciones(Array.isArray(resEval) ? resEval : []);
@@ -239,15 +237,19 @@ export default function EvaluationsAdminPage() {
     return preguntas.some((q) => q.codigo === codigo);
   };
 
-  // Alternar (Toggle) pregunta del Plan Taxonómico en la BD
+  // Alternar (Toggle) pregunta del Plan Taxonómico en la BD con actualización optimista inmediata
   const handleToggleTaxonomyQuestion = async (presetQuestion, seccionId) => {
     const existing = preguntas.find((q) => q.codigo === presetQuestion.codigo);
 
     if (existing) {
-      if (confirm(`¿Deseas quitar la pregunta "${presetQuestion.preguntaText}" del formulario activo?`)) {
-        await fetch(`${API_BASE_URL}/form-engine/admin/questions/${existing.id}`, { method: 'DELETE' });
-        fetchData();
+      // Actualización optimista: quitar inmediatamente
+      setPreguntas((prev) => prev.filter((q) => q.codigo !== presetQuestion.codigo));
+      try {
+        await mutateApi(`/form-engine/admin/questions/${existing.id}`, { method: 'DELETE' });
+      } catch (err) {
+        console.error('Error desactivando pregunta:', err);
       }
+      fetchData();
     } else {
       const payload = {
         codigo: presetQuestion.codigo,
@@ -260,13 +262,14 @@ export default function EvaluationsAdminPage() {
         opciones: presetQuestion.opciones || null,
       };
 
-      const res = await fetch(`${API_BASE_URL}/form-engine/admin/questions`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      if (res.ok) fetchData();
+      // Actualización optimista: agregar inmediatamente
+      setPreguntas((prev) => [...prev, { ...payload, id: Date.now() }]);
+      try {
+        await mutateApi('/form-engine/admin/questions', { method: 'POST', body: payload });
+      } catch (err) {
+        console.error('Error activando pregunta:', err);
+      }
+      fetchData();
     }
   };
 
@@ -370,16 +373,9 @@ export default function EvaluationsAdminPage() {
         opciones: opcionesFormatted,
       };
 
-      const res = await fetch(`${API_BASE_URL}/form-engine/admin/questions`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      if (res.ok) {
-        setEditingQuestion(null);
-        fetchData();
-      }
+      await mutateApi('/form-engine/admin/questions', { method: 'POST', body: payload });
+      setEditingQuestion(null);
+      fetchData();
     } catch (err) {
       console.error('Error guardando pregunta:', err);
     }
@@ -389,10 +385,8 @@ export default function EvaluationsAdminPage() {
   const handleDeleteQuestion = async (id) => {
     if (!confirm('¿Estás seguro de eliminar esta pregunta configurada?')) return;
     try {
-      const res = await fetch(`${API_BASE_URL}/form-engine/admin/questions/${id}`, {
-        method: 'DELETE',
-      });
-      if (res.ok) fetchData();
+      await mutateApi(`/form-engine/admin/questions/${id}`, { method: 'DELETE' });
+      fetchData();
     } catch (err) {
       console.error('Error eliminando pregunta:', err);
     }
@@ -454,16 +448,9 @@ export default function EvaluationsAdminPage() {
         activo: Boolean(rFormData.activo),
       };
 
-      const res = await fetch(`${API_BASE_URL}/form-engine/admin/rules`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      if (res.ok) {
-        setEditingRule(null);
-        fetchData();
-      }
+      await mutateApi('/form-engine/admin/rules', { method: 'POST', body: payload });
+      setEditingRule(null);
+      fetchData();
     } catch (err) {
       console.error('Error guardando regla:', err);
     }
@@ -473,18 +460,15 @@ export default function EvaluationsAdminPage() {
   const handleUpdateDictamen = async () => {
     if (!selectedEval) return;
     try {
-      const res = await fetch(`${API_BASE_URL}/form-engine/admin/evaluaciones/${selectedEval.id}/dictamen`, {
+      await mutateApi(`/form-engine/admin/evaluaciones/${selectedEval.id}/dictamen`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        body: {
           dictamenFinal: dictamenOverride || selectedEval.dictamenFinal,
           observacionesAdmin: observacionNotes,
-        }),
+        },
       });
-      if (res.ok) {
-        setSelectedEval(null);
-        fetchData();
-      }
+      setSelectedEval(null);
+      fetchData();
     } catch (err) {
       console.error('Error guardando dictamen:', err);
     }
