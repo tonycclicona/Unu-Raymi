@@ -106,7 +106,7 @@ export default function Home() {
           </div>
 
           {/* Header catálogo mobile */}
-          <div className="p-4 border-b border-[var(--border)]/40 bg-[#0e0e1a]/90  space-y-3 sticky top-[52px] z-10">
+          <div className="p-4 border-b border-[var(--border)] bg-[var(--card)]/95 backdrop-blur-md space-y-3 sticky top-[52px] z-10">
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-black text-[var(--foreground)] flex items-center gap-1.5">
                 <Compass className="w-4 h-4 text-[var(--foreground)]" />
@@ -121,7 +121,7 @@ export default function Home() {
                 {filtroPais !== 'Todos' && (
                   <button
                     onClick={() => { setFiltroPais('Todos'); setVisibleCount(6); }}
-                    className="bg-[var(--accent)]/10 text-[var(--foreground)] border border-[var(--accent)]/20 text-[9px] px-2 py-0.5 rounded-full font-bold"
+                    className="bg-[var(--accent)]/15 hover:bg-[var(--accent)] text-[var(--foreground)] hover:text-white border border-[var(--accent)]/30 text-[9px] px-2 py-0.5 rounded-full font-bold transition-all"
                   >
                     {t('catalog.clean_filter')}
                   </button>
@@ -139,7 +139,7 @@ export default function Home() {
                     onClick={() => { setFiltroCategoria(cat); setVisibleCount(6); }}
                     className={`flex-shrink-0 px-3 py-1.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider transition-all ${isSelected
                       ? 'bg-[var(--accent)] text-white shadow-md shadow-[var(--accent)]/20'
-                      : 'bg-[var(--card)]/60 text-[var(--muted-foreground)] border border-[var(--border)]/60'
+                      : 'bg-[var(--sidebar)] text-[var(--muted-foreground)] border border-[var(--border)]'
                       }`}
                   >
                     {cat === '*' ? t('catalog.category_all') : cat}
@@ -151,18 +151,18 @@ export default function Home() {
             {/* Búsqueda */}
             <div className="relative">
               <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-3.5 w-3.5 text-[var(--muted-foreground)]/80" />
+                <Search className="h-3.5 w-3.5 text-[var(--muted-foreground)]" />
               </span>
               <input
                 type="text"
                 value={busqueda}
                 onChange={(e) => { setBusqueda(e.target.value); setVisibleCount(6); }}
                 placeholder={t('catalog.search_placeholder_mobile')}
-                className="w-full pl-9 pr-8 py-2.5 bg-white border border-[var(--border)]/50 rounded-xl text-xs text-[var(--foreground)] placeholder-gray-500 focus:outline-none focus:border-[var(--accent)]/50"
+                className="w-full pl-9 pr-8 py-2.5 bg-[var(--background)] border border-[var(--border)] rounded-xl text-xs text-[var(--foreground)] placeholder-[var(--muted-foreground)] focus:outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]/30 transition-all"
               />
               {busqueda && (
                 <button onClick={() => { setBusqueda(''); setVisibleCount(6); }}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-[var(--muted-foreground)]/80">
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-[var(--muted-foreground)] hover:text-[var(--foreground)]">
                   <X className="h-3.5 w-3.5" />
                 </button>
               )}
@@ -229,8 +229,8 @@ export default function Home() {
           {/* Columna Derecha: Listado Desplazable */}
           <div className="w-[65%] xl:w-[60%] h-full flex flex-col">
             {/* Header del catálogo */}
-            <div className="p-4 lg:p-5 border-b border-[var(--border)] bg-[#dcfce7]/40 space-y-1">
-              <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-1.5">
+            <div className="p-4 lg:p-5 border-b border-[var(--border)] bg-[var(--card)]/90 backdrop-blur-md space-y-3">
+              <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-2">
                 <div>
                   <div className="flex items-center gap-2">
                     <h2 className="text-base md:text-lg font-black text-[var(--foreground)] flex items-center gap-1.5">
@@ -240,7 +240,7 @@ export default function Home() {
                     {filtroPais !== 'Todos' && (
                       <button
                         onClick={() => { setFiltroPais('Todos'); setVisibleCount(6); }}
-                        className="bg-[var(--accent)] text-[#ffffff] hover:bg-[var(--accent-hover)] hover:text-[var(--foreground)] border border-[var(--accent)]/20 text-[10px] px-2 py-0.5 rounded-full font-bold transition-all"
+                        className="bg-[var(--accent)]/15 hover:bg-[var(--accent)] text-[var(--foreground)] hover:text-white border border-[var(--accent)]/30 text-[10px] px-2.5 py-0.5 rounded-full font-bold transition-all"
                       >
                         {t('catalog.clean_filter_desktop')}
                       </button>
@@ -253,16 +253,16 @@ export default function Home() {
                   </p>
                 </div>
 
-                <div className="flex flex-wrap gap-3">
+                <div className="flex flex-wrap gap-2">
                   {['*', 'Full Days', 'Trekking', 'Trek & Climb'].map((cat) => {
                     const isSelected = filtroCategoria === cat;
                     return (
                       <button
                         key={cat}
                         onClick={() => { setFiltroCategoria(cat); setVisibleCount(6); }}
-                        className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider transition-all duration-300 ${isSelected
+                        className={`px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider transition-all duration-300 ${isSelected
                           ? 'bg-[var(--accent)] text-white shadow-md shadow-[var(--accent)]/20 scale-105'
-                          : 'bg-[var(--card)]/60 hover:bg-[var(--card)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)]/60 hover:border-[var(--accent)]/40'
+                          : 'bg-[var(--sidebar)] hover:bg-[var(--sidebar)]/80 text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)] hover:border-[var(--accent)]/40'
                           }`}
                       >
                         {cat === '*' ? t('catalog.category_all') : cat}
@@ -274,18 +274,18 @@ export default function Home() {
 
               <div className="relative">
                 <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Search className="h-3.5 w-3.5 text-[var(--muted-foreground)]/80" />
+                  <Search className="h-3.5 w-3.5 text-[var(--muted-foreground)]" />
                 </span>
                 <input
                   type="text"
                   value={busqueda}
                   onChange={(e) => { setBusqueda(e.target.value); setVisibleCount(6); }}
                   placeholder={t('catalog.search_placeholder')}
-                  className="w-full pl-9 pr-8 py-2.5 bg-white border border-[var(--border)]/50 rounded-xl text-xs md:text-sm text-[var(--foreground)] placeholder-gray-500 focus:outline-none focus:border-[var(--accent)]/50 focus:ring-1 focus:ring-[#4a5759]/30 transition-all"
+                  className="w-full pl-9 pr-8 py-2.5 bg-[var(--background)] border border-[var(--border)] rounded-xl text-xs md:text-sm text-[var(--foreground)] placeholder-[var(--muted-foreground)] focus:outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]/30 transition-all"
                 />
                 {busqueda && (
                   <button onClick={() => { setBusqueda(''); setVisibleCount(6); }}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-[var(--muted-foreground)]/80 hover:text-[var(--foreground)]">
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-[var(--muted-foreground)] hover:text-[var(--foreground)]">
                     <X className="h-3.5 w-3.5" />
                   </button>
                 )}

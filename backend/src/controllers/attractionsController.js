@@ -98,7 +98,7 @@ export async function getAttractionsPublic(req, res) {
       where,
       include: {
         tour: {
-          select: { id: true, nombre: true, slug: true, pais: true },
+          select: { id: true, nombre: true, slug: true, pais: true, nivel_dificultad: true },
         },
       },
       orderBy: { name: 'asc' },

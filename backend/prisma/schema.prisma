@@ -39,6 +39,7 @@ model Tour {
   pais                 String    @default("Perú") @db.VarChar(50)
   categoria            String    @default("Trekking") @db.VarChar(50)
   ciudad               String    @default("Cusco") @db.VarChar(50)
+  nivel_dificultad     String    @default("Moderado") @db.VarChar(50)
 
   imagenes             Imagen[]
   reservas             Reserva[]

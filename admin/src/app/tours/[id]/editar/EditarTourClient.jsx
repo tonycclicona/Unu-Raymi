@@ -9,41 +9,40 @@ import TourForm from '@/components/TourForm';
 export default function EditarTourClient({ params }) {
   const nextParams = useParams();
   const pathname = usePathname();
-  
-  // Extraer ID ya sea de props, useParams o directamente del pathname de la URL
-  let id = params ? (typeof params.then === 'function' ? use(params)?.id : params?.id) : null;
+
+  // Resolver ID de params (soporte React 19 use(params), useParams o fallback de URL)
+  let id = null;
+  try {
+    if (params && typeof params.then === 'function') {
+      const resolved = use(params);
+      id = resolved?.id;
+    } else if (params?.id) {
+      id = params.id;
+    }
+  } catch (e) {}
+
   if (!id && nextParams?.id) id = nextParams.id;
-  if (!id && typeof window !== 'undefined') {
-    const match = window.location.pathname.match(/\/tours\/([^/]+)\/editar/);
-    if (match) id = match[1];
-  }
   if (!id && pathname) {
     const match = pathname.match(/\/tours\/([^/]+)\/editar/);
     if (match) id = match[1];
   }
+  if (!id && typeof window !== 'undefined') {
+    const match = window.location.pathname.match(/\/tours\/([^/]+)\/editar/);
+    if (match) id = match[1];
+  }
 
-  const { data: tour, error } = useSWR(id ? `/tours/${id}` : null, fetcher);
+  const { data: response, error } = useSWR(id ? `/tours/${id}` : null, fetcher);
+  const tour = response?.data || (response?.id ? response : null);
 
   if (error) {
     return (
       <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-xl text-sm">
-        Error al cargar los datos del tour para edición.
+        Error al cargar los datos del tour para edición ({error.message}).
       </div>
     );
   }
 
   if (!tour) {
-    return (
-      <div className="py-8 text-center text-[#6c7a7c]/80 text-sm">
-        Cargando información del tour...
-      </div>
-    );
-  }
-
-  // Mapear los datos de la API al formato esperado por el formulario
-  const formData = tour?.data || (tour?.id ? tour : null);
-
-  if (!formData && !error) {
     return (
       <div className="py-8 text-center text-[#6c7a7c]/80 text-sm">
         Cargando información del tour...
@@ -59,8 +58,9 @@ export default function EditarTourClient({ params }) {
         <p className="text-[#6c7a7c] mt-1 text-sm">Modifica los detalles y servicios de la aventura.</p>
       </div>
 
-      {/* Formulario */}
-      <TourForm initialData={formData} />
+      {/* Formulario con key para remounting reactivo al cargar datos */}
+      <TourForm initialData={tour} key={tour.id} />
     </div>
   );
 }
+

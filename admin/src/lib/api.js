@@ -48,29 +48,23 @@ export async function mutateApi(url, { method = 'POST', body } = {}) {
     options.body = JSON.stringify(body);
   }
   
-  // Intento 1: API Directa
+  // Petición a la API
   try {
     const res = await fetch(`${API_BASE_URL}${url}`, options);
     const data = await res.json().catch(() => ({}));
     if (res.ok) return data;
     
-    // Si no es ok, lanzamos error para que no retorne undefined
-    throw new Error(data.error || `Error en la petición: ${res.status}`);
-  } catch (err) {
-    if (err.message && (err.message.includes('Credenciales incorrectas') || err.message.includes('Error en la petición'))) {
-      throw err;
+    // Si la sesión expiró o el token es inválido
+    if (res.status === 401 || res.status === 403) {
+      if (typeof document !== 'undefined') {
+        document.cookie = 'session_token=; path=/; max-age=0';
+      }
+      throw new Error(data.error || 'Sesión expirada o token inválido. Por favor inicia sesión nuevamente.');
     }
     
-    // Intento 2: Fallback vía Gateway Principal https://api.unu-raymi.com/api
-    try {
-      const fallbackUrl = `https://api.unu-raymi.com/api${url}`;
-      const resFallback = await fetch(fallbackUrl, options);
-      const dataFallback = await resFallback.json().catch(() => ({}));
-      if (resFallback.ok) return dataFallback;
-      throw new Error(dataFallback.error || `Error en la petición: ${resFallback.status}`);
-    } catch (fallbackErr) {
-      throw fallbackErr;
-    }
+    throw new Error(data.error || `Error en la petición: ${res.status}`);
+  } catch (err) {
+    throw err;
   }
 }
 

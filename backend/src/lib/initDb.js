@@ -45,6 +45,7 @@ export async function ensureTablesExist() {
     await addColumnSafe('tours', 'ciudad', 'VARCHAR(50) NOT NULL DEFAULT "Cusco"');
     await addColumnSafe('tours', 'activo', 'BOOLEAN NOT NULL DEFAULT TRUE');
     await addColumnSafe('tours', 'destacado', 'BOOLEAN NOT NULL DEFAULT FALSE');
+    await addColumnSafe('tours', 'nivel_dificultad', 'VARCHAR(50) NOT NULL DEFAULT "Moderado"');
 
     // 2. Tabla: imagenes
     await prisma.$executeRawUnsafe(`

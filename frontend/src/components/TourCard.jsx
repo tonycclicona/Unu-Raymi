@@ -88,8 +88,8 @@ export default function TourCard({ tour, onReservar }) {
                       }}
                       className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold transition-all border ${
                         isSelected
-                          ? 'bg-[var(--accent)] text-white border-transparent'
-                          : 'bg-white hover:bg-[var(--border)]/50 text-[var(--muted-foreground)] hover:text-[var(--foreground)] border-[var(--border)]'
+                          ? 'bg-[var(--accent)] text-white border-transparent shadow-sm'
+                          : 'bg-[var(--card)] hover:bg-[var(--sidebar)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border-[var(--border)]'
                       }`}
                     >
                       {v.duracion_dias} {v.duracion_dias === 1 ? t('tour_card.dia') : t('tour_card.dias')}
@@ -110,6 +110,11 @@ export default function TourCard({ tour, onReservar }) {
             {tour.categoria && (
               <span className="bg-[var(--accent)]/10 text-[var(--foreground)] border border-[var(--accent)]/20 px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider">
                 {tour.categoria}
+              </span>
+            )}
+            {tour.nivel_dificultad && (
+              <span className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/25 px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider">
+                {tour.nivel_dificultad}
               </span>
             )}
           </div>

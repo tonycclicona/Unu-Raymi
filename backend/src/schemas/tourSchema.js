@@ -105,6 +105,11 @@ export const crearTourSchema = z.object({
     .max(50)
     .default("Cusco"),
 
+  nivel_dificultad: z
+    .string()
+    .max(50)
+    .default("Moderado"),
+
   // Variantes — al menos 1 requerida (validado en el controller)
   variantes: z.array(varianteSchema).optional().default([]),
 });

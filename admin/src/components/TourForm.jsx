@@ -118,17 +118,41 @@ export default function TourForm({ initialData }) {
   // Fechas de salida temporales por variante
   const [variantTempDates, setVariantTempDates] = useState({});
 
+  // Normalizador de servicios incluidos para evitar fallos de taxonomía
+  const normalizeServiciosIncluidos = (raw) => {
+    const base = { guia: [], seguridad: [], equipamiento: [], alimentacion: [], transporte: [], actividades: [] };
+    if (!raw) return base;
+    let parsed = raw;
+    if (typeof parsed === 'string') {
+      try { parsed = JSON.parse(parsed); } catch { return base; }
+    }
+    if (Array.isArray(parsed)) {
+      return { ...base, guia: parsed };
+    }
+    if (typeof parsed === 'object') {
+      return {
+        guia: Array.isArray(parsed.guia) ? parsed.guia : [],
+        seguridad: Array.isArray(parsed.seguridad) ? parsed.seguridad : [],
+        equipamiento: Array.isArray(parsed.equipamiento) ? parsed.equipamiento : [],
+        alimentacion: Array.isArray(parsed.alimentacion) ? parsed.alimentacion : [],
+        transporte: Array.isArray(parsed.transporte) ? parsed.transporte : [],
+        actividades: Array.isArray(parsed.actividades) ? parsed.actividades : [],
+      };
+    }
+    return base;
+  };
+
   // ── VARIANTES COMPLETA CON LOGÍSTICA, CALENDARIO Y TAXONOMÍA INDEPENDIENTE ──
   const [variantes, setVariantes] = useState(() => {
-    if (isEdit && initialData.variantes) {
+    if (isEdit && initialData.variantes && Array.isArray(initialData.variantes)) {
       return initialData.variantes.map(v => ({
-        duracion_dias: v.duracion_dias,
-        precio_adulto: v.precio_adulto,
-        precio_nino: v.precio_nino,
-        cupos_disponibles: v.cupos_disponibles,
+        duracion_dias: v.duracion_dias || 1,
+        precio_adulto: v.precio_adulto || 0,
+        precio_nino: v.precio_nino || 0,
+        cupos_disponibles: v.cupos_disponibles !== undefined ? v.cupos_disponibles : 10,
         fechas_disponibles: Array.isArray(v.fechas_disponibles) ? v.fechas_disponibles : [],
-        servicios_incluidos: v.servicios_incluidos || { guia: [], seguridad: [], equipamiento: [], alimentacion: [], transporte: [], actividades: [] },
-        servicios_excluidos: v.servicios_excluidos || [],
+        servicios_incluidos: normalizeServiciosIncluidos(v.servicios_incluidos),
+        servicios_excluidos: Array.isArray(v.servicios_excluidos) ? v.servicios_excluidos : [],
         itinerario: v.itinerario || ''
       }));
     }
@@ -225,9 +249,10 @@ export default function TourForm({ initialData }) {
     pais: initialData?.pais || 'Perú',
     categoria: initialData?.categoria || 'Trekking',
     ciudad: initialData?.ciudad || '',
+    nivel_dificultad: initialData?.nivel_dificultad || 'Moderado',
   };
 
-  const { register, handleSubmit, setValue, formState: { errors } } = useForm({ defaultValues });
+  const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm({ defaultValues });
 
   const handleNombreChange = (e) => {
     setValue('nombre', e.target.value);
@@ -307,6 +332,7 @@ export default function TourForm({ initialData }) {
         pais: data.pais,
         categoria: data.categoria,
         ciudad: data.ciudad,
+        nivel_dificultad: data.nivel_dificultad || 'Moderado',
         imagenes: uploadedImages.map((img, index) => ({
           url: img.url,
           altText: img.altText || data.nombre,
@@ -395,7 +421,7 @@ export default function TourForm({ initialData }) {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="space-y-2">
             <label className="block text-sm font-medium text-[#4a5759]">Ciudad Destino *</label>
             <select
@@ -417,6 +443,19 @@ export default function TourForm({ initialData }) {
               <option value="Trekking">Trekking</option>
               <option value="Full Days">Full Days</option>
               <option value="Trek & Climb">Trek & Climb</option>
+            </select>
+          </div>
+
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-[#4a5759]">Nivel de Caminata / Trekking *</label>
+            <select
+              {...register('nivel_dificultad', { required: 'El nivel de caminata es obligatorio' })}
+              className="w-full bg-[#ffffff] border border-[#b0c4b1] rounded-xl px-4 py-2.5 text-[#4a5759] focus:outline-none focus:border-[#4a5759] text-sm font-semibold"
+            >
+              <option value="Fácil / Principiante">🟢 Fácil / Principiante (Caminatas cortas, terreno plano)</option>
+              <option value="Moderado">🟡 Moderado (Senderos irregulares con desniveles)</option>
+              <option value="Exigente / Avanzado">🟠 Exigente / Avanzado (Varios días, altura &gt; 3,500m)</option>
+              <option value="Experto / Alta Montaña">🔴 Experto / Alta Montaña (Nevados, equipo técnico)</option>
             </select>
           </div>
         </div>

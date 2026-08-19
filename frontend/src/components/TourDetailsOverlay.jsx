@@ -249,10 +249,20 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
           <div className="space-y-5">
             {/* Header del Tour */}
             <div className="space-y-3 pr-8">
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <span className="bg-[var(--accent)]/10 text-[var(--foreground)] border border-[var(--accent)]/20 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
                   {tour.pais}
                 </span>
+                {tour.categoria && (
+                  <span className="bg-[var(--card)] text-[var(--foreground)] border border-[var(--border)] px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
+                    {tour.categoria}
+                  </span>
+                )}
+                {tour.nivel_dificultad && (
+                  <span className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/25 px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider flex items-center gap-1">
+                    <span>🏔️</span> {tour.nivel_dificultad}
+                  </span>
+                )}
                 <span className="text-xs text-[var(--muted-foreground)] flex items-center gap-1">
                   <Calendar className="w-3.5 h-3.5 text-[var(--foreground)]" />
                   {displayDuration} {displayDuration === 1 ? t('tour_card.dia') : t('tour_card.dias')}
@@ -428,7 +438,7 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
 
       </div>
 
-      {/* Lightbox de Galería */}
+      {/* Lightbox de Galería a Pantalla Completa Mejorado */}
       {lightboxIndex !== null && (
         <div
           onClick={(e) => {
@@ -436,12 +446,13 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
               setLightboxIndex(null);
             }
           }}
-          className="fixed inset-0 z-[70] bg-[var(--accent)]  flex items-center justify-center p-4 md:p-12 animate-fade-in"
+          className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-2xl flex items-center justify-center p-2 sm:p-4 md:p-8 animate-fade-in"
         >
           {/* Botón Cerrar */}
           <button
             onClick={() => setLightboxIndex(null)}
-            className="absolute top-6 right-6 z-50 text-[var(--muted-foreground)] hover:text-[var(--foreground)] p-3 bg-[var(--sidebar)] rounded-xl border border-black/10 transition-all hover:bg-[var(--sidebar)]"
+            className="absolute top-4 right-4 md:top-6 md:right-6 z-[110] text-white/80 hover:text-white p-3 bg-white/10 hover:bg-white/20 rounded-2xl backdrop-blur-md border border-white/10 transition-all cursor-pointer shadow-xl hover:scale-105 active:scale-95"
+            aria-label="Cerrar pantalla completa"
           >
             <X className="w-6 h-6" />
           </button>
@@ -450,22 +461,23 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
           {imagenes.length > 1 && (
             <button
               onClick={() => setLightboxIndex((prev) => (prev - 1 + imagenes.length) % imagenes.length)}
-              className="absolute left-6 z-50 text-[var(--muted-foreground)] hover:text-[var(--foreground)] p-3 bg-[var(--sidebar)] rounded-xl border border-black/10 transition-all hover:bg-[var(--sidebar)]"
+              className="absolute left-3 md:left-6 z-[110] text-white/80 hover:text-white p-3 md:p-3.5 bg-white/10 hover:bg-white/20 rounded-2xl backdrop-blur-md border border-white/10 transition-all cursor-pointer shadow-xl hover:scale-105 active:scale-95"
+              aria-label="Imagen anterior"
             >
-              <ChevronLeft className="w-6 h-6" />
+              <ChevronLeft className="w-6 h-6 md:w-7 md:h-7" />
             </button>
           )}
 
-          {/* Imagen Activa */}
-          <div className="relative max-w-4xl w-full h-[75vh] flex items-center justify-center select-none">
+          {/* Contenedor de Imagen a Pantalla Completa */}
+          <div className="relative w-full h-[86vh] md:h-[92vh] max-w-[96vw] flex items-center justify-center select-none">
             <img
               src={
                 imagenes[lightboxIndex].url.startsWith('http')
                   ? imagenes[lightboxIndex].url
                   : `${API_ASSETS_URL}${imagenes[lightboxIndex].url}`
               }
-              alt={`Galería ${lightboxIndex + 1}`}
-              className="max-w-full max-h-full object-contain rounded-xl shadow-2xl animate-scale-up"
+              alt={imagenes[lightboxIndex].altText || `Galería ${lightboxIndex + 1}`}
+              className="max-w-full max-h-full w-auto h-auto object-contain rounded-2xl shadow-2xl animate-scale-up select-none"
             />
           </div>
 
@@ -473,15 +485,21 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
           {imagenes.length > 1 && (
             <button
               onClick={() => setLightboxIndex((prev) => (prev + 1) % imagenes.length)}
-              className="absolute right-6 z-50 text-[var(--muted-foreground)] hover:text-[var(--foreground)] p-3 bg-[var(--sidebar)] rounded-xl border border-black/10 transition-all hover:bg-[var(--sidebar)]"
+              className="absolute right-3 md:right-6 z-[110] text-white/80 hover:text-white p-3 md:p-3.5 bg-white/10 hover:bg-white/20 rounded-2xl backdrop-blur-md border border-white/10 transition-all cursor-pointer shadow-xl hover:scale-105 active:scale-95"
+              aria-label="Imagen siguiente"
             >
-              <ChevronRight className="w-6 h-6" />
+              <ChevronRight className="w-6 h-6 md:w-7 md:h-7" />
             </button>
           )}
 
-          {/* Indicador de Páginas */}
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-black/40 border border-black/10 px-4 py-1.5 rounded-full text-xs text-[var(--foreground)] font-bold tracking-wider">
-            {lightboxIndex + 1} / {imagenes.length}
+          {/* Indicador de Páginas y Título de Foto */}
+          <div className="absolute bottom-4 md:bottom-6 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-md border border-white/15 px-5 py-2 rounded-full text-xs text-white/90 font-bold tracking-wider flex items-center gap-3 shadow-xl">
+            <span>{lightboxIndex + 1} / {imagenes.length}</span>
+            {imagenes[lightboxIndex].altText && (
+              <span className="hidden sm:inline opacity-70 text-[11px] font-normal border-l border-white/20 pl-3">
+                {imagenes[lightboxIndex].altText}
+              </span>
+            )}
           </div>
         </div>
       )}

@@ -85,6 +85,8 @@ export default function MapaSudamericaGIS({ attractions = [], selectedTourId, on
 
         {attractions.map((att) => {
           const icon = categoryIcons[att.category] || defaultIcon;
+          const tourDificultad = att.tour?.nivel_dificultad || 'Moderado';
+          
           return (
             <Marker
               key={att.id}
@@ -98,23 +100,50 @@ export default function MapaSudamericaGIS({ attractions = [], selectedTourId, on
                 },
               }}
             >
-              <Popup minWidth={180}>
-                <div className="space-y-1 font-sans p-1">
-                  <div className="flex items-center justify-between gap-2 border-b pb-1">
-                    <span className="text-[10px] font-black uppercase text-indigo-600 px-1.5 py-0.5 bg-indigo-50 rounded">
+              <Popup minWidth={240} className="custom-gis-popup">
+                <div className="space-y-2 font-sans p-1.5">
+                  {/* Cabecera del Atractivo / Punto */}
+                  <div className="flex items-center justify-between gap-2 border-b border-slate-200 pb-1.5">
+                    <span className="text-[10px] font-black uppercase text-indigo-700 px-2 py-0.5 bg-indigo-50 rounded-md border border-indigo-200">
                       {att.category}
                     </span>
                     {att.altitude && (
-                      <span className="text-[10px] font-bold text-slate-500">{att.altitude} msnm</span>
+                      <span className="text-[10px] font-extrabold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">
+                        ⛰️ {att.altitude} msnm
+                      </span>
                     )}
                   </div>
-                  <h4 className="font-extrabold text-sm text-slate-900 leading-tight">{att.name || att.nombre}</h4>
+
+                  {/* Nombre y Coordenadas OSM */}
+                  <div>
+                    <h4 className="font-extrabold text-sm text-slate-900 leading-tight">
+                      {att.name || att.nombre}
+                    </h4>
+                    <span className="text-[9px] text-slate-500 font-mono block mt-0.5">
+                      OSM: {att.latitude?.toFixed(4)}, {att.longitude?.toFixed(4)}
+                    </span>
+                  </div>
+
+                  {/* Descripción del lugar registrada */}
                   {att.description && (
-                    <p className="text-xs text-slate-600 leading-relaxed line-clamp-3">{att.description}</p>
+                    <p className="text-xs text-slate-600 leading-relaxed bg-slate-50 p-2 rounded-lg border border-slate-100">
+                      {att.description}
+                    </p>
                   )}
+
+                  {/* Información del Tour y Nivel de Caminata / Trekking */}
                   {att.tour && (
-                    <div className="text-[10px] text-emerald-600 font-bold mt-1">
-                      Tour: {att.tour.nombre}
+                    <div className="pt-1.5 border-t border-slate-200 space-y-1.5">
+                      <div className="text-[11px] text-slate-700 font-bold flex items-center gap-1">
+                        <span>🧭 Tour:</span>
+                        <span className="text-indigo-600 font-black">{att.tour.nombre}</span>
+                      </div>
+                      
+                      {/* Tag destacado con el nivel de caminata o trekking */}
+                      <div className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-800 border border-emerald-300 px-2.5 py-1 rounded-full text-[10px] font-extrabold shadow-sm">
+                        <span>🥾 Nivel de Caminata:</span>
+                        <span className="text-emerald-700 uppercase">{tourDificultad}</span>
+                      </div>
                     </div>
                   )}
                 </div>

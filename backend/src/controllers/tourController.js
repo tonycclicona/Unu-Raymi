@@ -152,6 +152,7 @@ export const crearTour = async (req, res, next) => {
       pais,
       categoria,
       ciudad,
+      nivel_dificultad,
       variantes,
     } = req.body;
 
@@ -185,6 +186,7 @@ export const crearTour = async (req, res, next) => {
         pais,
         categoria,
         ciudad,
+        nivel_dificultad: nivel_dificultad || 'Moderado',
         // Serializar arrays → JSON string para MySQL
         servicios_incluidos: serializarArray(finalServiciosIncluidos),
         servicios_excluidos: serializarArray(servicios_excluidos),

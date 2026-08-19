@@ -37,6 +37,7 @@ model Tour {
   pais                 String    @default("Perú")
   categoria            String    @default("Trekking")
   ciudad               String    @default("Cusco")
+  nivel_dificultad     String    @default("Moderado")
 
   imagenes             Imagen[]
   reservas             Reserva[]

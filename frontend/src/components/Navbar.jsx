@@ -4,14 +4,12 @@ import { useState, useEffect } from 'react';
 import { Menu, X, Sun, Moon } from 'lucide-react';
 import Link from 'next/link';
 import { useLanguage } from '@/context/LanguageContext';
-import { useCurrency } from '@/context/CurrencyContext';
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [theme, setTheme] = useState('light');
   const { language, setLanguage, t } = useLanguage();
-  const { currency, setCurrency, availableCurrencies } = useCurrency();
 
   useEffect(() => {
     const isDark = document.documentElement.classList.contains('dark');
@@ -172,22 +170,6 @@ export default function Navbar() {
             {t('nav.explorar')}
           </a>
 
-          {/* Selector de Divisas Desktop */}
-          <div className="relative">
-            <select
-              value={currency}
-              onChange={(e) => setCurrency(e.target.value)}
-              className="px-2.5 py-2 rounded-xl border border-[var(--border)] bg-[var(--card)] hover:bg-[var(--sidebar)] text-[var(--foreground)] font-bold text-xs cursor-pointer focus:outline-none transition-all shadow-sm"
-              aria-label="Currency Selector"
-            >
-              {Object.keys(availableCurrencies).map((code) => (
-                <option key={code} value={code}>
-                  {availableCurrencies[code].flag} {code} ({availableCurrencies[code].symbol})
-                </option>
-              ))}
-            </select>
-          </div>
-
           {/* Selector de idioma Desktop */}
           <button
             onClick={() => setLanguage(language === 'es' ? 'en' : 'es')}
@@ -213,19 +195,6 @@ export default function Navbar() {
 
         {/* Mobile buttons */}
         <div className="flex md:hidden items-center gap-2">
-          {/* Selector de Divisas Móvil */}
-          <select
-            value={currency}
-            onChange={(e) => setCurrency(e.target.value)}
-            className="px-1.5 py-1 rounded-xl border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] font-bold text-[10px] cursor-pointer focus:outline-none shadow-sm"
-          >
-            {Object.keys(availableCurrencies).map((code) => (
-              <option key={code} value={code}>
-                {code} ({availableCurrencies[code].symbol})
-              </option>
-            ))}
-          </select>
-
           {/* Selector de idioma móvil */}
           <button
             onClick={() => setLanguage(language === 'es' ? 'en' : 'es')}
