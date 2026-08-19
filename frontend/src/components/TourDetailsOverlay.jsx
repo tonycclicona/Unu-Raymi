@@ -146,27 +146,30 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
     };
   };
 
-  const activeInclusiones = activeVariant?.servicios_incluidos || tour.servicios_incluidos;
+  const getRawInclusiones = () => {
+    let inc = activeVariant?.servicios_incluidos !== undefined ? activeVariant.servicios_incluidos : tour.servicios_incluidos;
+    if (typeof inc === 'string') {
+      try { inc = JSON.parse(inc); } catch { inc = []; }
+    }
+    return inc;
+  };
+
+  const activeInclusiones = getRawInclusiones();
   const isStructuredObject = activeInclusiones && !Array.isArray(activeInclusiones) && typeof activeInclusiones === 'object';
 
   const getCategorias = () => {
-    const rawCategorias = isStructuredObject ? {
-      guia: activeInclusiones.guia || [],
-      seguridad: activeInclusiones.seguridad || [],
-      equipamiento: [...(activeInclusiones.equipamiento || []), ...(tour.que_llevar || [])],
-      alimentacion: activeInclusiones.alimentacion || [],
-      transporte: activeInclusiones.transporte || [],
-      actividades: activeInclusiones.actividades || []
-    } : categorizarServicios(activeInclusiones || [], tour.que_llevar || []);
+    if (isStructuredObject) {
+      return {
+        guia: Array.isArray(activeInclusiones.guia) ? activeInclusiones.guia : [],
+        seguridad: Array.isArray(activeInclusiones.seguridad) ? activeInclusiones.seguridad : [],
+        equipamiento: Array.isArray(activeInclusiones.equipamiento) ? activeInclusiones.equipamiento : [],
+        alimentacion: Array.isArray(activeInclusiones.alimentacion) ? activeInclusiones.alimentacion : [],
+        transporte: Array.isArray(activeInclusiones.transporte) ? activeInclusiones.transporte : [],
+        actividades: Array.isArray(activeInclusiones.actividades) ? activeInclusiones.actividades : []
+      };
+    }
 
-    return {
-      guia: rawCategorias.guia?.length > 0 ? rawCategorias.guia : [language === 'es' ? 'Guía local profesional en español' : 'Professional local guide in English'],
-      seguridad: rawCategorias.seguridad?.length > 0 ? rawCategorias.seguridad : [language === 'es' ? 'Botiquín de primeros auxilios y protocolos de seguridad' : 'First aid kit and safety protocols'],
-      equipamiento: rawCategorias.equipamiento?.length > 0 ? rawCategorias.equipamiento : (language === 'es' ? ['Ropa de abrigo o impermeable', 'Calzado cómodo de caminata'] : ['Warm or waterproof clothing', 'Comfortable hiking shoes']),
-      alimentacion: rawCategorias.alimentacion?.length > 0 ? rawCategorias.alimentacion : [language === 'es' ? 'Alimentación no incluida (opciones en la ruta)' : 'Food not included (options along the route)'],
-      transporte: rawCategorias.transporte?.length > 0 ? rawCategorias.transporte : [language === 'es' ? 'Traslados incluidos en el punto de encuentro' : 'Transfers included at the meeting point'],
-      actividades: rawCategorias.actividades?.length > 0 ? rawCategorias.actividades : [language === 'es' ? 'Caminatas y explicaciones culturales según itinerario' : 'Hikes and cultural explanations according to the itinerary']
-    };
+    return categorizarServicios(Array.isArray(activeInclusiones) ? activeInclusiones : [], tour.que_llevar || []);
   };
 
   const categorias = getCategorias();
@@ -363,10 +366,11 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
             </div>
 
             {/* Grid de 6 Categorías */}
-            <div className="grid grid-cols-2 gap-4 relative">
+            <div className="grid grid-cols-2 gap-3.5 relative">
               {itemsCategorias.map((cat) => {
                 const Icon3DComponent = cat.Icon3D;
                 const isActive = activeTooltip === cat.id;
+                const hasItems = cat.list && cat.list.length > 0;
 
                 return (
                   <div
@@ -374,27 +378,51 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
                     onMouseEnter={() => setActiveTooltip(cat.id)}
                     onMouseLeave={() => setActiveTooltip(null)}
                     onClick={() => setActiveTooltip(isActive ? null : cat.id)}
-                    className={`relative p-4 md:p-5 rounded-2xl border backdrop-blur-md flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300 ${isActive ? 'border-[var(--accent)] scale-[1.03] z-20' : 'hover:scale-[1.02]'} ${cat.color} group`}
+                    className={`relative p-3.5 md:p-4 rounded-2xl border backdrop-blur-md flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300 ${
+                      isActive ? 'border-[var(--accent)] scale-[1.03] z-20 shadow-lg' : 'hover:scale-[1.02]'
+                    } ${
+                      hasItems
+                        ? cat.color
+                        : 'border-[var(--border)]/40 bg-[var(--sidebar)]/40 opacity-60 hover:opacity-100'
+                    } group`}
                   >
                     <div className="mb-2 transition-transform duration-300 group-hover:scale-110 group-hover:-translate-y-1">
-                      <Icon3DComponent className="w-10 h-10 md:w-12 md:h-12" />
+                      <Icon3DComponent className={`w-9 h-9 md:w-11 md:h-11 ${hasItems ? '' : 'grayscale opacity-70'}`} />
                     </div>
-                    <span className="text-[10px] md:text-xs font-extrabold text-[var(--foreground)] leading-tight">{cat.label}</span>
+                    <span className="text-[10px] md:text-xs font-extrabold text-[var(--foreground)] leading-tight flex items-center gap-1">
+                      {cat.label}
+                      {hasItems && (
+                        <span className="inline-flex items-center justify-center w-4 h-4 text-[9px] font-bold rounded-full bg-[var(--accent)] text-white">
+                          {cat.list.length}
+                        </span>
+                      )}
+                    </span>
 
                     {/* Tooltip */}
                     {isActive && (
-                      <div className="absolute z-30 left-1/2 -translate-x-1/2 bottom-[110%] w-52 md:w-56 bg-[var(--background)] border border-[var(--border)] p-3 md:p-4 rounded-2xl shadow-2xl animate-fade-in text-left">
-                        <div className="text-[10px] text-[var(--foreground)] font-bold uppercase tracking-wider mb-2">
-                          {cat.label}
+                      <div className="absolute z-30 left-1/2 -translate-x-1/2 bottom-[110%] w-56 md:w-64 bg-[var(--card)] border border-[var(--border)] p-3 md:p-4 rounded-2xl shadow-2xl animate-fade-in text-left">
+                        <div className="flex items-center justify-between text-[10px] text-[var(--foreground)] font-bold uppercase tracking-wider mb-2 border-b border-[var(--border)]/50 pb-1.5">
+                          <span>{cat.label}</span>
+                          <span className={hasItems ? 'text-emerald-500 font-extrabold' : 'text-[var(--muted-foreground)]'}>
+                            {hasItems ? `${cat.list.length} ${language === 'es' ? 'servicio(s)' : 'service(s)'}` : (language === 'es' ? 'No incluido' : 'Not included')}
+                          </span>
                         </div>
-                        <ul className="space-y-1.5">
-                          {cat.list.map((item, index) => (
-                            <li key={index} className="text-xs text-[var(--foreground)] flex items-start gap-1.5 leading-snug">
-                              <span className="text-[var(--foreground)] font-bold mt-0.5">•</span>
-                              <span>{item}</span>
-                            </li>
-                          ))}
-                        </ul>
+                        {hasItems ? (
+                          <ul className="space-y-1.5 max-h-48 overflow-y-auto no-scrollbar">
+                            {cat.list.map((item, index) => (
+                              <li key={index} className="text-xs text-[var(--foreground)] flex items-start gap-1.5 leading-snug">
+                                <span className="text-[var(--accent)] font-bold mt-0.5">•</span>
+                                <span>{item}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="text-xs text-[var(--muted-foreground)] italic">
+                            {language === 'es'
+                              ? 'No se registraron inclusiones para esta categoría en este paquete.'
+                              : 'No inclusions registered for this category in this package.'}
+                          </p>
+                        )}
                       </div>
                     )}
                   </div>
