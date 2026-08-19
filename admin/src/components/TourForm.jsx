@@ -180,63 +180,103 @@ export default function TourForm({ initialData }) {
   };
 
   const handleUpdateVariantField = (vIdx, field, value) => {
-    setVariantes(prev => {
-      const copy = [...prev];
-      copy[vIdx] = { ...copy[vIdx], [field]: value };
-      return copy;
-    });
+    setVariantes(prev =>
+      prev.map((v, idx) => (idx === vIdx ? { ...v, [field]: value } : v))
+    );
   };
 
   // Funciones para gestionar fechas por variante
   const handleAddDateToVariant = (vIdx) => {
     const targetDate = variantTempDates[vIdx];
-    if (targetDate && !variantes[vIdx].fechas_disponibles.includes(targetDate)) {
-      const updatedDates = [...variantes[vIdx].fechas_disponibles, targetDate].sort();
-      handleUpdateVariantField(vIdx, 'fechas_disponibles', updatedDates);
+    if (targetDate) {
+      setVariantes(prev =>
+        prev.map((v, idx) => {
+          if (idx !== vIdx) return v;
+          const currentDates = Array.isArray(v.fechas_disponibles) ? v.fechas_disponibles : [];
+          if (currentDates.includes(targetDate)) return v;
+          return {
+            ...v,
+            fechas_disponibles: [...currentDates, targetDate].sort(),
+          };
+        })
+      );
       setVariantTempDates(prev => ({ ...prev, [vIdx]: '' }));
     }
   };
 
   const handleRemoveDateFromVariant = (vIdx, dateStr) => {
-    const updatedDates = variantes[vIdx].fechas_disponibles.filter(d => d !== dateStr);
-    handleUpdateVariantField(vIdx, 'fechas_disponibles', updatedDates);
+    setVariantes(prev =>
+      prev.map((v, idx) => {
+        if (idx !== vIdx) return v;
+        const currentDates = Array.isArray(v.fechas_disponibles) ? v.fechas_disponibles : [];
+        return {
+          ...v,
+          fechas_disponibles: currentDates.filter(d => d !== dateStr),
+        };
+      })
+    );
   };
 
-  // Funciones para gestionar Plan Taxonómico por variante
+  // Funciones para gestionar Plan Taxonómico por variante (Inmutabilidad completa)
   const handleTaxonomyCheckboxChange = (vIdx, catId, item) => {
-    setVariantes(prev => {
-      const copy = [...prev];
-      const currentArr = copy[vIdx].servicios_incluidos[catId] || [];
-      const updatedArr = currentArr.includes(item)
-        ? currentArr.filter(x => x !== item)
-        : [...currentArr, item];
-      copy[vIdx].servicios_incluidos[catId] = updatedArr;
-      return copy;
-    });
+    setVariantes(prev =>
+      prev.map((v, idx) => {
+        if (idx !== vIdx) return v;
+        const currentServicios = v.servicios_incluidos ? { ...v.servicios_incluidos } : {};
+        const currentArr = Array.isArray(currentServicios[catId]) ? [...currentServicios[catId]] : [];
+        const updatedArr = currentArr.includes(item)
+          ? currentArr.filter(x => x !== item)
+          : [...currentArr, item];
+
+        return {
+          ...v,
+          servicios_incluidos: {
+            ...currentServicios,
+            [catId]: updatedArr,
+          },
+        };
+      })
+    );
   };
 
   const handleAddCustomServiceToVariant = (vIdx, catId) => {
     const inputKey = `${vIdx}-${catId}`;
     const text = (variantCustomInputs[inputKey] || '').trim();
     if (text) {
-      setVariantes(prev => {
-        const copy = [...prev];
-        const currentArr = copy[vIdx].servicios_incluidos[catId] || [];
-        if (!currentArr.includes(text)) {
-          copy[vIdx].servicios_incluidos[catId] = [...currentArr, text];
-        }
-        return copy;
-      });
+      setVariantes(prev =>
+        prev.map((v, idx) => {
+          if (idx !== vIdx) return v;
+          const currentServicios = v.servicios_incluidos ? { ...v.servicios_incluidos } : {};
+          const currentArr = Array.isArray(currentServicios[catId]) ? [...currentServicios[catId]] : [];
+          if (currentArr.includes(text)) return v;
+          return {
+            ...v,
+            servicios_incluidos: {
+              ...currentServicios,
+              [catId]: [...currentArr, text],
+            },
+          };
+        })
+      );
       setVariantCustomInputs(prev => ({ ...prev, [inputKey]: '' }));
     }
   };
 
   const handleRemoveCustomServiceFromVariant = (vIdx, catId, item) => {
-    setVariantes(prev => {
-      const copy = [...prev];
-      copy[vIdx].servicios_incluidos[catId] = (copy[vIdx].servicios_incluidos[catId] || []).filter(x => x !== item);
-      return copy;
-    });
+    setVariantes(prev =>
+      prev.map((v, idx) => {
+        if (idx !== vIdx) return v;
+        const currentServicios = v.servicios_incluidos ? { ...v.servicios_incluidos } : {};
+        const currentArr = Array.isArray(currentServicios[catId]) ? [...currentServicios[catId]] : [];
+        return {
+          ...v,
+          servicios_incluidos: {
+            ...currentServicios,
+            [catId]: currentArr.filter(x => x !== item),
+          },
+        };
+      })
+    );
   };
 
   // React Hook Form Setup
@@ -638,13 +678,31 @@ export default function TourForm({ initialData }) {
 
                           {isOpen && (
                             <div className="p-4 bg-[#dbeafe]/30 border-t border-[#b0c4b1]/30 space-y-3">
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
                                 {PREDEFINED_TAXONOMY[catId].map((item) => {
-                                  const isChecked = (v.servicios_incluidos[catId] || []).includes(item);
+                                  const isChecked = Array.isArray(v.servicios_incluidos?.[catId]) && v.servicios_incluidos[catId].includes(item);
                                   return (
-                                    <label key={item} className={`flex items-start gap-2.5 p-2.5 rounded-xl border cursor-pointer text-[11px] ${isChecked ? 'bg-[#4a5759]/5 border-[#4a5759]/30 text-[#4a5759]' : 'bg-[#dbeafe]/40 border-[#b0c4b1]/40 text-[#6c7a7c]'}`}>
-                                      <input type="checkbox" checked={isChecked} onChange={() => handleTaxonomyCheckboxChange(vIdx, catId, item)} className="mt-0.5 w-3.5 h-3.5 accent-[#4a5759]" />
-                                      <span>{item}</span>
+                                    <label
+                                      key={item}
+                                      onClick={(e) => {
+                                        if (e.target.tagName !== 'INPUT') {
+                                          e.preventDefault();
+                                          handleTaxonomyCheckboxChange(vIdx, catId, item);
+                                        }
+                                      }}
+                                      className={`flex items-start gap-2.5 p-3 rounded-xl border cursor-pointer text-xs select-none transition-all duration-200 ${
+                                        isChecked
+                                          ? 'bg-[#4a5759] text-white border-[#4a5759] shadow-sm font-semibold'
+                                          : 'bg-[#ffffff] hover:bg-[#dbeafe]/30 border-[#b0c4b1]/60 text-[#4a5759]'
+                                      }`}
+                                    >
+                                      <input
+                                        type="checkbox"
+                                        checked={isChecked}
+                                        onChange={() => handleTaxonomyCheckboxChange(vIdx, catId, item)}
+                                        className="mt-0.5 w-4 h-4 rounded accent-[#4a5759] cursor-pointer"
+                                      />
+                                      <span className="flex-1 select-none leading-tight">{item}</span>
                                     </label>
                                   );
                                 })}

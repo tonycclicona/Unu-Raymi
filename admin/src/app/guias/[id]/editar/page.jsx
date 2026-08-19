@@ -1,6 +1,6 @@
 import EditarGuiaClient from './EditarGuiaClient';
 
-export const dynamicParams = true;
+export const dynamicParams = false;
 
 export async function generateStaticParams() {
   return [{ id: '1' }];
