@@ -52,7 +52,7 @@ export default function Confianza() {
   };
 
   return (
-    <section id="reviews" className="py-16 md:py-24 px-6 flex items-center bg-[var(--background)] border-t border-[var(--border)]/30 relative overflow-hidden scroll-mt-16 md:scroll-mt-20">
+    <section id="reviews" className="py-16 md:py-24 px-6 flex items-center bg-[var(--background)] border-t border-[var(--border)]/30 relative overflow-hidden scroll-mt-[76px] md:scroll-mt-[84px]">
       {/* Luz ambiental */}
       <div className="absolute top-1/2 right-1/4 w-[350px] h-[350px] bg-[var(--accent)]/5 rounded-full filter blur-[100px] pointer-events-none -z-10"></div>
 

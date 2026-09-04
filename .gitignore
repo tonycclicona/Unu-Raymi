@@ -18,6 +18,15 @@ Thumbs.db
 npm-debug.log*
 pnpm-debug.log*
 
+# Environment variables & secrets (NUNCA subir a Git)
+*.env
+*.env.*
+*.env*.local
+*.env.production.local
+EnvironmentVariables.env
+!*.env.example
+
 # Each sub-project has its own .gitignore for
 # node_modules, .env, build artifacts, etc.
 node_modules
+

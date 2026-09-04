@@ -61,6 +61,14 @@ const DEFAULT_ZOOM = 4;
 export default function MapaSudamericaGIS({ attractions = [], selectedTourId, onSelectAttraction }) {
   const [map, setMap] = useState(null);
 
+  useEffect(() => {
+    if (map) {
+      setTimeout(() => {
+        map.invalidateSize();
+      }, 250);
+    }
+  }, [map, attractions]);
+
   const resetView = () => {
     if (map) {
       map.flyTo(SOUTH_AMERICA_CENTER, DEFAULT_ZOOM, { duration: 1.5 });
@@ -74,14 +82,23 @@ export default function MapaSudamericaGIS({ attractions = [], selectedTourId, on
         zoom={DEFAULT_ZOOM}
         scrollWheelZoom={true}
         ref={setMap}
-        style={{ height: '100%', width: '100%' }}
+        style={{ height: '100%', width: '100%', minHeight: '460px' }}
       >
-        {/* Capa outdoor / topográfica CyclOSM de OpenStreetMap */}
-        <TileLayer
-          attribution='Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://github.com/cyclosm/cyclosm-cartocss-style">CyclOSM</a>'
-          url="https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png"
-          maxZoom={18}
-        />
+        {/* Capa Topográfica Tracestrack Topo (con fallback directo a OpenTopoMap si no hay API key de Tracestrack) */}
+        {process.env.NEXT_PUBLIC_TRACESTRACK_KEY ? (
+          <TileLayer
+            attribution='Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> | Map style: &copy; <a href="https://www.tracestrack.com/">Tracestrack</a>'
+            url={`https://tile.tracestrack.com/topo__/{z}/{x}/{y}.png?key=${process.env.NEXT_PUBLIC_TRACESTRACK_KEY}`}
+            maxZoom={18}
+          />
+        ) : (
+          <TileLayer
+            attribution='Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
+            url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
+            subdomains="abc"
+            maxZoom={17}
+          />
+        )}
 
         {attractions.map((att) => {
           const icon = categoryIcons[att.category] || defaultIcon;

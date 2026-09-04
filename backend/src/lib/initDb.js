@@ -2,7 +2,11 @@ import prisma from './prismaClient.js';
 
 export async function ensureTablesExist() {
   try {
-    // 1. Tabla: tours
+    // Si la base de datos es SQLite (entorno local de pruebas), prisma db push ya maneja el esquema
+    if (process.env.DATABASE_URL && process.env.DATABASE_URL.includes('file:')) {
+      console.log('ℹ️ [initDb] Base de datos SQLite detectada en local. Esquema administrado por Prisma.');
+      return;
+    }
     await prisma.$executeRawUnsafe(`
       CREATE TABLE IF NOT EXISTS \`tours\` (
         \`id\` INT AUTO_INCREMENT PRIMARY KEY,

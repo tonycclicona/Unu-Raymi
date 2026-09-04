@@ -10,7 +10,7 @@ import dynamic from 'next/dynamic';
 
 const MapaSudamericaGIS = dynamic(
   () => import('@/components/MapaSudamericaGIS'),
-  { ssr: false, loading: () => <div className="w-full h-full min-h-[460px] bg-[var(--card)]/50 animate-pulse rounded-3xl flex items-center justify-center text-xs text-[var(--muted-foreground)]">Cargando Mapa CyclOSM Leaflet...</div> }
+  { ssr: false, loading: () => <div className="w-full h-full min-h-[460px] bg-[var(--card)]/50 animate-pulse rounded-3xl flex items-center justify-center text-xs text-[var(--muted-foreground)]">Cargando Mapa GIS Leaflet...</div> }
 );
 
 export default function MapaSudamerica({ filtroPais, setFiltroPais, onSelectAttraction }) {

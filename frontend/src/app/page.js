@@ -82,13 +82,13 @@ export default function Home() {
       <Hero />
 
       {/* 2. Sección Tours — Layout Responsivo */}
-      <section id="tours" className="w-full border-t border-[var(--border)]/20 bg-[var(--sidebar)]/60 relative z-10 scroll-mt-16">
+      <section id="tours" className="w-full border-t border-[var(--border)]/20 bg-[var(--sidebar)]/60 relative z-10 scroll-mt-[76px] md:scroll-mt-[84px]">
 
         {/* ── MOBILE/TABLET LAYOUT ── */}
         <div className="flex flex-col lg:hidden">
 
-          {/* Mapa compacto en mobile */}
-          <div className="w-full h-[320px] p-3 flex items-center justify-center border-b border-[var(--border)]/40">
+          {/* Mapa en mobile */}
+          <div className="w-full min-h-[520px] p-3 flex items-center justify-center border-b border-[var(--border)]/40">
             <MapaSudamerica
               filtroPais={filtroPais}
               setFiltroPais={(p) => {

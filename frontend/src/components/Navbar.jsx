@@ -35,6 +35,23 @@ export default function Navbar() {
     { label: t('nav.nosotros'), href: '#guias' },
   ];
 
+  const handleNavClick = (e, href) => {
+    e.preventDefault();
+    setIsOpen(false);
+    const targetId = href.replace('#', '');
+    const el = document.getElementById(targetId);
+    if (el) {
+      const navHeight = isScrolled ? 68 : 80;
+      const elementPosition = el.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - navHeight;
+      window.scrollTo({
+        top: Math.max(0, offsetPosition),
+        behavior: 'smooth',
+      });
+      window.history.pushState(null, '', href);
+    }
+  };
+
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
@@ -56,14 +73,7 @@ export default function Navbar() {
         <div className="flex items-center min-w-0 flex-1 md:flex-none">
           <a
             href="#inicio"
-            onClick={(e) => {
-              e.preventDefault();
-              setIsOpen(false);
-              const el = document.getElementById('inicio');
-              if (el) {
-                el.scrollIntoView({ behavior: 'smooth' });
-              }
-            }}
+            onClick={(e) => handleNavClick(e, '#inicio')}
             className="flex items-center group shrink-0 transition-all duration-300 cursor-pointer"
           >
             <img
@@ -158,14 +168,16 @@ export default function Navbar() {
             <a
               key={item.label}
               href={item.href}
-              className="text-sm font-medium text-[var(--foreground)]/90 hover:text-[var(--foreground)] transition-colors relative after:content-[''] after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-[2px] after:bg-[var(--accent)] after:transition-all hover:after:w-full"
+              onClick={(e) => handleNavClick(e, item.href)}
+              className="text-sm font-medium text-[var(--foreground)]/90 hover:text-[var(--foreground)] transition-colors relative after:content-[''] after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-[2px] after:bg-[var(--accent)] after:transition-all hover:after:w-full cursor-pointer"
             >
               {item.label}
             </a>
           ))}
           <a
             href="#tours"
-            className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white px-5 py-2.5 rounded-xl font-semibold shadow-lg shadow-[var(--accent)]/20 hover:shadow-[var(--accent)]/30 transition-all duration-300 text-sm"
+            onClick={(e) => handleNavClick(e, '#tours')}
+            className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white px-5 py-2.5 rounded-xl font-semibold shadow-lg shadow-[var(--accent)]/20 hover:shadow-[var(--accent)]/30 transition-all duration-300 text-sm cursor-pointer"
           >
             {t('nav.explorar')}
           </a>
@@ -218,7 +230,7 @@ export default function Navbar() {
           </button>
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="text-[var(--foreground)]/80 hover:text-[var(--foreground)] p-2 shrink-0 flex items-center justify-center"
+            className="text-[var(--foreground)]/80 hover:text-[var(--foreground)] p-2 shrink-0 flex items-center justify-center cursor-pointer"
             aria-label={isOpen ? 'Cerrar menú' : 'Abrir menú'}
           >
             {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -233,16 +245,16 @@ export default function Navbar() {
             <a
               key={item.label}
               href={item.href}
-              onClick={() => setIsOpen(false)}
-              className="block text-sm font-semibold text-[var(--foreground)]/80 hover:text-[var(--foreground)] py-1.5 leading-tight"
+              onClick={(e) => handleNavClick(e, item.href)}
+              className="block text-sm font-semibold text-[var(--foreground)]/80 hover:text-[var(--foreground)] py-1.5 leading-tight cursor-pointer"
             >
               {item.label}
             </a>
           ))}
           <a
             href="#tours"
-            onClick={() => setIsOpen(false)}
-            className="block text-center bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-[var(--accent)]/20"
+            onClick={(e) => handleNavClick(e, '#tours')}
+            className="block text-center bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-[var(--accent)]/20 cursor-pointer"
           >
             {t('nav.explorar')}
           </a>

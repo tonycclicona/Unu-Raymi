@@ -1,9 +1,12 @@
 # ── Dependencias ──────────────────────────────────
 node_modules/
 
-# ── Variables de entorno (SOLO .env.production y .env.example se commitean) ──
+# ── Variables de entorno y secretos (NUNCA subir a Git) ──
 .env
-.env.local
+.env.*
+.env*.local
+EnvironmentVariables.env
+!*.env.example
 
 # ── Base de datos local (SQLite para desarrollo) ──
 prisma/dev.db
