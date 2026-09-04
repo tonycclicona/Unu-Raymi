@@ -174,6 +174,8 @@ export async function ensureTablesExist() {
         FOREIGN KEY (\`tourId\`) REFERENCES \`tours\`(\`id\`) ON DELETE SET NULL ON UPDATE CASCADE
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     `);
+    await addColumnSafe('attractions', 'imageUrl', 'VARCHAR(500) NULL');
+    await addColumnSafe('attractions', 'orden', 'INT NOT NULL DEFAULT 0');
 
     // 9. Tabla: dynamic_forms
     await prisma.$executeRawUnsafe(`

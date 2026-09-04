@@ -175,12 +175,12 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
   const categorias = getCategorias();
 
   const itemsCategorias = [
-    { id: 'guia', label: language === 'es' ? 'Guías y Dirección' : 'Guides & Direction', Icon3D: Compass3D, list: categorias.guia, color: 'border-amber-500/30 bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent shadow-[4px_6px_16px_rgba(255,167,81,0.15)]' },
-    { id: 'seguridad', label: language === 'es' ? 'Seguridad y Asistencia' : 'Safety & Assistance', Icon3D: Shield3D, list: categorias.seguridad, color: 'border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent shadow-[4px_6px_16px_rgba(16,185,129,0.15)]' },
-    { id: 'equipamiento', label: language === 'es' ? 'Equipamiento Requerido' : 'Required Equipment', Icon3D: Backpack3D, list: categorias.equipamiento, color: 'border-orange-500/30 bg-gradient-to-br from-orange-500/10 via-orange-500/5 to-transparent shadow-[4px_6px_16px_rgba(242,153,74,0.15)]' },
-    { id: 'alimentacion', label: language === 'es' ? 'Alimentación y Bebidas' : 'Food & Drinks', Icon3D: GourmetPlate3D, list: categorias.alimentacion, color: 'border-rose-500/30 bg-gradient-to-br from-rose-500/10 via-rose-500/5 to-transparent shadow-[4px_6px_16px_rgba(225,29,72,0.15)]' },
-    { id: 'transporte', label: language === 'es' ? 'Transporte y Logística' : 'Transport & Logistics', Icon3D: Sprinter3D, list: categorias.transporte, color: 'border-blue-500/30 bg-gradient-to-br from-blue-500/10 via-blue-500/5 to-transparent shadow-[4px_6px_16px_rgba(47,128,237,0.15)]' },
-    { id: 'actividades', label: language === 'es' ? 'Tickets y Actividades' : 'Tickets & Activities', Icon3D: Camera3D, list: categorias.actividades, color: 'border-purple-500/30 bg-gradient-to-br from-purple-500/10 via-purple-500/5 to-transparent shadow-[4px_6px_16px_rgba(139,92,246,0.15)]' },
+    { id: 'guia', label: t('tour_details.categorias.guia'), Icon3D: Compass3D, list: categorias.guia, color: 'border-amber-500/30 bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent shadow-[4px_6px_16px_rgba(255,167,81,0.15)]' },
+    { id: 'seguridad', label: t('tour_details.categorias.seguridad'), Icon3D: Shield3D, list: categorias.seguridad, color: 'border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent shadow-[4px_6px_16px_rgba(16,185,129,0.15)]' },
+    { id: 'equipamiento', label: t('tour_details.categorias.equipamiento'), Icon3D: Backpack3D, list: categorias.equipamiento, color: 'border-orange-500/30 bg-gradient-to-br from-orange-500/10 via-orange-500/5 to-transparent shadow-[4px_6px_16px_rgba(242,153,74,0.15)]' },
+    { id: 'alimentacion', label: t('tour_details.categorias.alimentacion'), Icon3D: GourmetPlate3D, list: categorias.alimentacion, color: 'border-rose-500/30 bg-gradient-to-br from-rose-500/10 via-rose-500/5 to-transparent shadow-[4px_6px_16px_rgba(225,29,72,0.15)]' },
+    { id: 'transporte', label: t('tour_details.categorias.transporte'), Icon3D: Sprinter3D, list: categorias.transporte, color: 'border-blue-500/30 bg-gradient-to-br from-blue-500/10 via-blue-500/5 to-transparent shadow-[4px_6px_16px_rgba(47,128,237,0.15)]' },
+    { id: 'actividades', label: t('tour_details.categorias.actividades'), Icon3D: Camera3D, list: categorias.actividades, color: 'border-purple-500/30 bg-gradient-to-br from-purple-500/10 via-purple-500/5 to-transparent shadow-[4px_6px_16px_rgba(139,92,246,0.15)]' },
   ];
 
   const displayExclusiones = (activeVariant && activeVariant.servicios_excluidos && activeVariant.servicios_excluidos.length > 0)
@@ -316,7 +316,7 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
                 </div>
               ) : (
                 <div className="bg-[var(--card)] border border-[var(--border)]/40 p-5 rounded-2xl text-center text-xs text-[var(--muted-foreground)]/80 italic">
-                  {language === 'es' ? 'No se ha registrado un itinerario detallado para este tour.' : 'No detailed itinerary has been registered for this tour.'}
+                  {t('tour_details.sin_itinerario')}
                 </div>
               )}
             </div>
@@ -326,7 +326,7 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
               <div className="space-y-3">
                 <h3 className="text-sm font-bold text-[var(--foreground)] uppercase tracking-wider flex items-center gap-2">
                   <X className="w-4 h-4 text-[var(--foreground)]" />
-                  {language === 'es' ? 'Servicios Excluidos' : 'Excluded Services'}
+                  {t('tour_details.servicios_excluidos')}
                 </h3>
                 <ul className="bg-[var(--card)] border border-[var(--border)]/40 p-4 rounded-2xl space-y-2 text-xs text-[var(--muted-foreground)]">
                   {displayExclusiones.map((item, idx) => (
@@ -355,13 +355,13 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
         <div className="w-full md:w-[30%] p-5 md:p-8 flex flex-col justify-between bg-[var(--card)] md:h-full md:overflow-y-auto no-scrollbar">
           <div className="space-y-5">
             <div className="space-y-1">
-              <span className="text-[10px] text-[var(--foreground)] font-extrabold uppercase tracking-widest">{language === 'es' ? 'Inclusiones' : 'Inclusions'}</span>
-              <h3 className="font-extrabold text-[var(--foreground)] text-base md:text-lg">{language === 'es' ? 'Servicios Incluidos' : 'Included Services'}</h3>
+              <span className="text-[10px] text-[var(--foreground)] font-extrabold uppercase tracking-widest">{t('tour_details.inclusiones')}</span>
+              <h3 className="font-extrabold text-[var(--foreground)] text-base md:text-lg">{t('tour_details.servicios_incluidos')}</h3>
               <p className="text-xs text-[var(--muted-foreground)] leading-relaxed hidden md:block">
-                {language === 'es' ? 'Pasa el cursor sobre cada categoría para ver los detalles.' : 'Hover over each category to see the details.'}
+                {t('tour_details.hover_detalles')}
               </p>
               <p className="text-xs text-[var(--muted-foreground)] leading-relaxed md:hidden">
-                {language === 'es' ? 'Toca una categoría para ver los detalles.' : 'Tap a category to see the details.'}
+                {t('tour_details.tap_detalles')}
               </p>
             </div>
 
@@ -404,7 +404,7 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
                         <div className="flex items-center justify-between text-[10px] text-[var(--foreground)] font-bold uppercase tracking-wider mb-2 border-b border-[var(--border)]/50 pb-1.5">
                           <span>{cat.label}</span>
                           <span className={hasItems ? 'text-emerald-500 font-extrabold' : 'text-[var(--muted-foreground)]'}>
-                            {hasItems ? `${cat.list.length} ${language === 'es' ? 'servicio(s)' : 'service(s)'}` : (language === 'es' ? 'No incluido' : 'Not included')}
+                            {hasItems ? `${cat.list.length} ${t('tour_details.servicios_count')}` : t('tour_details.no_incluido')}
                           </span>
                         </div>
                         {hasItems ? (
@@ -418,9 +418,7 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
                           </ul>
                         ) : (
                           <p className="text-xs text-[var(--muted-foreground)] italic">
-                            {language === 'es'
-                              ? 'No se registraron inclusiones para esta categoría en este paquete.'
-                              : 'No inclusions registered for this category in this package.'}
+                            {t('tour_details.sin_inclusiones')}
                           </p>
                         )}
                       </div>
@@ -435,13 +433,13 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
           <div className="pt-5 space-y-3 md:space-y-4">
             <div className="bg-[var(--card)] border border-[var(--border)]/50 p-4 rounded-2xl flex justify-between items-center">
               <div>
-                <span className="text-[10px] text-[var(--muted-foreground)] block uppercase font-bold tracking-wider">{language === 'es' ? 'Precio Adulto' : 'Adult Price'}</span>
+                <span className="text-[10px] text-[var(--muted-foreground)] block uppercase font-bold tracking-wider">{t('tour_details.precio_adulto')}</span>
                 <span className="text-base font-extrabold text-[var(--foreground)]">${displayPrecioAdulto} USD</span>
               </div>
               <div className="text-right">
-                <span className="text-[10px] text-[var(--muted-foreground)] block uppercase font-bold tracking-wider">{language === 'es' ? 'Cupos' : 'Spaces'}</span>
+                <span className="text-[10px] text-[var(--muted-foreground)] block uppercase font-bold tracking-wider">{t('tour_details.cupos')}</span>
                 <span className="text-xs bg-[var(--accent)]/10 text-[var(--foreground)] px-2.5 py-0.5 rounded-full font-bold">
-                  {displayCupos} {language === 'es' ? 'libres' : 'left'}
+                  {displayCupos} {t('tour_details.cupos_libres')}
                 </span>
               </div>
             </div>
@@ -450,7 +448,7 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
               onClick={() => onProceed(selectedDuration)}
               className="w-full flex items-center justify-center gap-2 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white py-4 rounded-xl font-bold shadow-lg shadow-[var(--accent)]/20 hover:shadow-[var(--accent)]/30 transition-all duration-300 text-sm"
             >
-              {language === 'es' ? 'Proceder al Registro' : 'Proceed to Registration'}
+              {t('tour_details.proceder_registro')}
               <ArrowRight className="w-4 h-4" />
             </button>
 
@@ -459,7 +457,7 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
               onClick={onClose}
               className="w-full text-center text-xs text-[var(--muted-foreground)]/80 hover:text-[var(--foreground)] font-semibold transition-colors py-2 md:hidden"
             >
-              {language === 'es' ? '← Volver al catálogo' : '← Back to catalog'}
+              {t('tour_details.volver_catalogo')}
             </button>
           </div>
         </div>

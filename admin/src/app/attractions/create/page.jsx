@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import useSWR from 'swr';
-import { MapPin, Search, Plus, Trash2, CheckCircle2, AlertCircle, Loader2, Navigation } from 'lucide-react';
-import { API_BASE_URL } from '@/lib/api';
+import { MapPin, Search, Plus, Trash2, CheckCircle2, AlertCircle, Loader2, Navigation, Edit2, Upload, X, ArrowUpDown, Image as ImageIcon } from 'lucide-react';
+import { API_BASE_URL, API_ASSETS_URL, uploadApi } from '@/lib/api';
 
 // Carga dinámica de Leaflet para evitar errores con window durante SSR
 const AttractionMapPicker = dynamic(
@@ -15,11 +15,16 @@ const AttractionMapPicker = dynamic(
 const fetcher = (url) => fetch(url).then((res) => res.json());
 
 export default function CreateAttractionPage() {
+  const [editingId, setEditingId] = useState(null);
   const [name, setName] = useState('');
   const [category, setCategory] = useState('ATRACTIVO');
   const [altitude, setAltitude] = useState('');
   const [description, setDescription] = useState('');
   const [tourId, setTourId] = useState('');
+  const [orden, setOrden] = useState('0');
+  const [imageUrl, setImageUrl] = useState('');
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const fileInputRef = useRef(null);
 
   // Coordenadas iniciales (Cusco, Perú)
   const [position, setPosition] = useState([-13.5319, -71.9675]);
@@ -84,6 +89,58 @@ export default function CreateAttractionPage() {
     setShowDropdown(false);
   };
 
+  const handleImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingImage(true);
+    setMessage(null);
+
+    const formData = new FormData();
+    formData.append('imagen', file);
+
+    try {
+      const data = await uploadApi('/upload', formData);
+      if (data.success && data.url) {
+        setImageUrl(data.url);
+      } else {
+        setMessage({ type: 'error', text: data.error || 'Error al subir la imagen' });
+      }
+    } catch (err) {
+      console.error('Error en subida de imagen:', err);
+      setMessage({ type: 'error', text: err.message || 'Error al conectar con el servidor de subida' });
+    } finally {
+      setUploadingImage(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleStartEdit = (attr) => {
+    setEditingId(attr.id);
+    setName(attr.name || '');
+    setCategory(attr.category || 'ATRACTIVO');
+    setAltitude(attr.altitude ? String(attr.altitude) : '');
+    setDescription(attr.description || '');
+    setTourId(attr.tourId ? String(attr.tourId) : '');
+    setOrden(attr.orden !== undefined ? String(attr.orden) : '0');
+    setImageUrl(attr.imageUrl || '');
+    setPosition([attr.latitude, attr.longitude]);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setName('');
+    setCategory('ATRACTIVO');
+    setAltitude('');
+    setDescription('');
+    setTourId('');
+    setOrden('0');
+    setImageUrl('');
+    setPosition([-13.5319, -71.9675]);
+    setMessage(null);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -98,10 +155,18 @@ export default function CreateAttractionPage() {
         altitude: altitude ? parseInt(altitude, 10) : null,
         description,
         tourId: tourId ? parseInt(tourId, 10) : null,
+        orden: orden ? parseInt(orden, 10) : 0,
+        imageUrl: imageUrl || null,
       };
 
-      const res = await fetch(`${API_BASE_URL}/admin/attractions`, {
-        method: 'POST',
+      const url = editingId
+        ? `${API_BASE_URL}/admin/attractions/${editingId}`
+        : `${API_BASE_URL}/admin/attractions`;
+
+      const method = editingId ? 'PUT' : 'POST';
+
+      const res = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
@@ -109,17 +174,20 @@ export default function CreateAttractionPage() {
       const data = await res.json();
 
       if (res.ok && data.success) {
-        setMessage({ type: 'success', text: `¡Punto "${name}" registrado correctamente!` });
-        // Limpiar formulario parcial
-        setName('');
-        setAltitude('');
-        setDescription('');
+        setMessage({
+          type: 'success',
+          text: editingId
+            ? `¡Punto "${name}" actualizado correctamente!`
+            : `¡Punto "${name}" registrado correctamente!`
+        });
+
+        handleCancelEdit();
         mutateAttractions();
       } else {
-        setMessage({ type: 'error', text: data.error || 'No se pudo crear el punto geográfico.' });
+        setMessage({ type: 'error', text: data.error || 'No se pudo guardar el punto geográfico.' });
       }
     } catch (err) {
-      console.error('Error al enviar punto GIS:', err);
+      console.error('Error al guardar punto GIS:', err);
       setMessage({ type: 'error', text: 'Error de conexión con el servidor.' });
     } finally {
       setLoading(false);
@@ -134,6 +202,7 @@ export default function CreateAttractionPage() {
         method: 'DELETE',
       });
       if (res.ok) {
+        if (editingId === id) handleCancelEdit();
         mutateAttractions();
       }
     } catch (err) {
@@ -251,8 +320,8 @@ export default function CreateAttractionPage() {
                   </div>
                 </div>
 
-                {/* Altitud y Tour Asociado */}
-                <div className="grid grid-cols-2 gap-3">
+                {/* Altitud, Orden y Tour Asociado */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
                     <label className="block text-[10px] font-bold text-[#6c7a7c] uppercase tracking-wider mb-1">
                       Altitud (msnm)
@@ -263,6 +332,21 @@ export default function CreateAttractionPage() {
                       onChange={(e) => setAltitude(e.target.value)}
                       placeholder="Ej. 4200"
                       className="w-full bg-[#f5f4f0] border border-[#b0c4b1] p-2 rounded-xl text-xs text-[#4a5759] focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold text-[#6c7a7c] uppercase tracking-wider mb-1 flex items-center gap-1">
+                      <ArrowUpDown className="w-3 h-3 text-[#4a5759]" /> Orden Ruta
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={orden}
+                      onChange={(e) => setOrden(e.target.value)}
+                      placeholder="0, 1, 2..."
+                      className="w-full bg-[#f5f4f0] border border-[#b0c4b1] p-2 rounded-xl text-xs text-[#4a5759] font-bold focus:outline-none"
+                      title="Orden del punto en la secuencia de la ruta (1, 2, 3...)"
                     />
                   </div>
 
@@ -285,6 +369,63 @@ export default function CreateAttractionPage() {
                   </div>
                 </div>
 
+                {/* Subida de Imagen del Punto GIS */}
+                <div>
+                  <label className="block text-xs font-bold text-[#6c7a7c] uppercase tracking-wider mb-1 flex items-center justify-between">
+                    <span>Fotografía del Punto GIS</span>
+                    <span className="text-[10px] font-normal text-[#6c7a7c]">Conversión automática a WebP</span>
+                  </label>
+
+                  {imageUrl ? (
+                    <div className="relative w-full h-32 rounded-xl overflow-hidden border border-[#b0c4b1] group">
+                      <img
+                        src={imageUrl.startsWith('http') ? imageUrl : `${API_ASSETS_URL}${imageUrl}`}
+                        alt="Preview punto"
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          className="px-3 py-1.5 bg-white text-[#4a5759] rounded-lg text-xs font-bold flex items-center gap-1 shadow-md hover:bg-slate-100"
+                        >
+                          <Upload className="w-3.5 h-3.5" /> Cambiar
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setImageUrl('')}
+                          className="px-3 py-1.5 bg-red-600 text-white rounded-lg text-xs font-bold flex items-center gap-1 shadow-md hover:bg-red-700"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" /> Quitar
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div
+                      onClick={() => fileInputRef.current?.click()}
+                      className="w-full border-2 border-dashed border-[#b0c4b1] hover:border-[#4a5759] rounded-xl p-4 flex flex-col items-center justify-center gap-1.5 cursor-pointer bg-[#f5f4f0]/50 hover:bg-[#f5f4f0] transition-colors"
+                    >
+                      {uploadingImage ? (
+                        <Loader2 className="w-5 h-5 text-[#4a5759] animate-spin" />
+                      ) : (
+                        <ImageIcon className="w-6 h-6 text-[#6c7a7c]" />
+                      )}
+                      <span className="text-xs font-bold text-[#4a5759]">
+                        {uploadingImage ? 'Subiendo y optimizando...' : 'Haz clic para subir fotografía'}
+                      </span>
+                      <span className="text-[10px] text-[#6c7a7c]">JPG, PNG o WebP (máx. 5MB)</span>
+                    </div>
+                  )}
+
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                </div>
+
                 {/* Descripción */}
                 <div>
                   <label className="block text-xs font-bold text-[#6c7a7c] uppercase tracking-wider mb-1">
@@ -299,15 +440,37 @@ export default function CreateAttractionPage() {
                   />
                 </div>
 
-                {/* Botón Guardar */}
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full bg-[#4a5759] hover:bg-[#3b4749] text-white py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md flex items-center justify-center gap-2"
-                >
-                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-                  <span>{loading ? 'Guardando Punto...' : 'Guardar Punto GIS'}</span>
-                </button>
+                {/* Botón Guardar / Actualizar y Cancelar */}
+                <div className="flex gap-2">
+                  <button
+                    type="submit"
+                    disabled={loading || uploadingImage}
+                    className="flex-1 bg-[#4a5759] hover:bg-[#3b4749] text-white py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md flex items-center justify-center gap-2"
+                  >
+                    {loading ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : editingId ? (
+                      <Edit2 className="w-4 h-4" />
+                    ) : (
+                      <Plus className="w-4 h-4" />
+                    )}
+                    <span>
+                      {loading
+                        ? (editingId ? 'Actualizando...' : 'Guardando...')
+                        : (editingId ? 'Actualizar Punto GIS' : 'Guardar Punto GIS')}
+                    </span>
+                  </button>
+
+                  {editingId && (
+                    <button
+                      type="button"
+                      onClick={handleCancelEdit}
+                      className="px-4 py-3 bg-[#dedbd2] hover:bg-[#c5c2b9] text-[#4a5759] rounded-xl text-xs font-bold transition-all flex items-center gap-1"
+                    >
+                      <X className="w-4 h-4" /> Cancelar
+                    </button>
+                  )}
+                </div>
               </form>
             </div>
 
@@ -316,7 +479,9 @@ export default function CreateAttractionPage() {
               <div>
                 <h2 className="text-base font-extrabold text-[#4a5759] border-b border-[#dedbd2] pb-2 flex items-center justify-between">
                   <span>Selector de Mapa Interactivo</span>
-                  <span className="text-xs font-normal text-[#6c7a7c]">Haz clic o arrastra el marcador</span>
+                  <span className="text-xs font-normal text-[#6c7a7c]">
+                    {editingId ? 'Editando ubicación del punto' : 'Haz clic o arrastra el marcador'}
+                  </span>
                 </h2>
               </div>
               <div className="flex-1 min-h-[380px]">
@@ -336,6 +501,8 @@ export default function CreateAttractionPage() {
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
                   <tr className="border-b border-[#dedbd2] bg-[#f5f4f0] text-[#6c7a7c] uppercase text-[10px] font-bold">
+                    <th className="p-3">Foto</th>
+                    <th className="p-3">Orden</th>
                     <th className="p-3">Nombre</th>
                     <th className="p-3">Categoría</th>
                     <th className="p-3">Coordenadas</th>
@@ -347,13 +514,36 @@ export default function CreateAttractionPage() {
                 <tbody className="divide-y divide-[#dedbd2]">
                   {attractionsList.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="p-4 text-center text-[#6c7a7c] italic">
+                      <td colSpan={8} className="p-4 text-center text-[#6c7a7c] italic">
                         No hay puntos registrados aún.
                       </td>
                     </tr>
                   ) : (
                     attractionsList.map((attr) => (
-                      <tr key={attr.id} className="hover:bg-[#f5f4f0]/50 transition-colors">
+                      <tr
+                        key={attr.id}
+                        className={`hover:bg-[#f5f4f0]/50 transition-colors ${
+                          editingId === attr.id ? 'bg-[#b0c4b1]/20 font-semibold' : ''
+                        }`}
+                      >
+                        <td className="p-3">
+                          {attr.imageUrl ? (
+                            <img
+                              src={attr.imageUrl.startsWith('http') ? attr.imageUrl : `${API_ASSETS_URL}${attr.imageUrl}`}
+                              alt={attr.name}
+                              className="w-10 h-10 object-cover rounded-lg border border-[#b0c4b1]"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 rounded-lg bg-[#dedbd2]/50 flex items-center justify-center text-[#6c7a7c]">
+                              <MapPin className="w-4 h-4 opacity-50" />
+                            </div>
+                          )}
+                        </td>
+                        <td className="p-3">
+                          <span className="font-extrabold text-[#4a5759] bg-[#dedbd2]/60 px-2 py-0.5 rounded-md text-[11px]">
+                            #{attr.orden ?? 0}
+                          </span>
+                        </td>
                         <td className="p-3 font-bold text-[#4a5759]">{attr.name}</td>
                         <td className="p-3">
                           <span className="bg-[#dedbd2] text-[#4a5759] px-2 py-0.5 rounded-full text-[10px] font-bold uppercase">
@@ -366,13 +556,22 @@ export default function CreateAttractionPage() {
                         <td className="p-3 text-[#6c7a7c]">{attr.altitude ? `${attr.altitude} msnm` : '-'}</td>
                         <td className="p-3 text-[#6c7a7c]">{attr.tour?.nombre || 'General'}</td>
                         <td className="p-3 text-right">
-                          <button
-                            onClick={() => handleDelete(attr.id, attr.name)}
-                            className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                            title="Eliminar punto"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                          <div className="flex items-center justify-end gap-1">
+                            <button
+                              onClick={() => handleStartEdit(attr)}
+                              className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                              title="Editar punto"
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(attr.id, attr.name)}
+                              className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                              title="Eliminar punto"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))

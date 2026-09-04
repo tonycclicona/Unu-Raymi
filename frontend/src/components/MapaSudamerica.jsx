@@ -72,7 +72,7 @@ export default function MapaSudamerica({ filtroPais, setFiltroPais, onSelectAttr
         <div className="flex items-center justify-between gap-2">
           <div>
             <span className="text-[10px] text-[var(--foreground)] font-extrabold uppercase tracking-widest block">
-              Módulo GIS Turístico Sudamérica
+              {t('gis_map.modulo_titulo')}
             </span>
             <h3 className="font-extrabold text-[var(--foreground)] text-xl flex items-center gap-2">
               <Compass className="w-5 h-5 text-[var(--accent)]" />
@@ -90,10 +90,13 @@ export default function MapaSudamerica({ filtroPais, setFiltroPais, onSelectAttr
       {/* Footer del Mapa (Filtro Activo y Atribución) */}
       <div className="flex justify-between items-center z-10 border-t border-[var(--border)]/50 pt-2.5 text-xs text-[var(--muted-foreground)]">
         <div>
-          Filtro Activo: <span className="text-[var(--foreground)] font-bold">{filtroPais === 'Todos' ? 'Sudamérica Completa' : filtroPais}</span>
+          {t('gis_map.filtro_activo')}{' '}
+          <span className="text-[var(--foreground)] font-bold">
+            {filtroPais === 'Todos' ? t('gis_map.sudamerica_completa') : filtroPais}
+          </span>
         </div>
         <div className="text-[10px] opacity-70">
-          Datos © OpenStreetMap & Unu-Raymi GIS Engine
+          {t('gis_map.datos_atribucion')}
         </div>
       </div>
     </div>

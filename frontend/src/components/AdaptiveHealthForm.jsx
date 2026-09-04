@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { ShieldCheck, Copy, AlertTriangle, CheckCircle2, User, FileText, Activity } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
 
 const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
 const API_BASE_URL = rawApiUrl.replace(/\/api\/?$/, '') + '/api';
 
 export default function AdaptiveHealthForm({ tour, pasajeros = [], onEvaluationsComplete }) {
+  const { t, language } = useLanguage();
   const [schema, setSchema] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activePassengerIndex, setActivePassengerIndex] = useState(0);
@@ -12,13 +14,13 @@ export default function AdaptiveHealthForm({ tour, pasajeros = [], onEvaluations
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
-  // 1. Cargar la estructura del formulario activo
+  // 1. Cargar la estructura del formulario activo según el idioma seleccionado
   useEffect(() => {
     async function fetchSchema() {
       try {
         setLoading(true);
-        const res = await fetch(`${API_BASE_URL}/form-engine/schema`);
-        if (!res.ok) throw new Error('No se pudo obtener el formulario de evaluación.');
+        const res = await fetch(`${API_BASE_URL}/form-engine/schema?lang=${language}`);
+        if (!res.ok) throw new Error(t('health_form.error_carga'));
         const data = await res.json();
         setSchema(data);
 
@@ -26,7 +28,7 @@ export default function AdaptiveHealthForm({ tour, pasajeros = [], onEvaluations
         const totalPasajeros = pasajeros.length > 0 ? pasajeros.length : 1;
         const initialForms = Array.from({ length: totalPasajeros }).map((_, idx) => ({
           pasajeroId: pasajeros[idx]?.id || null,
-          nombre: pasajeros[idx]?.nombre || `Pasajero ${idx + 1}`,
+          nombre: pasajeros[idx]?.nombre || `${t('health_form.pasajero_label')} ${idx + 1}`,
           apellido: pasajeros[idx]?.apellido || '',
           dni: pasajeros[idx]?.dni || '',
           email: idx === 0 ? (pasajeros[idx]?.email || '') : '',
@@ -37,14 +39,14 @@ export default function AdaptiveHealthForm({ tour, pasajeros = [], onEvaluations
         setFormsData(initialForms);
       } catch (err) {
         console.error('Error cargando esquema de salud:', err);
-        setErrorMsg('No se pudo cargar la evaluación médica adaptativa.');
+        setErrorMsg(t('health_form.error_carga'));
       } finally {
         setLoading(false);
       }
     }
 
     fetchSchema();
-  }, [pasajeros]);
+  }, [pasajeros, language]);
 
   // 2. Duplicar respuestas del Pasajero 1 a los demás acompañantes
   const handleDuplicateFromPassengerOne = (targetIndex) => {
@@ -156,7 +158,7 @@ export default function AdaptiveHealthForm({ tour, pasajeros = [], onEvaluations
     return (
       <div className="p-8 text-center text-emerald-300 animate-pulse">
         <Activity className="w-8 h-8 mx-auto mb-2 animate-spin" />
-        <p className="text-sm font-medium">Cargando evaluación médica adaptativa...</p>
+        <p className="text-sm font-medium">{t('health_form.cargando')}</p>
       </div>
     );
   }
@@ -164,7 +166,7 @@ export default function AdaptiveHealthForm({ tour, pasajeros = [], onEvaluations
   if (!schema) {
     return (
       <div className="p-4 bg-red-900/30 border border-red-500/50 rounded-xl text-red-200 text-sm">
-        {errorMsg || 'No se pudo cargar el formulario médico.'}
+        {errorMsg || t('health_form.error_carga')}
       </div>
     );
   }
@@ -201,7 +203,7 @@ export default function AdaptiveHealthForm({ tour, pasajeros = [], onEvaluations
               }`}
             >
               <User className="w-4 h-4" />
-              <span>{p.nombre ? `${p.nombre}` : `Pasajero ${idx + 1}`}</span>
+              <span>{p.nombre ? `${p.nombre}` : `${t('health_form.pasajero_label')} ${idx + 1}`}</span>
               {p.consentimientoFirmado && <CheckCircle2 className="w-3.5 h-3.5 text-slate-950 ml-1" />}
             </button>
           ))}
@@ -213,14 +215,14 @@ export default function AdaptiveHealthForm({ tour, pasajeros = [], onEvaluations
         <div className="bg-[var(--accent)]/10 border border-[var(--accent)]/40 rounded-xl p-3 flex items-center justify-between">
           <div className="flex items-center space-x-2 text-xs text-[var(--foreground)] font-medium">
             <Copy className="w-4 h-4 text-[var(--accent)]" />
-            <span>¿Comparten la misma altitud y condición básica?</span>
+            <span>{t('health_form.pregunta_comparten')}</span>
           </div>
           <button
             type="button"
             onClick={() => handleDuplicateFromPassengerOne(activePassengerIndex)}
             className="px-3 py-1.5 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-slate-950 text-xs font-extrabold rounded-lg transition-all flex items-center space-x-1 shadow-sm"
           >
-            <span>Copiar respuestas del Pasajero 1</span>
+            <span>{t('health_form.copiar_pasajero1')}</span>
           </button>
         </div>
       )}
@@ -234,15 +236,15 @@ export default function AdaptiveHealthForm({ tour, pasajeros = [], onEvaluations
               #{activePassengerIndex + 1}
             </div>
             <div>
-              <span className="text-[10px] text-[var(--accent)] font-extrabold uppercase tracking-wider block">Mi Perfil y Aptitud de Montaña</span>
+              <span className="text-[10px] text-[var(--accent)] font-extrabold uppercase tracking-wider block">{t('health_form.perfil_titulo')}</span>
               <h4 className="text-sm font-extrabold text-[var(--foreground)]">
-                {currentPassengerData.nombre ? `${currentPassengerData.nombre} ${currentPassengerData.apellido || ''}` : `Pasajero ${activePassengerIndex + 1}`}
+                {currentPassengerData.nombre ? `${currentPassengerData.nombre} ${currentPassengerData.apellido || ''}` : `${t('health_form.pasajero_label')} ${activePassengerIndex + 1}`}
               </h4>
             </div>
           </div>
           {currentPassengerData.dni && (
             <span className="text-xs font-mono font-bold bg-[var(--card)] px-3 py-1 rounded-lg border border-[var(--border)] text-[var(--muted-foreground)]">
-              Doc: {currentPassengerData.dni}
+              {t('health_form.doc_label')}: {currentPassengerData.dni}
             </span>
           )}
         </div>
@@ -268,7 +270,7 @@ export default function AdaptiveHealthForm({ tour, pasajeros = [], onEvaluations
                     onChange={(e) => handleFieldChange(activePassengerIndex, q.codigo, e.target.value)}
                     className="w-full px-3 py-2.5 bg-[var(--background)] border border-[var(--border)] rounded-xl text-sm text-[var(--foreground)] font-medium focus:border-[var(--accent)] focus:outline-none"
                   >
-                    <option value="">Seleccione una opción...</option>
+                    <option value="">{t('health_form.seleccione_opcion')}</option>
                     {q.opciones?.map((opt, idx) => (
                       <option key={idx} value={opt.value}>
                         {opt.label}
@@ -346,7 +348,7 @@ export default function AdaptiveHealthForm({ tour, pasajeros = [], onEvaluations
                     value={val}
                     onChange={(e) => handleFieldChange(activePassengerIndex, q.codigo, e.target.value)}
                     className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-xl text-sm text-[var(--foreground)] focus:border-[var(--accent)] focus:outline-none"
-                    placeholder="Escriba aquí los detalles..."
+                    placeholder={t('health_form.placeholder_texto')}
                   />
                 )}
               </div>
@@ -364,7 +366,7 @@ export default function AdaptiveHealthForm({ tour, pasajeros = [], onEvaluations
               className="mt-1 accent-[var(--accent)] w-4 h-4"
             />
             <span className="text-xs text-[var(--muted-foreground)] leading-relaxed font-medium">
-              Declaro que la información proporcionada es verídica y acepto las condiciones de seguridad en montaña y altitud especificadas para la expedición.
+              {t('health_form.declaracion_jurada')}
             </span>
           </label>
         </div>
@@ -382,7 +384,9 @@ export default function AdaptiveHealthForm({ tour, pasajeros = [], onEvaluations
       <div className="flex items-center justify-between pt-2">
         {formsData.length > 1 && (
           <div className="text-xs text-[var(--muted-foreground)] font-bold">
-            Pasajero {activePassengerIndex + 1} de {formsData.length}
+            {t('health_form.pasajero_progreso')
+              .replace('{current}', activePassengerIndex + 1)
+              .replace('{total}', formsData.length)}
           </div>
         )}
         <div className="flex items-center space-x-3 ml-auto">
@@ -392,7 +396,7 @@ export default function AdaptiveHealthForm({ tour, pasajeros = [], onEvaluations
               onClick={() => setActivePassengerIndex((prev) => prev + 1)}
               className="px-6 py-2.5 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-slate-950 font-bold rounded-xl text-sm transition-all shadow-md"
             >
-              Siguiente Pasajero →
+              {t('health_form.siguiente_pasajero')}
             </button>
           ) : (
             <button
@@ -404,12 +408,12 @@ export default function AdaptiveHealthForm({ tour, pasajeros = [], onEvaluations
               {submitting ? (
                 <>
                   <Activity className="w-4 h-4 animate-spin" />
-                  <span>Procesando...</span>
+                  <span>{t('health_form.procesando')}</span>
                 </>
               ) : (
                 <>
                   <ShieldCheck className="w-4 h-4" />
-                  <span>Confirmar y Guardar Evaluaciones</span>
+                  <span>{t('health_form.confirmar_evaluaciones')}</span>
                 </>
               )}
             </button>

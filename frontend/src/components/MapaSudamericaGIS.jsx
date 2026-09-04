@@ -1,10 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { useState, useEffect, useMemo } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, Tooltip } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { RotateCcw } from 'lucide-react';
+import { RotateCcw, Route, Image as ImageIcon } from 'lucide-react';
+import { API_ASSETS_URL } from '@/lib/api';
+import { useLanguage } from '@/context/LanguageContext';
 
 // Solución marcadores e iconos Leaflet en Next.js
 delete L.Icon.Default.prototype._getIconUrl;
@@ -60,6 +62,7 @@ const DEFAULT_ZOOM = 4;
 
 export default function MapaSudamericaGIS({ attractions = [], selectedTourId, onSelectAttraction }) {
   const [map, setMap] = useState(null);
+  const { t, language } = useLanguage();
 
   useEffect(() => {
     if (map) {
@@ -74,6 +77,36 @@ export default function MapaSudamericaGIS({ attractions = [], selectedTourId, on
       map.flyTo(SOUTH_AMERICA_CENTER, DEFAULT_ZOOM, { duration: 1.5 });
     }
   };
+  // Agrupar atracciones por tour para trazar las rutas polilínea
+  const tourRoutes = useMemo(() => {
+    const groups = {};
+    attractions.forEach((att) => {
+      if (att.tourId && att.latitude && att.longitude) {
+        if (!groups[att.tourId]) {
+          groups[att.tourId] = {
+            tourId: att.tourId,
+            tourName: att.tour?.nombre || `Tour #${att.tourId}`,
+            points: [],
+          };
+        }
+        groups[att.tourId].points.push(att);
+      }
+    });
+
+    // Ordenar puntos por 'orden' ascendente y armar coordenadas
+    return Object.values(groups)
+      .map((g) => {
+        const sortedPoints = [...g.points].sort((a, b) => (a.orden || 0) - (b.orden || 0));
+        const positions = sortedPoints.map((p) => [p.latitude, p.longitude]);
+        return {
+          ...g,
+          sortedPoints,
+          positions,
+          hasRoute: positions.length >= 2,
+        };
+      })
+      .filter((g) => g.hasRoute);
+  }, [attractions]);
 
   return (
     <div className="w-full h-full min-h-[460px] rounded-3xl overflow-hidden border border-[var(--border)]/40 relative z-0 shadow-lg">
@@ -100,9 +133,52 @@ export default function MapaSudamericaGIS({ attractions = [], selectedTourId, on
           />
         )}
 
+        {/* Trazado de Rutas Polilíneas de los Tours */}
+        {tourRoutes.map((route, idx) => {
+          // Paleta de colores distintivos para las rutas
+          const routeColors = ['#f59e0b', '#3b82f6', '#10b981', '#ec4899', '#8b5cf6'];
+          const strokeColor = routeColors[idx % routeColors.length];
+          const isSelected = selectedTourId && String(selectedTourId) === String(route.tourId);
+
+          return (
+            <Polyline
+              key={`route-${route.tourId}`}
+              positions={route.positions}
+              pathOptions={{
+                color: isSelected ? '#ff385c' : strokeColor,
+                weight: isSelected ? 5 : 3.5,
+                dashArray: isSelected ? undefined : '6, 8',
+                opacity: 0.85,
+              }}
+            >
+              <Tooltip sticky direction="top" className="font-sans font-bold text-xs">
+                <span className="flex items-center gap-1">
+                  <Route className="w-3.5 h-3.5 text-amber-500" />
+                  {t('gis_map.ruta_tooltip')
+                    .replace('{name}', route.tourName)
+                    .replace('{count}', route.positions.length)}
+                </span>
+              </Tooltip>
+            </Polyline>
+          );
+        })}
+
         {attractions.map((att) => {
           const icon = categoryIcons[att.category] || defaultIcon;
           const tourDificultad = att.tour?.nivel_dificultad || 'Moderado';
+          const fullImgUrl = att.imageUrl
+            ? att.imageUrl.startsWith('http')
+              ? att.imageUrl
+              : `${API_ASSETS_URL}${att.imageUrl}`
+            : null;
+
+          const categoryTranslated = {
+            ATRACTIVO: t('gis_map.atractivo'),
+            HOSPITAL: t('gis_map.hospital'),
+            TRANSPORTE: t('gis_map.transporte'),
+            RESTAURANTE: t('gis_map.restaurante'),
+            TIENDA: t('gis_map.tienda'),
+          }[att.category] || att.category;
           
           return (
             <Marker
@@ -117,18 +193,44 @@ export default function MapaSudamericaGIS({ attractions = [], selectedTourId, on
                 },
               }}
             >
-              <Popup minWidth={240} className="custom-gis-popup">
-                <div className="space-y-2 font-sans p-1.5">
+              <Popup minWidth={250} maxWidth={280} className="custom-gis-popup">
+                <div className="space-y-2 font-sans p-1">
+                  {/* Imagen del Punto GIS si existe */}
+                  {fullImgUrl && (
+                    <div className="relative w-full h-32 rounded-xl overflow-hidden bg-slate-100 mb-1.5 shadow-inner">
+                      <img
+                        src={fullImgUrl}
+                        alt={att.name || 'Punto GIS'}
+                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                      {att.orden !== undefined && att.orden !== null && (
+                        <div className="absolute top-2 left-2 bg-slate-900/80 backdrop-blur-sm text-white text-[10px] font-extrabold px-2 py-0.5 rounded-full border border-white/20">
+                          {t('gis_map.paso_prefix')}{att.orden}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   {/* Cabecera del Atractivo / Punto */}
                   <div className="flex items-center justify-between gap-2 border-b border-slate-200 pb-1.5">
                     <span className="text-[10px] font-black uppercase text-indigo-700 px-2 py-0.5 bg-indigo-50 rounded-md border border-indigo-200">
-                      {att.category}
+                      {categoryTranslated}
                     </span>
-                    {att.altitude && (
-                      <span className="text-[10px] font-extrabold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">
-                        ⛰️ {att.altitude} msnm
-                      </span>
-                    )}
+                    <div className="flex items-center gap-1">
+                      {att.orden !== undefined && att.orden !== null && !fullImgUrl && (
+                        <span className="text-[10px] font-black text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-md">
+                          #{att.orden}
+                        </span>
+                      )}
+                      {att.altitude && (
+                        <span className="text-[10px] font-extrabold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">
+                          ⛰️ {att.altitude}m
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   {/* Nombre y Coordenadas OSM */}
@@ -152,13 +254,13 @@ export default function MapaSudamericaGIS({ attractions = [], selectedTourId, on
                   {att.tour && (
                     <div className="pt-1.5 border-t border-slate-200 space-y-1.5">
                       <div className="text-[11px] text-slate-700 font-bold flex items-center gap-1">
-                        <span>🧭 Tour:</span>
+                        <span>🧭 {t('gis_map.tour_label')}</span>
                         <span className="text-indigo-600 font-black">{att.tour.nombre}</span>
                       </div>
                       
                       {/* Tag destacado con el nivel de caminata o trekking */}
                       <div className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-800 border border-emerald-300 px-2.5 py-1 rounded-full text-[10px] font-extrabold shadow-sm">
-                        <span>🥾 Nivel de Caminata:</span>
+                        <span>🥾 {t('gis_map.caminata')}</span>
                         <span className="text-emerald-700 uppercase">{tourDificultad}</span>
                       </div>
                     </div>
@@ -176,24 +278,24 @@ export default function MapaSudamericaGIS({ attractions = [], selectedTourId, on
         className="absolute top-4 left-4 z-[1000] bg-[var(--card)]/90 backdrop-blur-md border border-[var(--border)]/60 text-[var(--foreground)] text-xs font-extrabold px-3 py-2 rounded-2xl shadow-xl flex items-center gap-2 hover:bg-[var(--accent)] hover:text-white transition-all"
       >
         <RotateCcw className="w-3.5 h-3.5" />
-        Restablecer Vista
+        {t('gis_map.restablecer_vista')}
       </button>
 
       {/* Leyenda GIS en esquina inferior izquierda */}
       <div className="absolute bottom-4 left-4 z-[1000] bg-[var(--card)]/90 backdrop-blur-md border border-[var(--border)]/40 p-3 rounded-2xl text-[10px] space-y-1.5 shadow-xl">
-        <div className="font-extrabold uppercase text-[var(--foreground)] tracking-wider">LEYENDA GIS</div>
+        <div className="font-extrabold uppercase text-[var(--foreground)] tracking-wider">{t('gis_map.leyenda_titulo')}</div>
         <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-[var(--muted-foreground)] font-semibold">
           <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-red-500" /> Atractivo
+            <span className="w-2.5 h-2.5 rounded-full bg-red-500" /> {t('gis_map.atractivo')}
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-blue-500" /> Hospital / Salud
+            <span className="w-2.5 h-2.5 rounded-full bg-blue-500" /> {t('gis_map.hospital')}
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-green-500" /> Transporte
+            <span className="w-2.5 h-2.5 rounded-full bg-green-500" /> {t('gis_map.transporte')}
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-orange-500" /> Restaurante
+            <span className="w-2.5 h-2.5 rounded-full bg-orange-500" /> {t('gis_map.restaurante')}
           </div>
         </div>
       </div>

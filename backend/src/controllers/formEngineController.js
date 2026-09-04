@@ -105,11 +105,118 @@ const DEFAULT_FALLBACK_SCHEMA = {
   ]
 };
 
+const EN_FALLBACK_SCHEMA = {
+  formId: 'default-health-form',
+  titulo: 'Unuraymi Medical & Physical Fitness Assessment',
+  descripcion: 'Safety and physical fitness form prior to joining mountain tours and expeditions.',
+  version: 1,
+  preguntas: [
+    {
+      id: 'q-1',
+      codigo: 'ALT_RESIDENCIA',
+      seccion: 'DATOS_BASICOS',
+      preguntaText: 'At what altitude is your usual city of residence located?',
+      tipoControl: 'SELECT',
+      orden: 1,
+      obligatorio: true,
+      ayudaText: 'Helps us calculate if you will need acclimatization days in the mountains.',
+      opciones: [
+        { label: 'Sea level / 0 to 500 m.a.s.l. (e.g., Coastal cities)', value: 'COSTAL_0_500', score: 10, tags: ['RESIDENCIA_COSTAL'] },
+        { label: 'Valleys & medium altitude / 500 to 2,000 m.a.s.l. (e.g., Arequipa, valleys)', value: 'MEDIA_500_2000', score: 5, tags: ['RESIDENCIA_MEDIA'] },
+        { label: 'High mountain / Over 2,000 m.a.s.l. (e.g., Cusco, Huaraz, Puno or similar)', value: 'ALTA_ABOVE_2000', score: 0, tags: ['RESIDENCIA_ALTA'] }
+      ],
+      condicionMostrar: null
+    },
+    {
+      id: 'q-2',
+      codigo: 'EXP_TREKKING',
+      seccion: 'EXPERIENCIA',
+      preguntaText: 'What is your previous experience in mountain hiking or trekking?',
+      tipoControl: 'SELECT',
+      orden: 2,
+      obligatorio: true,
+      ayudaText: 'Select the option that best reflects your past routes.',
+      opciones: [
+        { label: 'Beginner / Low Level (No prior experience or short gentle walks)', value: 'PRINCIPIANTE', score: 15, tags: ['PRINCIPIANTE'] },
+        { label: 'Moderate / Medium Level (Trails with moderate uneven terrain and altitude)', value: 'MODERADO', score: 5, tags: ['EXP_MODERADA'] },
+        { label: 'Advanced / High Level (Multi-day treks at high altitudes > 3,500m)', value: 'AVANZADO', score: 0, tags: ['EXP_AVANZADA'] },
+        { label: 'Expert / High Mountain (Glaciers, peaks, and technical terrain)', value: 'EXPERTO', score: 0, tags: ['EXP_EXPERTO'] }
+      ],
+      condicionMostrar: null
+    },
+    {
+      id: 'q-3',
+      codigo: 'HISTORIAL_SOROCHE',
+      seccion: 'SALUD_ALTITUD',
+      preguntaText: 'Have you had a history of Altitude Sickness (Soroche) in the past?',
+      tipoControl: 'RADIO',
+      orden: 3,
+      obligatorio: true,
+      ayudaText: 'Let us know if you felt discomfort from altitude on previous trips.',
+      opciones: [
+        { label: 'No symptoms, or only a slight transient headache', value: 'NO_LEVE', score: 0, tags: [] },
+        { label: 'Yes, moderate symptoms (persistent dizziness or needed medication)', value: 'MODERADO', score: 15, tags: ['RIESGO_SOROCHE'] },
+        { label: 'Yes, severe soroche (required medical attention or oxygen therapy)', value: 'SEVERO', score: 35, tags: ['SOROCHE_SEVERO'] }
+      ],
+      condicionMostrar: null
+    },
+    {
+      id: 'q-4',
+      codigo: 'CONDICIONES_MEDICAS',
+      seccion: 'SALUD_GENERAL',
+      preguntaText: 'Do you suffer from or have a diagnosis for any of the following health conditions?',
+      tipoControl: 'CHECKBOX',
+      orden: 4,
+      obligatorio: false,
+      ayudaText: 'Your information is strictly confidential to ensure your safety during the expedition.',
+      opciones: [
+        { label: 'Hypertension / High blood pressure', value: 'HIPERTENSION', score: 10, tags: ['PRESC_CARDIO'] },
+        { label: 'Asthma or any respiratory condition', value: 'ASMA', score: 10, tags: ['PRESC_RESPIRATORIA'] },
+        { label: 'Diabetes or glucose management', value: 'DIABETES', score: 5, tags: ['PRESC_METABOLICA'] },
+        { label: 'Recent joint injuries or pain in knees, ankles, or back', value: 'LESION_ARTICULAR', score: 15, tags: ['PRESC_MOTRIZ'] },
+        { label: 'Heart conditions or arrhythmias', value: 'CARDIACO', score: 30, tags: ['RIESGO_CARDIACO_ALTO'] },
+        { label: 'Major surgery performed in the last 6 months', value: 'CIRUGIA_RECIENTE', score: 40, tags: ['RIESGO_CIRUGIA'] }
+      ],
+      condicionMostrar: null
+    },
+    {
+      id: 'q-5',
+      codigo: 'NIVEL_FISICO',
+      seccion: 'APTITUD_FISICA',
+      preguntaText: 'How would you rate your current physical fitness level for hiking?',
+      tipoControl: 'SELECT',
+      orden: 5,
+      obligatorio: true,
+      ayudaText: 'Based on your weekly physical activity and exercise routine.',
+      opciones: [
+        { label: 'Sedentary (Little or no weekly physical exercise)', value: 'SEDENTARIO', score: 20, tags: ['FISICO_BAJO'] },
+        { label: 'Moderate (Exercise or sports 1 to 2 times a week)', value: 'MODERADO', score: 5, tags: ['FISICO_MEDIO'] },
+        { label: 'Active (Regular workout or exercise 3 to 5 times a week)', value: 'ACTIVO', score: 0, tags: ['FISICO_ALTO'] },
+        { label: 'Athlete / High Endurance (Continuous high-intensity sports training)', value: 'ATLETA', score: 0, tags: ['FISICO_ALTO'] }
+      ],
+      condicionMostrar: null
+    },
+    {
+      id: 'q-6',
+      codigo: 'CONSENTIMIENTO_DECLARACION',
+      seccion: 'DECLARACION',
+      preguntaText: 'I state in the first person that my health information provided is accurate and I accept the expedition safety guidelines.',
+      tipoControl: 'CHECKBOX',
+      orden: 6,
+      obligatorio: true,
+      ayudaText: 'Required to confirm your adventure booking.'
+    }
+  ]
+};
+
 /**
  * Obtener la plantilla activa del formulario y sus preguntas para el Checkout/Frontend
  */
 export async function getActiveFormSchema(req, res) {
   try {
+    const { lang } = req.query;
+    const isEn = lang === 'en';
+
     const form = await prisma.dynamicForm.findFirst({
       where: { activo: true },
       include: {
@@ -120,26 +227,52 @@ export async function getActiveFormSchema(req, res) {
     });
 
     if (!form || !form.preguntas || form.preguntas.length === 0) {
-      return res.json(DEFAULT_FALLBACK_SCHEMA);
+      return res.json(isEn ? EN_FALLBACK_SCHEMA : DEFAULT_FALLBACK_SCHEMA);
     }
 
+    // Mapa de traducciones de fallback para preguntas predeterminadas cuando lang=en
+    const enMap = {};
+    EN_FALLBACK_SCHEMA.preguntas.forEach(q => {
+      enMap[q.codigo] = q;
+    });
+
     // Parsear campos JSON en preguntas
-    const preguntasFormatted = form.preguntas.map((q) => ({
-      ...q,
-      opciones: q.opciones ? (typeof q.opciones === 'string' ? JSON.parse(q.opciones) : q.opciones) : [],
-      condicionMostrar: q.condicionMostrar ? (typeof q.condicionMostrar === 'string' ? JSON.parse(q.condicionMostrar) : q.condicionMostrar) : null,
-    }));
+    const preguntasFormatted = form.preguntas.map((q) => {
+      let opciones = q.opciones ? (typeof q.opciones === 'string' ? JSON.parse(q.opciones) : q.opciones) : [];
+      let preguntaText = q.preguntaText;
+      let ayudaText = q.ayudaText;
+
+      if (isEn && enMap[q.codigo]) {
+        preguntaText = enMap[q.codigo].preguntaText;
+        ayudaText = enMap[q.codigo].ayudaText;
+        if (enMap[q.codigo].opciones && opciones.length > 0) {
+          opciones = opciones.map((opt) => {
+            const matchEn = enMap[q.codigo].opciones.find(o => o.value === opt.value);
+            return matchEn ? { ...opt, label: matchEn.label } : opt;
+          });
+        }
+      }
+
+      return {
+        ...q,
+        preguntaText,
+        ayudaText,
+        opciones,
+        condicionMostrar: q.condicionMostrar ? (typeof q.condicionMostrar === 'string' ? JSON.parse(q.condicionMostrar) : q.condicionMostrar) : null,
+      };
+    });
 
     return res.json({
       formId: form.id,
-      titulo: form.titulo,
-      descripcion: form.descripcion,
+      titulo: isEn ? EN_FALLBACK_SCHEMA.titulo : form.titulo,
+      descripcion: isEn ? EN_FALLBACK_SCHEMA.descripcion : form.descripcion,
       version: form.version,
       preguntas: preguntasFormatted,
     });
   } catch (error) {
     console.error('Error al obtener formulario activo, entregando esquema por defecto:', error.message);
-    return res.json(DEFAULT_FALLBACK_SCHEMA);
+    const isEn = req.query?.lang === 'en';
+    return res.json(isEn ? EN_FALLBACK_SCHEMA : DEFAULT_FALLBACK_SCHEMA);
   }
 }
 

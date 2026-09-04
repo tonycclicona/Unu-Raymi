@@ -2,6 +2,8 @@ import { Router } from 'express';
 import {
   createAttractionAdmin,
   getAttractionsAdmin,
+  getAttractionByIdAdmin,
+  updateAttractionAdmin,
   deleteAttractionAdmin,
   getAttractionsPublic,
 } from '../controllers/attractionsController.js';
@@ -11,6 +13,8 @@ const router = Router();
 // Endpoints Admin (/api/admin/attractions)
 router.post('/admin/attractions', createAttractionAdmin);
 router.get('/admin/attractions', getAttractionsAdmin);
+router.get('/admin/attractions/:id', getAttractionByIdAdmin);
+router.put('/admin/attractions/:id', updateAttractionAdmin);
 router.delete('/admin/attractions/:id', deleteAttractionAdmin);
 
 // Endpoint Público v1 (/api/v1/attractions)

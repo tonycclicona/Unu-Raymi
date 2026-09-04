@@ -63,6 +63,8 @@ model Attraction {
   longitude   Float
   altitude    Int?
   description String?  @db.Text
+  imageUrl    String?  @db.VarChar(500)
+  orden       Int      @default(0)
   tourId      Int?
   tour        Tour?    @relation(fields: [tourId], references: [id], onDelete: SetNull)
 
