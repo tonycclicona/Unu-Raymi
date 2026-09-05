@@ -97,14 +97,15 @@ export default function CreateAttractionPage() {
     setMessage(null);
 
     const formData = new FormData();
-    formData.append('imagen', file);
+    formData.append('file', file);
 
     try {
       const data = await uploadApi('/upload', formData);
-      if (data.success && data.url) {
-        setImageUrl(data.url);
+      const uploadedUrl = data?.data?.url || data?.url;
+      if (data.success && uploadedUrl) {
+        setImageUrl(uploadedUrl);
       } else {
-        setMessage({ type: 'error', text: data.error || 'Error al subir la imagen' });
+        setMessage({ type: 'error', text: data?.error || data?.message || 'Error al subir la imagen' });
       }
     } catch (err) {
       console.error('Error en subida de imagen:', err);
