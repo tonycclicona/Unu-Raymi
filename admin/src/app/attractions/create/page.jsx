@@ -486,7 +486,13 @@ export default function CreateAttractionPage() {
                 </h2>
               </div>
               <div className="flex-1 min-h-[380px]">
-                <AttractionMapPicker position={position} setPosition={setPosition} />
+                <AttractionMapPicker
+                  position={position}
+                  setPosition={setPosition}
+                  imageUrl={imageUrl ? (imageUrl.startsWith('http') ? imageUrl : `${API_ASSETS_URL}${imageUrl}`) : null}
+                  category={category}
+                  orden={orden}
+                />
               </div>
             </div>
           </div>

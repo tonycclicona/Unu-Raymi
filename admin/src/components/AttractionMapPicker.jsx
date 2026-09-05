@@ -13,7 +13,37 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
 
-function LocationMarker({ position, setPosition }) {
+const categoryBorderColors = {
+  ATRACTIVO: '#ef4444',
+  HOSPITAL: '#3b82f6',
+  TRANSPORTE: '#22c55e',
+  RESTAURANTE: '#f97316',
+  TIENDA: '#8b5cf6',
+};
+
+function createPhotoBubbleIcon(imageUrl, category, orden) {
+  const borderColor = categoryBorderColors[category] || '#ef4444';
+  const hasBadge = orden !== undefined && orden !== null && orden !== '';
+  const badgeHtml = hasBadge ? `<div class="gis-bubble-badge">${orden}</div>` : '';
+
+  return L.divIcon({
+    className: 'gis-bubble-marker',
+    html: `
+      <div class="gis-bubble-pin">
+        <div class="gis-bubble-avatar" style="border-color: ${borderColor};">
+          <img src="${imageUrl}" alt="Punto GIS" onerror="this.src='https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png'" />
+        </div>
+        ${badgeHtml}
+        <div class="gis-bubble-pointer" style="border-top-color: ${borderColor};"></div>
+      </div>
+    `,
+    iconSize: [48, 58],
+    iconAnchor: [24, 56],
+    popupAnchor: [0, -52],
+  });
+}
+
+function LocationMarker({ position, setPosition, imageUrl, category, orden }) {
   const markerRef = useRef(null);
 
   const eventHandlers = useMemo(
@@ -35,12 +65,20 @@ function LocationMarker({ position, setPosition }) {
     },
   });
 
+  const markerIcon = useMemo(() => {
+    if (imageUrl) {
+      return createPhotoBubbleIcon(imageUrl, category, orden);
+    }
+    return undefined; // Leaflet usa el defaultIcon
+  }, [imageUrl, category, orden]);
+
   return (
     <Marker
       draggable={true}
       eventHandlers={eventHandlers}
       position={position}
       ref={markerRef}
+      icon={markerIcon}
     >
       <Popup minWidth={140}>
         <div className="text-center font-sans text-xs">
@@ -65,7 +103,7 @@ function MapFlyTo({ center }) {
   return null;
 }
 
-export default function AttractionMapPicker({ position, setPosition }) {
+export default function AttractionMapPicker({ position, setPosition, imageUrl, category, orden }) {
   return (
     <div className="w-full h-full min-h-[360px] rounded-2xl overflow-hidden border border-[#b0c4b1] relative z-0 shadow-inner">
       <MapContainer
@@ -78,7 +116,13 @@ export default function AttractionMapPicker({ position, setPosition }) {
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        <LocationMarker position={position} setPosition={setPosition} />
+        <LocationMarker
+          position={position}
+          setPosition={setPosition}
+          imageUrl={imageUrl}
+          category={category}
+          orden={orden}
+        />
         <MapFlyTo center={position} />
       </MapContainer>
     </div>

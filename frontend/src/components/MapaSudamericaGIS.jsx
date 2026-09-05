@@ -57,6 +57,37 @@ const defaultIcon = new L.Icon({
   popupAnchor: [1, -34],
 });
 
+const categoryBorderColors = {
+  ATRACTIVO: '#ef4444', // Red
+  HOSPITAL: '#3b82f6',  // Blue
+  TRANSPORTE: '#22c55e',// Green
+  RESTAURANTE: '#f97316',// Orange
+  TIENDA: '#8b5cf6',   // Violet
+};
+
+// Genera un icono tipo burbuja con la fotografía del punto GIS
+function createPhotoBubbleIcon(imageUrl, category, orden) {
+  const borderColor = categoryBorderColors[category] || '#ef4444';
+  const hasBadge = orden !== undefined && orden !== null && orden !== '';
+  const badgeHtml = hasBadge ? `<div class="gis-bubble-badge">${orden}</div>` : '';
+
+  return L.divIcon({
+    className: 'gis-bubble-marker',
+    html: `
+      <div class="gis-bubble-pin">
+        <div class="gis-bubble-avatar" style="border-color: ${borderColor};">
+          <img src="${imageUrl}" alt="Punto GIS" onerror="this.src='https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png'" />
+        </div>
+        ${badgeHtml}
+        <div class="gis-bubble-pointer" style="border-top-color: ${borderColor};"></div>
+      </div>
+    `,
+    iconSize: [48, 58],
+    iconAnchor: [24, 56],
+    popupAnchor: [0, -52],
+  });
+}
+
 const SOUTH_AMERICA_CENTER = [-14.235, -51.925];
 const DEFAULT_ZOOM = 4;
 
@@ -164,13 +195,15 @@ export default function MapaSudamericaGIS({ attractions = [], selectedTourId, on
         })}
 
         {attractions.map((att) => {
-          const icon = categoryIcons[att.category] || defaultIcon;
-          const tourDificultad = att.tour?.nivel_dificultad || 'Moderado';
           const fullImgUrl = att.imageUrl
             ? att.imageUrl.startsWith('http')
               ? att.imageUrl
               : `${API_ASSETS_URL}${att.imageUrl}`
             : null;
+          const icon = fullImgUrl
+            ? createPhotoBubbleIcon(fullImgUrl, att.category, att.orden)
+            : (categoryIcons[att.category] || defaultIcon);
+          const tourDificultad = att.tour?.nivel_dificultad || 'Moderado';
 
           const categoryTranslated = {
             ATRACTIVO: t('gis_map.atractivo'),
