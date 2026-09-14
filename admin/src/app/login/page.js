@@ -18,18 +18,24 @@ export default function LoginPage() {
     setError(null);
 
     try {
+      const cleanUser = username.trim();
+      const cleanPass = password.trim();
+
       const res = await mutateApi('/auth/login', {
         method: 'POST',
-        body: { username, password },
+        body: { username: cleanUser, password: cleanPass },
       });
 
-      if (res.success && res.token) {
-        // Guardar en cookie para que middleware.js lo verifique en el servidor
-        document.cookie = `session_token=${res.token}; path=/; max-age=${8 * 60 * 60}; SameSite=Strict`;
+      if (res && res.success && res.token) {
+        // Guardar en cookie y en localStorage para máxima compatibilidad entre dominios
+        document.cookie = `session_token=${res.token}; path=/; max-age=${8 * 60 * 60}; SameSite=Lax`;
+        if (typeof localStorage !== 'undefined') {
+          localStorage.setItem('session_token', res.token);
+        }
         router.push('/');
         router.refresh();
       } else {
-        throw new Error('No se recibió un token válido');
+        throw new Error(res?.error || 'No se recibió un token válido del servidor.');
       }
     } catch (err) {
       setError(err.message || 'Credenciales incorrectas');

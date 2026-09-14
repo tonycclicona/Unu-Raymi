@@ -20,7 +20,8 @@ export default function LayoutContent({ children }) {
     }
 
     const hasCookie = typeof document !== 'undefined' && document.cookie.includes('session_token=');
-    if (!hasCookie) {
+    const hasLocalStorage = typeof localStorage !== 'undefined' && Boolean(localStorage.getItem('session_token'));
+    if (!hasCookie && !hasLocalStorage) {
       router.push('/login');
     } else {
       setAuthorized(true);

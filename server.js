@@ -74,21 +74,40 @@ try {
 // ── 1. CARGAR BACKEND API (ASÍNCRONO CON PATH TO FILE URL) ────────────────────
 const { pathToFileURL } = require('url');
 let backendApp = null;
-const resolvedBackendPath = fs.existsSync(path.resolve(__dirname, 'backend/src/server.js'))
-  ? path.resolve(__dirname, 'backend/src/server.js')
-  : path.resolve(__dirname, 'backend/dist/server.js');
+let backendError = null;
 
-import(pathToFileURL(resolvedBackendPath).href)
-  .then(function(m) {
-    backendApp = m.default || m.app || m;
-    console.log('> [Server] Backend API montado exitosamente desde:', resolvedBackendPath);
-  })
-  .catch(function(err) {
-    console.error('> [Server] Error backend API:', err.message);
-  });
+const candidateBackendPaths = [
+  path.resolve(__dirname, 'backend/src/server.js'),
+  path.resolve(__dirname, 'src/server.js'),
+  path.resolve(__dirname, 'backend/dist/server.js'),
+  path.resolve(__dirname, 'dist/server.js'),
+  path.resolve(process.cwd(), 'backend/src/server.js')
+];
+
+let resolvedBackendPath = candidateBackendPaths.find(p => fs.existsSync(p));
+
+const backendPromise = (function() {
+  if (!resolvedBackendPath) {
+    backendError = 'Archivo del backend no encontrado';
+    console.error('> [Server] Error:', backendError);
+    return Promise.reject(new Error(backendError));
+  }
+
+  return import(pathToFileURL(resolvedBackendPath).href)
+    .then(function(m) {
+      backendApp = m.default || m.app || m;
+      console.log('> [Server] Backend API montado exitosamente desde:', resolvedBackendPath);
+      return backendApp;
+    })
+    .catch(function(err) {
+      backendError = err.message;
+      console.error('> [Server] Error backend API:', err.message);
+      throw err;
+    });
+})();
 
 // ── 2. RUTEO DE API Y CABECERAS CORS ─────────────────────────────────────────
-app.use(function(req, res, next) {
+app.use(async function(req, res, next) {
   res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
   res.header('Access-Control-Allow-Credentials', 'true');
   res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS,PATCH');
@@ -100,6 +119,12 @@ app.use(function(req, res, next) {
 
   const host = (req.headers.host || '').toLowerCase();
   if (host.startsWith('api.') || req.url.startsWith('/api') || req.url.startsWith('/uploads')) {
+    if (!backendApp && backendPromise) {
+      try {
+        await backendPromise;
+      } catch (e) {}
+    }
+
     if (typeof backendApp === 'function') {
       // Si la petición viene a api.unu-raymi.com/auth/login (sin prefijo /api y no es uploads), prefijarla para que Express la reconozca
       if (host.startsWith('api.') && !req.url.startsWith('/api') && !req.url.startsWith('/uploads')) {
@@ -107,7 +132,12 @@ app.use(function(req, res, next) {
       }
       return backendApp(req, res, next);
     }
-    return res.status(200).json({ success: true, status: 'starting', service: 'Unu-Raymi API' });
+
+    return res.status(503).json({
+      success: false,
+      error: backendError || 'El servicio de API está iniciando o no está disponible en este momento.',
+      service: 'Unu-Raymi API'
+    });
   }
   next();
 });

@@ -186,9 +186,13 @@ app.use((req, res) => {
 app.use(errorHandler);
 
 // ── Iniciar servidor como proceso independiente ──
-const isDirectExecution = process.argv[1] && (
-  process.argv[1].includes('server.js') || 
-  process.argv[1].includes('server.mjs')
+const currentFile = fileURLToPath(import.meta.url);
+const isDirectExecution = Boolean(
+  process.argv[1] && (
+    resolve(process.argv[1]) === resolve(currentFile) ||
+    process.argv[1].endsWith('backend/src/server.js') ||
+    process.argv[1].endsWith('backend/dist/server.js')
+  )
 );
 
 if (process.env.APP_TYPE === 'backend' || isDirectExecution) {
