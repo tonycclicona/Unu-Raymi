@@ -5,7 +5,12 @@
 
 const getMerchantId = () => (process.env.OPENPAY_MERCHANT_ID || '').trim().replace(/^['"]|['"]$/g, '');
 const getPrivateKey = () => (process.env.OPENPAY_PRIVATE_KEY || '').trim().replace(/^['"]|['"]$/g, '');
-const getBaseUrl = () => (process.env.OPENPAY_BASE_URL || 'https://sandbox-api.openpay.pe/v1').trim().replace(/^['"]|['"]$/g, '');
+const getBaseUrl = () => {
+  let url = (process.env.OPENPAY_BASE_URL || 'https://sandbox-api.openpay.pe/v1').trim().replace(/^['"]|['"]$/g, '');
+  url = url.replace(/\/+$/, ''); // eliminar barras al final
+  url = url.replace(/([^:]\/)\/+/g, '$1'); // eliminar barras dobles
+  return url;
+};
 const getCurrency = () => (process.env.OPENPAY_CURRENCY || 'PEN').trim().replace(/^['"]|['"]$/g, '');
 
 /**

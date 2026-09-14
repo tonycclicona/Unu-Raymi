@@ -113,7 +113,13 @@ app.use(function(req, res, next) {
   if (host.startsWith('admin.') || req.url.startsWith('/admin')) {
     if (fs.existsSync(adminDir)) {
       return express.static(adminDir, { extensions: ['html'] })(req, res, function() {
-        const parsed = req.path.replace(/^\/+|\/+$/g, '').split('/');
+        const cleanPath = req.path.replace(/^\/+|\/+$/g, '');
+        const directCandidate = path.join(adminDir, cleanPath, 'index.html');
+        if (cleanPath && fs.existsSync(directCandidate)) {
+          return res.sendFile(directCandidate);
+        }
+
+        const parsed = cleanPath.split('/');
         if (parsed.length >= 3 && parsed[2] === 'editar') {
           const editPage = path.join(adminDir, parsed[0], '1', 'editar', 'index.html');
           if (fs.existsSync(editPage)) return res.sendFile(editPage);
