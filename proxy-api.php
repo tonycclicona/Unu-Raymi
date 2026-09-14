@@ -76,18 +76,33 @@ foreach ($orderedPorts as $dp) {
 $isDiag = isset($_GET['diag']) || isset($_GET['diagnostic']);
 if ($isDiag) {
     header("Content-Type: application/json; charset=UTF-8");
-    $mainDirExists = @file_exists('/home/u209525223/domains/unu-raymi.com/public_html');
-    $serverJsExists = @file_exists('/home/u209525223/domains/unu-raymi.com/public_html/server.js');
+    $parentDir = dirname(__DIR__);
+    $parentFiles = @is_dir($parentDir) ? array_slice(@scandir($parentDir), 0, 30) : [];
+    
+    $candidateServerJs = [
+        $parentDir . '/server.js' => @file_exists($parentDir . '/server.js'),
+        '/home/u209525223/domains/unu-raymi.com/public_html/server.js' => @file_exists('/home/u209525223/domains/unu-raymi.com/public_html/server.js'),
+        '/home/u209525223/domains/unu-raymi.com/server.js' => @file_exists('/home/u209525223/domains/unu-raymi.com/server.js'),
+        '/home/u209525223/public_html/server.js' => @file_exists('/home/u209525223/public_html/server.js'),
+        '/home/u209525223/server.js' => @file_exists('/home/u209525223/server.js')
+    ];
+
+    $nodeProcess = @shell_exec('ps aux | grep node | grep -v grep');
+    $nodeVersion = @shell_exec('node -v 2>&1');
+
     echo json_encode([
         "proxy_status" => "active",
         "php_version" => PHP_VERSION,
         "script_path" => __FILE__,
         "document_root" => isset($_SERVER['DOCUMENT_ROOT']) ? $_SERVER['DOCUMENT_ROOT'] : null,
+        "parent_dir" => $parentDir,
+        "parent_files_sample" => $parentFiles,
+        "candidate_server_js" => $candidateServerJs,
         "discovered_port_files" => $foundPortFiles,
         "active_open_ports" => $openPorts,
         "tested_targets" => $targets,
-        "main_server_js_exists" => $serverJsExists,
-        "main_domain_dir_exists" => $mainDirExists,
+        "node_version_cli" => trim((string)$nodeVersion),
+        "node_running_processes" => $nodeProcess ? trim((string)$nodeProcess) : "No running node process detected via ps aux",
         "timestamp" => date("c")
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     exit(0);
