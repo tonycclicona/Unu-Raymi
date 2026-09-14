@@ -50,28 +50,56 @@ const adminDir = path.resolve(__dirname, 'admin/out');
 console.log('> [Server] Frontend dir:', frontendDir);
 console.log('> [Server] Admin dir:', adminDir);
 
+function copyStaticFiles(srcDir, destDir) {
+  if (!fs.existsSync(srcDir)) return;
+  if (!fs.existsSync(destDir)) {
+    fs.mkdirSync(destDir, { recursive: true });
+  }
+
+  const items = fs.readdirSync(srcDir);
+  for (const item of items) {
+    if (item === 'uploads' && fs.existsSync(path.join(destDir, 'uploads'))) {
+      continue;
+    }
+    const srcItem = path.join(srcDir, item);
+    const destItem = path.join(destDir, item);
+    try {
+      fs.cpSync(srcItem, destItem, { recursive: true, force: true });
+    } catch (e) {}
+  }
+}
+
 // ── Sincronizar frontend/out y admin/out en tiempo de ejecución ─────────────
 try {
   const pubTargets = [
+    '/home/u209525223/domains/unu-raymi.com/public_html',
     path.resolve(__dirname, 'public_html'),
-    '/home/u209525223/domains/unu-raymi.com/public_html'
+    path.resolve(__dirname, '../public_html')
   ];
-  pubTargets.forEach(target => {
-    if (fs.existsSync(target) && fs.existsSync(frontendDir) && target !== frontendDir) {
-      fs.cpSync(frontendDir, target, { recursive: true });
+  if (__dirname.includes('public_html')) {
+    pubTargets.push(__dirname);
+  }
+  const uniquePubTargets = [...new Set(pubTargets.map(t => path.resolve(t)))];
+  uniquePubTargets.forEach(target => {
+    if ((fs.existsSync(target) || fs.existsSync(path.dirname(target))) && fs.existsSync(frontendDir) && target !== frontendDir) {
+      fs.mkdirSync(target, { recursive: true });
+      copyStaticFiles(frontendDir, target);
       console.log('> [Server] Synchronized frontend files to:', target);
     }
   });
 
   const adminTargets = [
-    path.resolve(__dirname, 'public_html/admin'),
     '/home/u209525223/domains/unu-raymi.com/public_html/admin',
-    '/home/u209525223/domains/admin.unu-raymi.com/public_html'
+    '/home/u209525223/domains/admin.unu-raymi.com/public_html',
+    path.resolve(__dirname, 'public_html/admin')
   ];
-  adminTargets.forEach(target => {
+  if (__dirname.includes('public_html')) {
+    adminTargets.push(path.resolve(__dirname, 'admin'));
+  }
+  const uniqueAdminTargets = [...new Set(adminTargets.map(t => path.resolve(t)))];
+  uniqueAdminTargets.forEach(target => {
     if (fs.existsSync(adminDir) && fs.existsSync(path.dirname(target))) {
-      fs.mkdirSync(target, { recursive: true });
-      fs.cpSync(adminDir, target, { recursive: true });
+      copyStaticFiles(adminDir, target);
       console.log('> [Server] Synchronized admin files to:', target);
     }
   });

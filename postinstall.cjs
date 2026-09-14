@@ -8,7 +8,7 @@ const fs = require('fs');
 console.log('\n[postinstall] ==========================================');
 console.log('[postinstall] Starting Full Monorepo Build & Setup');
 console.log('[postinstall] CWD:', process.cwd());
-const appType = (process.env.APP_TYPE || 'all').toLowerCase();
+const appType = (process.argv[2] || process.env.APP_TYPE || 'all').toLowerCase();
 console.log('[postinstall] APP_TYPE:', appType);
 console.log('[postinstall] ==========================================\n');
 
@@ -24,6 +24,28 @@ function run(cmd, subdir) {
     console.log(`[postinstall] ✅ Finished: "${cmd}" in: ${subdir}`);
   } catch (err) {
     console.error(`[postinstall] ❌ ERROR running "${cmd}" in ${subdir}:`, err.message);
+  }
+}
+
+function copyStaticFiles(srcDir, destDir) {
+  if (!fs.existsSync(srcDir)) return;
+  if (!fs.existsSync(destDir)) {
+    fs.mkdirSync(destDir, { recursive: true });
+  }
+
+  const items = fs.readdirSync(srcDir);
+  for (const item of items) {
+    // Si ya existe uploads en destino, no sobreescribir las fotos del usuario
+    if (item === 'uploads' && fs.existsSync(path.join(destDir, 'uploads'))) {
+      continue;
+    }
+    const srcItem = path.join(srcDir, item);
+    const destItem = path.join(destDir, item);
+    try {
+      fs.cpSync(srcItem, destItem, { recursive: true, force: true });
+    } catch (e) {
+      console.warn(`[postinstall] Warning copying ${item} to ${destItem}:`, e.message);
+    }
   }
 }
 
@@ -50,8 +72,11 @@ if (appType === 'all' || appType === 'backend') {
   const apiCandidates = [
     '/home/u209525223/domains/unu-raymi.com/public_html/api',
     '/home/u209525223/domains/api.unu-raymi.com/public_html',
-    path.join(process.cwd(), 'public_html', 'api')
+    path.resolve(process.cwd(), 'public_html', 'api')
   ];
+  if (process.cwd().includes('public_html')) {
+    apiCandidates.push(path.resolve(process.cwd(), 'api'));
+  }
 
   const apiIndexContent = `<?php
 // ==============================================================================
@@ -208,7 +233,8 @@ RewriteRule . /index.php [L]
 </IfModule>
 `;
 
-  for (const target of apiCandidates) {
+  const uniqueApiCandidates = [...new Set(apiCandidates.map(t => path.resolve(t)))];
+  for (const target of uniqueApiCandidates) {
     try {
       if (fs.existsSync(path.dirname(target))) {
         fs.mkdirSync(target, { recursive: true });
@@ -231,13 +257,20 @@ if (appType === 'all' || appType === 'frontend') {
     const srcOut = path.join(process.cwd(), 'frontend', 'out');
     const destOut = path.join(process.cwd(), 'out');
     if (fs.existsSync(srcOut)) {
-      fs.cpSync(srcOut, destOut, { recursive: true });
+      copyStaticFiles(srcOut, destOut);
     }
 
     const publicHtmlTargets = [
       '/home/u209525223/domains/unu-raymi.com/public_html',
-      path.join(process.cwd(), 'public_html')
+      path.resolve(process.cwd(), 'public_html'),
+      path.resolve(process.cwd(), '../public_html')
     ];
+
+    if (process.cwd().includes('public_html')) {
+      publicHtmlTargets.push(process.cwd());
+    }
+
+    const uniqueTargets = [...new Set(publicHtmlTargets.map(t => path.resolve(t)))];
 
     const frontendHtaccess = `<IfModule mod_rewrite.c>
 RewriteEngine On
@@ -253,10 +286,14 @@ RewriteRule . /index.html [L]
 </IfModule>
 `;
 
-    publicHtmlTargets.forEach(target => {
+    uniqueTargets.forEach(target => {
       try {
-        if (fs.existsSync(target) && fs.existsSync(srcOut) && target !== srcOut) {
-          fs.cpSync(srcOut, target, { recursive: true });
+        const targetExists = fs.existsSync(target);
+        const parentExists = fs.existsSync(path.dirname(target));
+        console.log(`[postinstall] Target candidate: ${target} (exists: ${targetExists}, parentExists: ${parentExists})`);
+        if ((targetExists || parentExists) && fs.existsSync(srcOut) && target !== srcOut) {
+          fs.mkdirSync(target, { recursive: true });
+          copyStaticFiles(srcOut, target);
           fs.writeFileSync(path.join(target, '.htaccess'), frontendHtaccess);
           console.log(`[postinstall] ✅ Copied frontend static export and secured .htaccess in: ${target}`);
         }
@@ -278,8 +315,13 @@ if (appType === 'all' || appType === 'admin') {
     const adminTargets = [
       '/home/u209525223/domains/unu-raymi.com/public_html/admin',
       '/home/u209525223/domains/admin.unu-raymi.com/public_html',
-      path.join(process.cwd(), 'public_html', 'admin')
+      path.resolve(process.cwd(), 'public_html', 'admin')
     ];
+    if (process.cwd().includes('public_html')) {
+      adminTargets.push(path.resolve(process.cwd(), 'admin'));
+    }
+
+    const uniqueAdminTargets = [...new Set(adminTargets.map(t => path.resolve(t)))];
 
     const adminHtaccess = `<IfModule mod_rewrite.c>
 RewriteEngine On
@@ -299,14 +341,14 @@ RewriteRule ^ index.html [L]
 </IfModule>
 `;
 
-    adminTargets.forEach(target => {
+    uniqueAdminTargets.forEach(target => {
       try {
         if (fs.existsSync(path.dirname(target)) && fs.existsSync(srcOut)) {
           fs.mkdirSync(target, { recursive: true });
           if (fs.existsSync(path.join(target, 'default.php'))) {
             fs.unlinkSync(path.join(target, 'default.php'));
           }
-          fs.cpSync(srcOut, target, { recursive: true });
+          copyStaticFiles(srcOut, target);
           fs.writeFileSync(path.join(target, '.htaccess'), adminHtaccess);
           console.log(`[postinstall] ✅ Copied admin static export and created .htaccess in: ${target}`);
         }

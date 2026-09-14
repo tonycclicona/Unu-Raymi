@@ -30,4 +30,6 @@ EnvironmentVariables.env
 # node_modules, .env, build artifacts, etc.
 node_modules
 .port
+out/
+public_html/
 
