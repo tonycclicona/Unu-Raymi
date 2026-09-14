@@ -45,26 +45,28 @@ const frontendDir = fs.existsSync(path.resolve(__dirname, 'frontend/out'))
   ? path.resolve(__dirname, 'frontend/out')
   : path.resolve(__dirname, 'out');
 
-const adminDir = path.resolve(__dirname, 'admin/out');
+const adminDir = fs.existsSync('/home/u209525223/domains/unu-raymi.com/public_html/admin')
+  ? '/home/u209525223/domains/unu-raymi.com/public_html/admin'
+  : path.resolve(__dirname, 'admin/out');
 
 console.log('> [Server] Frontend dir:', frontendDir);
 console.log('> [Server] Admin dir:', adminDir);
 
-// ── Sincronizar frontend/out a public_html en tiempo de ejecución ────────────
+// ── Sincronizar frontend y admin a /domains/unu-raymi.com/public_html en tiempo de ejecución ────────────
 try {
-  const pubTargets = [
-    '/home/u209525223/domains/unu-raymi.com/public_html'
-  ];
-  const localTarget = path.resolve(__dirname, 'public_html');
-  if (fs.existsSync(localTarget) && !localTarget.startsWith('/home/u209525223/public_html')) {
-    pubTargets.push(localTarget);
+  const hostingerPub = '/home/u209525223/domains/unu-raymi.com/public_html';
+  const hostingerAdmin = '/home/u209525223/domains/unu-raymi.com/public_html/admin';
+
+  if (fs.existsSync(hostingerPub) && fs.existsSync(frontendDir) && hostingerPub !== frontendDir) {
+    fs.cpSync(frontendDir, hostingerPub, { recursive: true });
+    console.log('> [Server] Synchronized frontend files to:', hostingerPub);
   }
-  pubTargets.forEach(target => {
-    if (fs.existsSync(target) && fs.existsSync(frontendDir) && target !== frontendDir) {
-      fs.cpSync(frontendDir, target, { recursive: true });
-      console.log('> [Server] Synchronized frontend files to:', target);
-    }
-  });
+
+  const localAdminSrc = path.resolve(__dirname, 'admin/out');
+  if (fs.existsSync(hostingerAdmin) && fs.existsSync(localAdminSrc) && hostingerAdmin !== localAdminSrc) {
+    fs.cpSync(localAdminSrc, hostingerAdmin, { recursive: true });
+    console.log('> [Server] Synchronized admin files to:', hostingerAdmin);
+  }
 } catch (e) {
   console.error('> [Server] Warning syncing to public_html:', e.message);
 }

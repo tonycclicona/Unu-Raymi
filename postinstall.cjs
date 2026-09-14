@@ -27,17 +27,33 @@ function run(cmd, subdir) {
   }
 }
 
-// Limpieza preventiva: Si existe la carpeta errónea /home/u209525223/public_html (creada en la raíz del usuario),
-// se elimina automáticamente para no crear archivos en la carpeta equivocada según el Administrador de Archivos.
-const WRONG_ROOT_PUB = '/home/u209525223/public_html';
-if (fs.existsSync(WRONG_ROOT_PUB)) {
-  try {
-    fs.rmSync(WRONG_ROOT_PUB, { recursive: true, force: true });
-    console.log('[postinstall] 🧹 Eliminada carpeta errónea en raíz del usuario:', WRONG_ROOT_PUB);
-  } catch (err) {
-    console.warn('[postinstall] Aviso al limpiar carpeta errónea de raíz:', err.message);
+// ==============================================================================
+// RUTAS CANÓNICAS Y ESTRICTAS DE HOSTINGER PARA UNU-RAYMI:
+// Frontend: /home/u209525223/domains/unu-raymi.com/public_html
+// Admin:    /home/u209525223/domains/unu-raymi.com/public_html/admin
+// API:      /home/u209525223/domains/unu-raymi.com/public_html/api
+// ==============================================================================
+const HOSTINGER_PUBLIC_HTML = '/home/u209525223/domains/unu-raymi.com/public_html';
+const HOSTINGER_ADMIN_HTML  = '/home/u209525223/domains/unu-raymi.com/public_html/admin';
+const HOSTINGER_API_HTML    = '/home/u209525223/domains/unu-raymi.com/public_html/api';
+const HOSTINGER_NODEJS_DIR  = '/home/u209525223/domains/unu-raymi.com/hbuilds/current/nodejs';
+
+// Limpieza automática de carpetas erróneas u obsoletas fuera del esquema solicitado
+const OBSOLETE_DIRS = [
+  '/home/u209525223/public_html',
+  '/home/u209525223/domains/admin.unu-raymi.com',
+  '/home/u209525223/domains/api.unu-raymi.com'
+];
+OBSOLETE_DIRS.forEach(dir => {
+  if (fs.existsSync(dir)) {
+    try {
+      fs.rmSync(dir, { recursive: true, force: true });
+      console.log(`[postinstall] 🧹 Eliminado directorio erróneo: ${dir}`);
+    } catch (err) {
+      console.warn(`[postinstall] No se pudo eliminar ${dir}:`, err.message);
+    }
   }
-}
+});
 
 // ── 1. BUILD BACKEND ──────────────────────────────────────────────────────────
 console.log('[postinstall] === 1/3 BACKEND setup ===');
@@ -50,10 +66,9 @@ run('npm run build', 'backend');
 
 // Crear un index.php dentro de public_html/api/ que actúe como PROXY DINÁMICO hacia Node.js
 try {
-  // Rutas estrictas y autorizadas dentro de domains/ de Hostinger
+  // Destino único para la API: /home/u209525223/domains/unu-raymi.com/public_html/api
   const apiCandidates = [
-    '/home/u209525223/domains/api.unu-raymi.com/public_html',
-    '/home/u209525223/domains/unu-raymi.com/public_html/api'
+    HOSTINGER_API_HTML
   ];
 
   const localPubApi = path.join(process.cwd(), 'public_html', 'api');
@@ -229,7 +244,7 @@ try {
 
   // Rutas estrictas y autorizadas dentro de domains/ de Hostinger
   const publicHtmlTargets = [
-    '/home/u209525223/domains/unu-raymi.com/public_html'
+    HOSTINGER_PUBLIC_HTML
   ];
 
   const localPub = path.join(process.cwd(), 'public_html');
@@ -243,22 +258,32 @@ try {
         fs.cpSync(srcOut, target, { recursive: true });
         console.log(`[postinstall] ✅ Copied frontend static export directly to: ${target}`);
 
-        // Asegurar .htaccess con DirectoryIndex en el frontend para evitar 403 Forbidden
+        // Asegurar .htaccess con DirectoryIndex y reenvío de subdominios
         const frontendHtaccess = `<IfModule mod_rewrite.c>
 Options -Indexes
 DirectoryIndex index.html index.php
 RewriteEngine On
 RewriteBase /
 
-# Archivos estáticos reales
+# 1. Enrutar subdominio admin.unu-raymi.com hacia /admin/
+RewriteCond %{HTTP_HOST} ^admin\. [NC]
+RewriteCond %{REQUEST_URI} !^/admin/
+RewriteRule ^(.*)$ /admin/$1 [L,QSA]
+
+# 2. Enrutar subdominio api.unu-raymi.com hacia /api/
+RewriteCond %{HTTP_HOST} ^api\. [NC]
+RewriteCond %{REQUEST_URI} !^/api/
+RewriteRule ^(.*)$ /api/$1 [L,QSA]
+
+# 3. Archivos estáticos reales
 RewriteCond %{REQUEST_FILENAME} -f
 RewriteRule ^ - [L]
 
-# Carpetas con index.html
+# 4. Carpetas con index.html propio
 RewriteCond %{REQUEST_FILENAME}/index.html -f
 RewriteRule ^(.*)$ $1/index.html [L]
 
-# Fallback SPA
+# 5. Fallback SPA Frontend
 RewriteRule . /index.html [L]
 </IfModule>
 `;
@@ -277,9 +302,9 @@ console.log('[postinstall] === 3/3 ADMIN setup ===');
 run('npm run build', 'admin');
 try {
   const srcOut = path.join(process.cwd(), 'admin', 'out');
+  // Destino único para Admin: /home/u209525223/domains/unu-raymi.com/public_html/admin
   const adminTargets = [
-    '/home/u209525223/domains/admin.unu-raymi.com/public_html',
-    '/home/u209525223/domains/unu-raymi.com/public_html/admin'
+    HOSTINGER_ADMIN_HTML
   ];
 
   const localAdminPub = path.join(process.cwd(), 'public_html', 'admin');
@@ -311,8 +336,9 @@ RewriteRule ^ - [L]
 RewriteCond %{REQUEST_FILENAME}/index.html -f
 RewriteRule ^(.*)$ $1/index.html [L]
 
-# 3. Fallback SPA para subrutas dinámicas
-RewriteRule . /index.html [L]
+# 3. Fallback SPA para subrutas dinámicas de admin
+RewriteRule ^admin/(.*)$ /admin/$1 [L]
+RewriteRule . /admin/index.html [L]
 </IfModule>
 `;
         fs.writeFileSync(path.join(target, '.htaccess'), adminHtaccess);
