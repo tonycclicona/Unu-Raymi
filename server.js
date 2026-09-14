@@ -53,9 +53,12 @@ console.log('> [Server] Admin dir:', adminDir);
 // ── Sincronizar frontend/out a public_html en tiempo de ejecución ────────────
 try {
   const pubTargets = [
-    path.resolve(__dirname, 'public_html'),
     '/home/u209525223/domains/unu-raymi.com/public_html'
   ];
+  const localTarget = path.resolve(__dirname, 'public_html');
+  if (fs.existsSync(localTarget) && !localTarget.startsWith('/home/u209525223/public_html')) {
+    pubTargets.push(localTarget);
+  }
   pubTargets.forEach(target => {
     if (fs.existsSync(target) && fs.existsSync(frontendDir) && target !== frontendDir) {
       fs.cpSync(frontendDir, target, { recursive: true });

@@ -27,23 +27,15 @@ function run(cmd, subdir) {
   }
 }
 
-function copyToAllPublicHtml(srcDir, label) {
-  if (!fs.existsSync(srcDir)) return;
-  
-  let current = process.cwd();
-  for (let i = 0; i < 6; i++) {
-    const pubCandidate = path.join(current, 'public_html');
-    if (fs.existsSync(pubCandidate) && pubCandidate !== srcDir) {
-      try {
-        fs.cpSync(srcDir, pubCandidate, { recursive: true });
-        console.log(`[postinstall] ✅ Copied ${label} to: ${pubCandidate}`);
-      } catch (err) {
-        console.error(`Warning: Failed to copy to ${pubCandidate}:`, err.message);
-      }
-    }
-    const parent = path.dirname(current);
-    if (parent === current) break;
-    current = parent;
+// Limpieza preventiva: Si existe la carpeta errónea /home/u209525223/public_html (creada en la raíz del usuario),
+// se elimina automáticamente para no crear archivos en la carpeta equivocada según el Administrador de Archivos.
+const WRONG_ROOT_PUB = '/home/u209525223/public_html';
+if (fs.existsSync(WRONG_ROOT_PUB)) {
+  try {
+    fs.rmSync(WRONG_ROOT_PUB, { recursive: true, force: true });
+    console.log('[postinstall] 🧹 Eliminada carpeta errónea en raíz del usuario:', WRONG_ROOT_PUB);
+  } catch (err) {
+    console.warn('[postinstall] Aviso al limpiar carpeta errónea de raíz:', err.message);
   }
 }
 
@@ -58,20 +50,17 @@ run('npm run build', 'backend');
 
 // Crear un index.php dentro de public_html/api/ que actúe como PROXY DINÁMICO hacia Node.js
 try {
-  let current = process.cwd();
-  
-  // Lista de posibles rutas, incluyendo absolutas de Hostinger y la búsqueda hacia arriba
+  // Rutas estrictas y autorizadas dentro de domains/ de Hostinger
   const apiCandidates = [
-    '/home/u209525223/domains/api.unu-raymi.com/public_html'
+    '/home/u209525223/domains/api.unu-raymi.com/public_html',
+    '/home/u209525223/domains/unu-raymi.com/public_html/api'
   ];
-  
-  for (let i = 0; i < 6; i++) {
-    apiCandidates.push(path.join(current, 'public_html', 'api'));
-    const parent = path.dirname(current);
-    if (parent === current) break;
-    current = parent;
+
+  const localPubApi = path.join(process.cwd(), 'public_html', 'api');
+  if (fs.existsSync(path.dirname(localPubApi)) && !localPubApi.startsWith('/home/u209525223/public_html')) {
+    apiCandidates.push(localPubApi);
   }
-  
+
   for (const pubApiCandidate of apiCandidates) {
     if (fs.existsSync(path.dirname(pubApiCandidate))) {
       try {
@@ -238,25 +227,47 @@ try {
     fs.cpSync(srcOut, destOut, { recursive: true });
   }
 
-  // Lista de posibles ubicaciones de public_html en Hostinger
+  // Rutas estrictas y autorizadas dentro de domains/ de Hostinger
   const publicHtmlTargets = [
-    path.join(process.cwd(), 'public_html'),
-    '/home/u209525223/domains/unu-raymi.com/public_html',
-    '/home/u209525223/public_html'
+    '/home/u209525223/domains/unu-raymi.com/public_html'
   ];
+
+  const localPub = path.join(process.cwd(), 'public_html');
+  if (fs.existsSync(localPub) && !localPub.startsWith('/home/u209525223/public_html')) {
+    publicHtmlTargets.push(localPub);
+  }
 
   publicHtmlTargets.forEach(target => {
     if (fs.existsSync(target) && target !== srcOut) {
       try {
         fs.cpSync(srcOut, target, { recursive: true });
         console.log(`[postinstall] ✅ Copied frontend static export directly to: ${target}`);
+
+        // Asegurar .htaccess con DirectoryIndex en el frontend para evitar 403 Forbidden
+        const frontendHtaccess = `<IfModule mod_rewrite.c>
+Options -Indexes
+DirectoryIndex index.html index.php
+RewriteEngine On
+RewriteBase /
+
+# Archivos estáticos reales
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteRule ^ - [L]
+
+# Carpetas con index.html
+RewriteCond %{REQUEST_FILENAME}/index.html -f
+RewriteRule ^(.*)$ $1/index.html [L]
+
+# Fallback SPA
+RewriteRule . /index.html [L]
+</IfModule>
+`;
+        fs.writeFileSync(path.join(target, '.htaccess'), frontendHtaccess);
       } catch (err) {
         console.error(`Warning: Failed to copy to ${target}:`, err.message);
       }
     }
   });
-
-  copyToAllPublicHtml(srcOut, 'frontend static export');
 } catch (e) {
   console.error('Warning: Failed to copy frontend build:', e.message);
 }
@@ -266,18 +277,14 @@ console.log('[postinstall] === 3/3 ADMIN setup ===');
 run('npm run build', 'admin');
 try {
   const srcOut = path.join(process.cwd(), 'admin', 'out');
-  let adminCurrent = process.cwd();
   const adminTargets = [
     '/home/u209525223/domains/admin.unu-raymi.com/public_html',
-    '/home/u209525223/domains/unu-raymi.com/public_html/admin',
-    '/home/u209525223/public_html/admin'
+    '/home/u209525223/domains/unu-raymi.com/public_html/admin'
   ];
 
-  for (let i = 0; i < 6; i++) {
-    adminTargets.push(path.join(adminCurrent, 'public_html', 'admin'));
-    const parent = path.dirname(adminCurrent);
-    if (parent === adminCurrent) break;
-    adminCurrent = parent;
+  const localAdminPub = path.join(process.cwd(), 'public_html', 'admin');
+  if (fs.existsSync(path.dirname(localAdminPub)) && !localAdminPub.startsWith('/home/u209525223/public_html')) {
+    adminTargets.push(localAdminPub);
   }
 
   adminTargets.forEach(target => {
@@ -292,6 +299,7 @@ try {
         
         const adminHtaccess = `<IfModule mod_rewrite.c>
 Options -Indexes
+DirectoryIndex index.html index.php
 RewriteEngine On
 RewriteBase /
 
