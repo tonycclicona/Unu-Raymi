@@ -103,6 +103,35 @@ try {
       console.log('> [Server] Synchronized admin files to:', target);
     }
   });
+
+  const apiTargets = [
+    '/home/u209525223/domains/unu-raymi.com/public_html/api',
+    '/home/u209525223/domains/api.unu-raymi.com/public_html',
+    path.resolve(__dirname, 'public_html/api'),
+    path.resolve(__dirname, 'api')
+  ];
+  const uniqueApiTargets = [...new Set(apiTargets.map(t => path.resolve(t)))];
+  const proxySource = fs.existsSync(path.resolve(__dirname, 'proxy-api.php'))
+    ? fs.readFileSync(path.resolve(__dirname, 'proxy-api.php'), 'utf8')
+    : null;
+  const htaccessSource = fs.existsSync(path.resolve(__dirname, 'api/.htaccess'))
+    ? fs.readFileSync(path.resolve(__dirname, 'api/.htaccess'), 'utf8')
+    : null;
+
+  if (proxySource) {
+    uniqueApiTargets.forEach(target => {
+      try {
+        if (fs.existsSync(path.dirname(target))) {
+          fs.mkdirSync(target, { recursive: true });
+          fs.writeFileSync(path.join(target, 'index.php'), proxySource);
+          if (htaccessSource) {
+            fs.writeFileSync(path.join(target, '.htaccess'), htaccessSource);
+          }
+          console.log('> [Server] Synchronized API proxy to:', target);
+        }
+      } catch (e) {}
+    });
+  }
 } catch (e) {
   console.error('> [Server] Warning syncing web targets:', e.message);
 }
@@ -204,14 +233,34 @@ app.use(function(req, res) {
   res.status(200).send('<!DOCTYPE html><html><head><title>Unu-Raymi</title></head><body>Unu-Raymi</body></html>');
 });
 
-// En entornos Hostinger LiteSpeed / Node.js
-const port = process.env.PORT || 4000;
-const server = app.listen(port, function() {
-  console.log('> [Server] Unu-Raymi corriendo en puerto:', port);
+function savePortFile(p) {
+  const targets = [
+    path.resolve(__dirname, '.port'),
+    path.resolve(__dirname, 'api/.port'),
+    path.resolve(__dirname, 'backend/.port'),
+    '/home/u209525223/domains/unu-raymi.com/public_html/.port',
+    '/home/u209525223/domains/unu-raymi.com/public_html/api/.port',
+    '/home/u209525223/domains/api.unu-raymi.com/public_html/.port',
+    '/home/u209525223/.port'
+  ];
+  targets.forEach(function(target) {
+    try {
+      if (fs.existsSync(path.dirname(target))) {
+        fs.writeFileSync(target, String(p));
+      }
+    } catch (e) {}
+  });
   try {
-    fs.writeFileSync(path.resolve(__dirname, '.port'), String(port));
-    fs.writeFileSync('/tmp/unu_raymi_port', String(port));
+    const os = require('os');
+    fs.writeFileSync(path.join(os.tmpdir(), 'unu_raymi_port'), String(p));
   } catch (e) {}
+}
+
+// En entornos Hostinger LiteSpeed / Node.js
+const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 4000;
+const server = app.listen(port, function() {
+  console.log('> [Server] Unu-Raymi escuchando en puerto principal:', port);
+  savePortFile(port);
 });
 
 server.on('error', function(err) {
@@ -219,5 +268,19 @@ server.on('error', function(err) {
     console.error('> [Server Error]:', err.message);
   }
 });
+
+// Si Hostinger asignó un puerto dinámico diferente a 4000, levantar gateway interno en 4000
+if (port !== 4000) {
+  try {
+    const internalServer = app.listen(4000, '127.0.0.1', function() {
+      console.log('> [Server] Gateway interno de compatibilidad escuchando en http://127.0.0.1:4000');
+    });
+    internalServer.on('error', function(err) {
+      if (err.code !== 'EADDRINUSE') {
+        console.warn('> [Server Warning] Gateway interno 4000:', err.message);
+      }
+    });
+  } catch (e) {}
+}
 
 module.exports = app;

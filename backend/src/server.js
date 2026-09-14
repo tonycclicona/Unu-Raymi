@@ -9,6 +9,8 @@ import cors from "cors";
 import morgan from "morgan";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
+import fs from "fs";
+import os from "os";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -174,11 +176,35 @@ app.use((req, res) => {
 // ── Manejador Global de Errores (DEBE ir al final) ───────────
 app.use(errorHandler);
 
+function savePortFile(p) {
+  const rootDir = resolve(__dirname, "../../");
+  const targets = [
+    resolve(rootDir, ".port"),
+    resolve(rootDir, "api/.port"),
+    resolve(rootDir, "backend/.port"),
+    "/home/u209525223/domains/unu-raymi.com/public_html/.port",
+    "/home/u209525223/domains/unu-raymi.com/public_html/api/.port",
+    "/home/u209525223/domains/api.unu-raymi.com/public_html/.port",
+    "/home/u209525223/.port"
+  ];
+  targets.forEach((target) => {
+    try {
+      if (fs.existsSync(dirname(target))) {
+        fs.writeFileSync(target, String(p));
+      }
+    } catch (e) {}
+  });
+  try {
+    fs.writeFileSync(resolve(os.tmpdir(), "unu_raymi_port"), String(p));
+  } catch (e) {}
+}
+
 // ── Iniciar servidor backend en el puerto configurado (4000 por defecto) ──
 const server = app.listen(PORT, () => {
   console.log(`\n🚀 Unu-Raymi API corriendo en http://localhost:${PORT}`);
   console.log(`📡 Health check: http://localhost:${PORT}/api/health`);
   console.log(`🌍 Entorno: ${process.env.NODE_ENV || "development"}\n`);
+  savePortFile(PORT);
 });
 
 server.on('error', (err) => {
@@ -186,5 +212,19 @@ server.on('error', (err) => {
     console.error('⚠️ [Server Error]:', err.message);
   }
 });
+
+// Si se inició en un puerto asignado dinámico distinto a 4000, levantar gateway interno en 4000
+if (PORT !== 4000) {
+  try {
+    const internalServer = app.listen(4000, "127.0.0.1", () => {
+      console.log(`📡 Gateway interno de compatibilidad escuchando en http://127.0.0.1:4000`);
+    });
+    internalServer.on("error", (err) => {
+      if (err.code !== "EADDRINUSE") {
+        console.warn("⚠️ [Server Warning] Gateway interno 4000:", err.message);
+      }
+    });
+  } catch (e) {}
+}
 
 export default app;
