@@ -1,7 +1,6 @@
 <?php
 // ==============================================================================
-// Unu-Raymi API Reverse Proxy (LiteSpeed / PHP -> Node.js)
-// Ubicación: /home/u209525223/domains/unu-raymi.com/public_html/api/index.php
+// Unu-Raymi API Gateway / Proxy (api.unu-raymi.com -> Node.js Passenger)
 // ==============================================================================
 
 @error_reporting(0);
@@ -14,17 +13,14 @@ header("Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Ac
 
 $requestMethod = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : 'GET';
 
-// Responder preflight OPTIONS de CORS
 if ($requestMethod === 'OPTIONS') {
     http_response_code(200);
     exit(0);
 }
 
-// ── 1. Puerto asignado a Node.js ─────────────────────────────────────────────
-// El puerto reside únicamente en api/.port
+// ── 1. Puerto o gateway de conexión ──────────────────────────────────────────
 $portFile = __DIR__ . '/.port';
 $targetPort = 4000;
-
 if (@file_exists($portFile)) {
     $p = intval(trim(@file_get_contents($portFile)));
     if ($p > 0) {
@@ -32,7 +28,11 @@ if (@file_exists($portFile)) {
     }
 }
 
+// Objetivos de conexión:
+// Primero intentar conexión directa a través del motor Passenger en unu-raymi.com,
+// y como respaldo intentar el puerto local 127.0.0.1
 $targets = [
+    "https://unu-raymi.com",
     "http://127.0.0.1:$targetPort",
     "http://localhost:$targetPort"
 ];
@@ -54,6 +54,7 @@ if (isset($_GET['diag']) || isset($_GET['diagnostic'])) {
         "port_file_exists" => @file_exists($portFile),
         "target_port" => $targetPort,
         "socket_open" => $socketConnected,
+        "targets" => $targets,
         "curl_available" => function_exists('curl_init'),
         "timestamp" => date("c")
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
@@ -126,11 +127,15 @@ if (function_exists('curl_init')) {
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
         curl_setopt($ch, CURLOPT_ENCODING, '');
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 3);
         curl_setopt($ch, CURLOPT_TIMEOUT, 30);
         
         $reqHeaders = $headers;
-        $reqHeaders[] = "Host: api.unu-raymi.com";
+        if (strpos($baseTarget, 'unu-raymi.com') !== false) {
+            $reqHeaders[] = "Host: unu-raymi.com";
+        } else {
+            $reqHeaders[] = "Host: api.unu-raymi.com";
+        }
 
         if ($isMultipart) {
             $filteredHeaders = array_filter($reqHeaders, function($h) {
@@ -168,15 +173,14 @@ if ($httpCode > 0 && $response !== false) {
     exit(0);
 }
 
-// Error 502 si Node.js no responde en el puerto configurado
+// Error 502 si ningún canal responde
 header("Content-Type: application/json; charset=UTF-8");
 http_response_code(502);
 echo json_encode([
     "success" => false,
-    "error" => "El servidor Node.js no responde en el puerto $targetPort. Inicia la aplicación Node.js en Hostinger hPanel.",
+    "error" => "El servidor Node.js de Unu-Raymi no está respondiendo. Verifica que la aplicación Node.js esté activa en Hostinger hPanel.",
     "path" => $requestUri,
-    "port" => $targetPort,
-    "last_error" => $lastError ?: "No se pudo establecer conexion local con Node.js",
+    "last_error" => $lastError ?: "No se pudo conectar con el servidor Node.js",
     "timestamp" => date("c")
 ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 exit(0);

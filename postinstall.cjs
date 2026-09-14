@@ -81,6 +81,10 @@ if (appType === 'all' || appType === 'backend') {
 
   const apiHtaccessContent = `<IfModule mod_rewrite.c>
 RewriteEngine On
+
+RewriteCond %{HTTP_HOST} ^(www\\.)?unu-raymi\\.com$ [NC]
+RewriteRule ^ - [L]
+
 RewriteRule ^index\\.php$ - [L]
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
