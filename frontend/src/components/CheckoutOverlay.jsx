@@ -157,20 +157,15 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
       const reservaCreada = resReserva.data || resReserva;
 
       // 2. Generar Sesión de Pago OpenPay Perú
-      let openpayRes = null;
-      try {
-        openpayRes = await mutateApi(`/reservas/${reservaCreada.reservaId || reservaCreada.id}/openpay`, {
-          method: 'POST',
-        });
-        setOpenpayData(openpayRes);
-      } catch (errOpenpay) {
-        console.warn('Sandbox OpenPay active:', errOpenpay);
-      }
+      const openpayRes = await mutateApi(`/reservas/${reservaCreada.reservaId || reservaCreada.id}/openpay`, {
+        method: 'POST',
+      });
+      setOpenpayData(openpayRes);
 
       setSuccessData({
         ...reservaCreada,
         openpayUrl: openpayRes?.paymentUrl,
-        provider: 'OpenPay Perú',
+        provider: openpayRes?.provider || 'OpenPay Perú',
       });
     } catch (err) {
       console.error('Error al procesar reserva:', err);

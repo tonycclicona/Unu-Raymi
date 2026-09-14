@@ -4,14 +4,19 @@
 // ============================================================
 
 import { Router } from "express";
-import { checkout, obtenerReserva, descargarInvoice, obtenerReservas, crearPagoOpenPay } from "../controllers/reservaController.js";
+import { checkout, obtenerReserva, descargarInvoice, obtenerReservas, crearPagoOpenPay, diagnosticoOpenpay } from "../controllers/reservaController.js";
 import validateRequest from "../middlewares/validateRequest.js";
 import { checkoutReservaSchema } from "../schemas/reservaSchema.js";
 import { requireAuth } from "../middlewares/authMiddleware.js";
 
 const router = Router();
 
+// ── GET /api/reservas/openpay-diagnostic ───────────────────────
+// Endpoint de salud y diagnóstico para verificar credenciales de OpenPay en vivo
+router.get("/openpay-diagnostic", diagnosticoOpenpay);
+
 // ── GET /api/reservas ──────────────────────────────────────────
+
 // Lista todas las reservas (sólo administrador autenticado)
 router.get("/", requireAuth, obtenerReservas);
 

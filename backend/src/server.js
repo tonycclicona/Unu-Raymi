@@ -134,6 +134,17 @@ app.get("/api/health", (req, res) => {
   });
 });
 
+app.get("/api/openpay-diagnostic", async (req, res) => {
+  try {
+    const { testOpenpayConnection } = await import("./services/openpayService.js");
+    const result = await testOpenpayConnection();
+    return res.json(result);
+  } catch (e) {
+    return res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+
 // Endpoint público para forzar sincronización / reparación de esquema MySQL
 app.get("/api/db-sync", async (req, res) => {
   try {

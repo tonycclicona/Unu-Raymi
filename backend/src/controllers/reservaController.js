@@ -319,15 +319,35 @@ export const crearPagoOpenPay = async (req, res, next) => {
     const { createOpenpayChargeSession } = await import('../services/openpayService.js');
     const openpayRes = await createOpenpayChargeSession(reserva);
 
+    if (!openpayRes.success) {
+      return res.status(400).json({
+        success: false,
+        error: openpayRes.error || 'Error al conectar con la pasarela OpenPay Perú.',
+        details: openpayRes.details,
+      });
+    }
+
     return res.json({
       success: true,
       message: 'Sesión de pago OpenPay Perú generada',
       paymentUrl: openpayRes.paymentUrl,
       chargeId: openpayRes.chargeId,
-      provider: 'OpenPay Perú',
+      provider: openpayRes.provider || 'OpenPay Perú (BBVA)',
     });
   } catch (error) {
     next(error);
   }
 };
+
+// ── GET /api/reservas/openpay-diagnostic ────────────────────────
+export const diagnosticoOpenpay = async (req, res, next) => {
+  try {
+    const { testOpenpayConnection } = await import('../services/openpayService.js');
+    const report = await testOpenpayConnection();
+    return res.json(report);
+  } catch (error) {
+    next(error);
+  }
+};
+
 

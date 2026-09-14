@@ -6,9 +6,10 @@
 // permitir la verificación de la firma HMAC-SHA256 de Stripe.
 // ============================================================
 
-import { Router } from "express";
+import express, { Router } from "express";
 import rawBodyParser from "../middlewares/rawBodyParser.js";
 import { procesarWebhookStripe } from "../controllers/webhookController.js";
+import { procesarWebhookOpenpay } from "../controllers/openpayWebhookController.js";
 
 const router = Router();
 
@@ -16,4 +17,9 @@ const router = Router();
 // rawBodyParser preserva el body crudo como Buffer (obligatorio para Stripe)
 router.post("/pago", rawBodyParser, procesarWebhookStripe);
 
+// POST /api/webhooks/openpay
+// express.json() parsea el payload JSON enviado por OpenPay Perú
+router.post("/openpay", express.json(), procesarWebhookOpenpay);
+
 export default router;
+
