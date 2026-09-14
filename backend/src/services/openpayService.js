@@ -171,6 +171,7 @@ export async function testOpenpayConnection() {
     baseUrl,
     currency,
     timestamp: new Date().toISOString(),
+    lastWebhookVerificationCode: global.lastOpenpayVerificationCode || null,
     apiCheck: null,
   };
 

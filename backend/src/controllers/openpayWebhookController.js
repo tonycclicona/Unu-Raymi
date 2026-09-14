@@ -47,6 +47,7 @@ export const procesarWebhookOpenpay = async (req, res) => {
     // ── 2. Manejo de verificación inicial de Webhook ─────────
     if (eventType === "verification") {
       const verificationCode = payload.verification_code;
+      global.lastOpenpayVerificationCode = verificationCode;
       console.log(`[Openpay Webhook] 🔑 Código de verificación de Openpay: ${verificationCode}`);
       return res.status(200).json({
         received: true,
