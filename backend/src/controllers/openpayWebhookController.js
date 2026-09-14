@@ -6,7 +6,7 @@
 // 2. Notificaciones de pago completado (charge.succeeded / pago.completado)
 // ============================================================
 
-import prisma from "../lib/prisma.js";
+import prisma from "../lib/prismaClient.js";
 import { dispararNotificaciones } from "../services/notificacionService.js";
 
 /**
