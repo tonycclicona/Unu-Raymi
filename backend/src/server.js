@@ -174,26 +174,17 @@ app.use((req, res) => {
 // ── Manejador Global de Errores (DEBE ir al final) ───────────
 app.use(errorHandler);
 
-// ── Iniciar servidor como proceso independiente ──
-const isDirectExecution = process.argv[1] && (
-  process.argv[1].endsWith('backend/src/server.js') || 
-  process.argv[1].endsWith('backend\\src\\server.js') ||
-  process.argv[1].endsWith('backend/dist/server.js') || 
-  process.argv[1].endsWith('backend\\dist\\server.js')
-);
+// ── Iniciar servidor backend en el puerto configurado (4000 por defecto) ──
+const server = app.listen(PORT, () => {
+  console.log(`\n🚀 Unu-Raymi API corriendo en http://localhost:${PORT}`);
+  console.log(`📡 Health check: http://localhost:${PORT}/api/health`);
+  console.log(`🌍 Entorno: ${process.env.NODE_ENV || "development"}\n`);
+});
 
-if (process.env.APP_TYPE === 'backend' || isDirectExecution) {
-  const server = app.listen(PORT, () => {
-    console.log(`\n🚀 Unu-Raymi API corriendo en http://localhost:${PORT}`);
-    console.log(`📡 Health check: http://localhost:${PORT}/api/health`);
-    console.log(`🌍 Entorno: ${process.env.NODE_ENV || "development"}\n`);
-  });
-
-  server.on('error', (err) => {
-    if (err.code !== 'EADDRINUSE') {
-      console.error('⚠️ [Server Error]:', err.message);
-    }
-  });
-}
+server.on('error', (err) => {
+  if (err.code !== 'EADDRINUSE') {
+    console.error('⚠️ [Server Error]:', err.message);
+  }
+});
 
 export default app;
