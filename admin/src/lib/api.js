@@ -51,7 +51,17 @@ export async function mutateApi(url, { method = 'POST', body } = {}) {
   // Petición a la API
   try {
     const res = await fetch(`${API_BASE_URL}${url}`, options);
-    const data = await res.json().catch(() => ({}));
+    const text = await res.text();
+    let data;
+    try {
+      data = text ? JSON.parse(text) : {};
+    } catch (e) {
+      if (text.trim().startsWith('<') || text.includes('<html')) {
+        throw new Error('El servidor devolvió una página HTML en lugar de JSON. Verifique que la API de Node.js esté activa.');
+      }
+      throw new Error('Respuesta inválida del servidor.');
+    }
+
     if (res.ok) return data;
     
     // Si la sesión expiró o el token es inválido
@@ -59,7 +69,7 @@ export async function mutateApi(url, { method = 'POST', body } = {}) {
       if (typeof document !== 'undefined') {
         document.cookie = 'session_token=; path=/; max-age=0';
       }
-      throw new Error(data.error || 'Sesión expirada o token inválido. Por favor inicia sesión nuevamente.');
+      throw new Error(data.error || 'Credenciales incorrectas o sesión inválida.');
     }
     
     throw new Error(data.error || `Error en la petición: ${res.status}`);

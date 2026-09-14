@@ -176,8 +176,10 @@ app.use(errorHandler);
 
 // ── Iniciar servidor como proceso independiente ──
 const isDirectExecution = process.argv[1] && (
-  process.argv[1].includes('server.js') || 
-  process.argv[1].includes('server.mjs')
+  process.argv[1].endsWith('backend/src/server.js') || 
+  process.argv[1].endsWith('backend\\src\\server.js') ||
+  process.argv[1].endsWith('backend/dist/server.js') || 
+  process.argv[1].endsWith('backend\\dist\\server.js')
 );
 
 if (process.env.APP_TYPE === 'backend' || isDirectExecution) {

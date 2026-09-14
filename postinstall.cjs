@@ -1,5 +1,5 @@
 // postinstall.cjs — Runs after install in the root
-// Automatically builds all subapps (backend, frontend, admin) and delivers them to public_html and runtime directories.
+// Automatically builds all subapps (backend, frontend, admin) and delivers them cleanly to Hostinger public_html.
 
 const { execSync } = require('child_process');
 const path = require('path');
@@ -8,7 +8,8 @@ const fs = require('fs');
 console.log('\n[postinstall] ==========================================');
 console.log('[postinstall] Starting Full Monorepo Build & Setup');
 console.log('[postinstall] CWD:', process.cwd());
-console.log('[postinstall] APP_TYPE:', process.env.APP_TYPE || 'all');
+const appType = (process.env.APP_TYPE || 'all').toLowerCase();
+console.log('[postinstall] APP_TYPE:', appType);
 console.log('[postinstall] ==========================================\n');
 
 function run(cmd, subdir) {
@@ -23,64 +24,36 @@ function run(cmd, subdir) {
     console.log(`[postinstall] ✅ Finished: "${cmd}" in: ${subdir}`);
   } catch (err) {
     console.error(`[postinstall] ❌ ERROR running "${cmd}" in ${subdir}:`, err.message);
-    // En entornos compartidos de Hostinger, continuar para permitir que las demás apps compilen
   }
 }
 
-function copyToAllPublicHtml(srcDir, label) {
-  if (!fs.existsSync(srcDir)) return;
-  
-  let current = process.cwd();
-  for (let i = 0; i < 6; i++) {
-    const pubCandidate = path.join(current, 'public_html');
-    if (fs.existsSync(pubCandidate) && pubCandidate !== srcDir) {
-      try {
-        fs.cpSync(srcDir, pubCandidate, { recursive: true });
-        console.log(`[postinstall] ✅ Copied ${label} to: ${pubCandidate}`);
-      } catch (err) {
-        console.error(`Warning: Failed to copy to ${pubCandidate}:`, err.message);
-      }
-    }
-    const parent = path.dirname(current);
-    if (parent === current) break;
-    current = parent;
+// ── 0. LIMPIEZA DE CARPETAS ERRÓNEAS ──────────────────────────────────────────
+try {
+  const wrongRootPub = '/home/u209525223/public_html';
+  if (fs.existsSync(wrongRootPub) && !wrongRootPub.includes('domains')) {
+    fs.rmSync(wrongRootPub, { recursive: true, force: true });
+    console.log(`[postinstall] 🧹 Erroneous root directory cleaned up: ${wrongRootPub}`);
   }
-}
+} catch (e) {}
 
 // ── 1. BUILD BACKEND ──────────────────────────────────────────────────────────
-console.log('[postinstall] === 1/3 BACKEND setup ===');
-try {
-  const nodeModulesPath = path.join(process.cwd(), 'node_modules');
-  execSync(`find "${nodeModulesPath}" -name "schema-engine*" -exec chmod +x {} + 2>/dev/null || true`, { stdio: 'ignore' });
-  execSync(`find "${nodeModulesPath}" -name "query-engine*" -exec chmod +x {} + 2>/dev/null || true`, { stdio: 'ignore' });
-} catch (e) {}
-run('npm run build', 'backend');
+if (appType === 'all' || appType === 'backend') {
+  console.log('[postinstall] === 1/3 BACKEND setup ===');
+  try {
+    const nodeModulesPath = path.join(process.cwd(), 'node_modules');
+    execSync(`find "${nodeModulesPath}" -name "schema-engine*" -exec chmod +x {} + 2>/dev/null || true`, { stdio: 'ignore' });
+    execSync(`find "${nodeModulesPath}" -name "query-engine*" -exec chmod +x {} + 2>/dev/null || true`, { stdio: 'ignore' });
+  } catch (e) {}
+  run('npm run build', 'backend');
 
-// Crear un index.php dentro de public_html/api/ que actúe como PROXY DINÁMICO hacia Node.js
-try {
-  let current = process.cwd();
-  
-  // Lista de posibles rutas, incluyendo absolutas de Hostinger y la búsqueda hacia arriba
+  // Proxy dinámico index.php para LiteSpeed hacia Node.js
   const apiCandidates = [
-    '/home/u209525223/domains/api.unu-raymi.com/public_html'
+    '/home/u209525223/domains/unu-raymi.com/public_html/api',
+    '/home/u209525223/domains/api.unu-raymi.com/public_html',
+    path.join(process.cwd(), 'public_html', 'api')
   ];
-  
-  for (let i = 0; i < 6; i++) {
-    apiCandidates.push(path.join(current, 'public_html', 'api'));
-    const parent = path.dirname(current);
-    if (parent === current) break;
-    current = parent;
-  }
-  
-  for (const pubApiCandidate of apiCandidates) {
-    if (fs.existsSync(path.dirname(pubApiCandidate))) {
-      try {
-        fs.mkdirSync(pubApiCandidate, { recursive: true });
-        // Eliminar default.php de Hostinger si existe
-        if (fs.existsSync(path.join(pubApiCandidate, 'default.php'))) {
-            fs.unlinkSync(path.join(pubApiCandidate, 'default.php'));
-        }
-        const apiIndexContent = `<?php
+
+  const apiIndexContent = `<?php
 // ==============================================================================
 // Unu-Raymi API Dynamic Reverse Proxy (LiteSpeed / PHP -> Node.js Gateway)
 // ==============================================================================
@@ -100,11 +73,29 @@ if (strpos($requestUri, '/api') !== 0) {
     $requestUri = '/api' . $requestUri;
 }
 
-$targets = [
-    'http://127.0.0.1:4000',
-    'http://127.0.0.1:3000',
-    'https://unu-raymi.com'
+$dynamicPorts = [4000, 3000];
+$portFiles = [
+    __DIR__ . '/.port',
+    __DIR__ . '/../.port',
+    __DIR__ . '/../../.port',
+    __DIR__ . '/../../../.port',
+    '/tmp/unu_raymi_port'
 ];
+foreach ($portFiles as $pf) {
+    if (file_exists($pf)) {
+        $p = intval(trim(file_get_contents($pf)));
+        if ($p > 0 && !in_array($p, $dynamicPorts)) {
+            array_unshift($dynamicPorts, $p);
+        }
+    }
+}
+
+$targets = [];
+foreach ($dynamicPorts as $dp) {
+    $targets[] = "http://127.0.0.1:$dp";
+    $targets[] = "http://localhost:$dp";
+}
+
 $response = false;
 $httpCode = 0;
 $contentType = '';
@@ -156,16 +147,12 @@ foreach ($targets as $baseTarget) {
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
     curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-    curl_setopt($ch, CURLOPT_ENCODING, ''); // Decodifica gzip/deflate/br automáticamente
+    curl_setopt($ch, CURLOPT_ENCODING, '');
     curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 3);
     curl_setopt($ch, CURLOPT_TIMEOUT, 30);
     
     $reqHeaders = $headers;
-    if (strpos($baseTarget, 'unu-raymi.com') !== false) {
-        $reqHeaders[] = "Host: unu-raymi.com";
-    } else {
-        $reqHeaders[] = "Host: api.unu-raymi.com";
-    }
+    $reqHeaders[] = "Host: api.unu-raymi.com";
 
     if ($isMultipart) {
         $filteredHeaders = array_filter($reqHeaders, function($h) {
@@ -204,15 +191,14 @@ header("Content-Type: application/json; charset=UTF-8");
 http_response_code(502);
 echo json_encode([
     "success" => false,
-    "error" => "El servidor Node.js de Unu-Raymi no está respondiendo en los puertos locales (4000/3000). Asegúrate de iniciar la aplicación Node.js en el panel de Hostinger.",
+    "error" => "El servidor Node.js de Unu-Raymi no está respondiendo en los puertos locales. Asegúrate de iniciar la aplicación Node.js en el panel de Hostinger.",
     "path" => $requestUri,
     "timestamp" => date("c")
 ]);
 exit(0);
 `;
-        fs.writeFileSync(path.join(pubApiCandidate, 'index.php'), apiIndexContent);
-        
-        const apiHtaccessContent = `<IfModule mod_rewrite.c>
+
+  const apiHtaccessContent = `<IfModule mod_rewrite.c>
 RewriteEngine On
 RewriteBase /
 RewriteRule ^index\\.php$ - [L]
@@ -221,110 +207,129 @@ RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule . /index.php [L]
 </IfModule>
 `;
-        fs.writeFileSync(path.join(pubApiCandidate, '.htaccess'), apiHtaccessContent);
-        console.log(`[postinstall] ✅ Created dynamic API proxy index.php & .htaccess in: ${pubApiCandidate}`);
-      } catch (err) {}
-    }
-  }
-} catch (e) {}
 
-// ── 2. BUILD FRONTEND ─────────────────────────────────────────────────────────
-console.log('[postinstall] === 2/3 FRONTEND setup ===');
-run('npm run build', 'frontend');
-try {
-  const srcOut = path.join(process.cwd(), 'frontend', 'out');
-  const destOut = path.join(process.cwd(), 'out');
-  if (fs.existsSync(srcOut)) {
-    fs.cpSync(srcOut, destOut, { recursive: true });
-  }
-
-  // Lista de posibles ubicaciones de public_html en Hostinger
-  const publicHtmlTargets = [
-    path.join(process.cwd(), 'public_html'),
-    '/home/u209525223/domains/unu-raymi.com/public_html',
-    '/home/u209525223/public_html'
-  ];
-
-  publicHtmlTargets.forEach(target => {
-    if (fs.existsSync(target) && target !== srcOut) {
-      try {
-        fs.cpSync(srcOut, target, { recursive: true });
-        console.log(`[postinstall] ✅ Copied frontend static export directly to: ${target}`);
-      } catch (err) {
-        console.error(`Warning: Failed to copy to ${target}:`, err.message);
-      }
-    }
-  });
-
-  copyToAllPublicHtml(srcOut, 'frontend static export');
-} catch (e) {
-  console.error('Warning: Failed to copy frontend build:', e.message);
-}
-
-// ── 3. BUILD ADMIN ────────────────────────────────────────────────────────────
-console.log('[postinstall] === 3/3 ADMIN setup ===');
-run('npm run build', 'admin');
-try {
-  const srcOut = path.join(process.cwd(), 'admin', 'out');
-  let adminCurrent = process.cwd();
-  const adminTargets = [
-    '/home/u209525223/domains/admin.unu-raymi.com/public_html',
-    '/home/u209525223/domains/unu-raymi.com/public_html/admin',
-    '/home/u209525223/public_html/admin'
-  ];
-
-  for (let i = 0; i < 6; i++) {
-    adminTargets.push(path.join(adminCurrent, 'public_html', 'admin'));
-    const parent = path.dirname(adminCurrent);
-    if (parent === adminCurrent) break;
-    adminCurrent = parent;
-  }
-
-  adminTargets.forEach(target => {
+  for (const target of apiCandidates) {
     try {
       if (fs.existsSync(path.dirname(target))) {
         fs.mkdirSync(target, { recursive: true });
-        // Eliminar default.php si existe
         if (fs.existsSync(path.join(target, 'default.php'))) {
           fs.unlinkSync(path.join(target, 'default.php'));
         }
-        fs.cpSync(srcOut, target, { recursive: true });
-        
-        const adminHtaccess = `<IfModule mod_rewrite.c>
-RewriteEngine On
-RewriteBase /
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME}/index.html -f
-RewriteRule ^(.*)$ $1/index.html [L]
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(.*)$ /index.html [L]
-</IfModule>
-`;
-        fs.writeFileSync(path.join(target, '.htaccess'), adminHtaccess);
-        console.log(`[postinstall] ✅ Copied admin static export and created .htaccess in: ${target}`);
+        fs.writeFileSync(path.join(target, 'index.php'), apiIndexContent);
+        fs.writeFileSync(path.join(target, '.htaccess'), apiHtaccessContent);
+        console.log(`[postinstall] ✅ Created dynamic API reverse proxy in: ${target}`);
       }
     } catch (err) {}
-  });
-} catch (e) {
-  console.error('Warning: Failed to copy admin build:', e.message);
+  }
 }
 
-// ── 4. SINCRONIZACIÓN AUTOMÁTICA A CURRENT / NODEJS Y PUBLIC_HTML ───────────
+// ── 2. BUILD FRONTEND ─────────────────────────────────────────────────────────
+if (appType === 'all' || appType === 'frontend') {
+  console.log('[postinstall] === 2/3 FRONTEND setup ===');
+  run('npm run build', 'frontend');
+  try {
+    const srcOut = path.join(process.cwd(), 'frontend', 'out');
+    const destOut = path.join(process.cwd(), 'out');
+    if (fs.existsSync(srcOut)) {
+      fs.cpSync(srcOut, destOut, { recursive: true });
+    }
+
+    const publicHtmlTargets = [
+      '/home/u209525223/domains/unu-raymi.com/public_html',
+      path.join(process.cwd(), 'public_html')
+    ];
+
+    const frontendHtaccess = `<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteBase /
+
+# No interceptar las rutas de API ni Admin con el SPA del frontend
+RewriteRule ^api(/.*)?$ - [L]
+RewriteRule ^admin(/.*)?$ - [L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.html [L]
+</IfModule>
+`;
+
+    publicHtmlTargets.forEach(target => {
+      try {
+        if (fs.existsSync(target) && fs.existsSync(srcOut) && target !== srcOut) {
+          fs.cpSync(srcOut, target, { recursive: true });
+          fs.writeFileSync(path.join(target, '.htaccess'), frontendHtaccess);
+          console.log(`[postinstall] ✅ Copied frontend static export and secured .htaccess in: ${target}`);
+        }
+      } catch (err) {
+        console.error(`Warning: Failed to copy to ${target}:`, err.message);
+      }
+    });
+  } catch (e) {
+    console.error('Warning: Failed to copy frontend build:', e.message);
+  }
+}
+
+// ── 3. BUILD ADMIN ────────────────────────────────────────────────────────────
+if (appType === 'all' || appType === 'admin') {
+  console.log('[postinstall] === 3/3 ADMIN setup ===');
+  run('npm run build', 'admin');
+  try {
+    const srcOut = path.join(process.cwd(), 'admin', 'out');
+    const adminTargets = [
+      '/home/u209525223/domains/unu-raymi.com/public_html/admin',
+      '/home/u209525223/domains/admin.unu-raymi.com/public_html',
+      path.join(process.cwd(), 'public_html', 'admin')
+    ];
+
+    const adminHtaccess = `<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteBase /
+
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteCond %{REQUEST_FILENAME}/index.html -f
+RewriteRule ^(.*)$ $1/index.html [L]
+
+RewriteCond %{REQUEST_FILENAME}.html -f
+RewriteRule ^(.*)$ $1.html [L]
+
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteRule ^ - [L]
+
+RewriteRule ^ index.html [L]
+</IfModule>
+`;
+
+    adminTargets.forEach(target => {
+      try {
+        if (fs.existsSync(path.dirname(target)) && fs.existsSync(srcOut)) {
+          fs.mkdirSync(target, { recursive: true });
+          if (fs.existsSync(path.join(target, 'default.php'))) {
+            fs.unlinkSync(path.join(target, 'default.php'));
+          }
+          fs.cpSync(srcOut, target, { recursive: true });
+          fs.writeFileSync(path.join(target, '.htaccess'), adminHtaccess);
+          console.log(`[postinstall] ✅ Copied admin static export and created .htaccess in: ${target}`);
+        }
+      } catch (err) {}
+    });
+  } catch (e) {
+    console.error('Warning: Failed to copy admin build:', e.message);
+  }
+}
+
+// ── 4. SINCRONIZACIÓN AUTOMÁTICA A RUNTIME DIRECTORIES ───────────────────────
 console.log('\n[postinstall] === Syncing build artifacts to runtime directories ===');
 try {
   const currentDirs = [
     '/home/u209525223/domains/unu-raymi.com/hbuilds/current/nodejs',
-    path.resolve(process.cwd(), '../current/nodejs'),
-    path.resolve(process.cwd(), '../../current/nodejs')
+    path.resolve(process.cwd(), '../current/nodejs')
   ];
 
   currentDirs.forEach(target => {
     if (fs.existsSync(path.dirname(target))) {
       try {
         fs.mkdirSync(target, { recursive: true });
-        // Copiar server.js, package.json y carpetas compiladas
-        const itemsToCopy = ['server.js', 'package.json', 'out', 'frontend', 'admin', 'backend', '.env', '.env.production'];
+        const itemsToCopy = ['server.js', 'package.json', 'out', 'frontend', 'admin', 'backend', '.env', '.env.production', 'proxy-api.php'];
         itemsToCopy.forEach(item => {
           const itemSrc = path.join(process.cwd(), item);
           const itemDest = path.join(target, item);
@@ -340,5 +345,5 @@ try {
   });
 } catch (e) {}
 
-console.log('\n[postinstall] ✅ All subapps built and delivered successfully.\n');
+console.log('\n[postinstall] ✅ All subapps processed and delivered successfully.\n');
 process.exit(0);

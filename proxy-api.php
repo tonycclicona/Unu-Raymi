@@ -19,11 +19,29 @@ if (strpos($requestUri, '/api') !== 0) {
     $requestUri = '/api' . $requestUri;
 }
 
-$targets = [
-    'http://127.0.0.1:4000',
-    'http://127.0.0.1:3000',
-    'https://unu-raymi.com'
+$dynamicPorts = [4000, 3000];
+$portFiles = [
+    __DIR__ . '/.port',
+    __DIR__ . '/../.port',
+    __DIR__ . '/../../.port',
+    __DIR__ . '/../../../.port',
+    '/tmp/unu_raymi_port'
 ];
+foreach ($portFiles as $pf) {
+    if (file_exists($pf)) {
+        $p = intval(trim(file_get_contents($pf)));
+        if ($p > 0 && !in_array($p, $dynamicPorts)) {
+            array_unshift($dynamicPorts, $p);
+        }
+    }
+}
+
+$targets = [];
+foreach ($dynamicPorts as $dp) {
+    $targets[] = "http://127.0.0.1:$dp";
+    $targets[] = "http://localhost:$dp";
+}
+
 $response = false;
 $httpCode = 0;
 $contentType = '';

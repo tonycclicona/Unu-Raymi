@@ -50,7 +50,7 @@ const adminDir = path.resolve(__dirname, 'admin/out');
 console.log('> [Server] Frontend dir:', frontendDir);
 console.log('> [Server] Admin dir:', adminDir);
 
-// ── Sincronizar frontend/out a public_html en tiempo de ejecución ────────────
+// ── Sincronizar frontend/out y admin/out en tiempo de ejecución ─────────────
 try {
   const pubTargets = [
     path.resolve(__dirname, 'public_html'),
@@ -62,28 +62,45 @@ try {
       console.log('> [Server] Synchronized frontend files to:', target);
     }
   });
+
+  const adminTargets = [
+    path.resolve(__dirname, 'public_html/admin'),
+    '/home/u209525223/domains/unu-raymi.com/public_html/admin',
+    '/home/u209525223/domains/admin.unu-raymi.com/public_html'
+  ];
+  adminTargets.forEach(target => {
+    if (fs.existsSync(adminDir) && fs.existsSync(path.dirname(target))) {
+      fs.mkdirSync(target, { recursive: true });
+      fs.cpSync(adminDir, target, { recursive: true });
+      console.log('> [Server] Synchronized admin files to:', target);
+    }
+  });
 } catch (e) {
-  console.error('> [Server] Warning syncing to public_html:', e.message);
+  console.error('> [Server] Warning syncing web targets:', e.message);
 }
 
 // ── 1. CARGAR BACKEND API (ASÍNCRONO CON PATH TO FILE URL) ────────────────────
 const { pathToFileURL } = require('url');
 let backendApp = null;
+let backendError = null;
 const resolvedBackendPath = fs.existsSync(path.resolve(__dirname, 'backend/src/server.js'))
   ? path.resolve(__dirname, 'backend/src/server.js')
   : path.resolve(__dirname, 'backend/dist/server.js');
 
-import(pathToFileURL(resolvedBackendPath).href)
+const backendPromise = import(pathToFileURL(resolvedBackendPath).href)
   .then(function(m) {
     backendApp = m.default || m.app || m;
     console.log('> [Server] Backend API montado exitosamente desde:', resolvedBackendPath);
+    return backendApp;
   })
   .catch(function(err) {
-    console.error('> [Server] Error backend API:', err.message);
+    backendError = err;
+    console.error('> [Server] Error cargando backend API:', err.message);
+    return null;
   });
 
 // ── 2. RUTEO DE API Y CABECERAS CORS ─────────────────────────────────────────
-app.use(function(req, res, next) {
+app.use(async function(req, res, next) {
   res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
   res.header('Access-Control-Allow-Credentials', 'true');
   res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS,PATCH');
@@ -95,6 +112,11 @@ app.use(function(req, res, next) {
 
   const host = (req.headers.host || '').toLowerCase();
   if (host.startsWith('api.') || req.url.startsWith('/api') || req.url.startsWith('/uploads')) {
+    if (!backendApp && backendPromise) {
+      try {
+        await backendPromise;
+      } catch (e) {}
+    }
     if (typeof backendApp === 'function') {
       // Si la petición viene a api.unu-raymi.com/auth/login (sin prefijo /api y no es uploads), prefijarla para que Express la reconozca
       if (host.startsWith('api.') && !req.url.startsWith('/api') && !req.url.startsWith('/uploads')) {
@@ -102,7 +124,16 @@ app.use(function(req, res, next) {
       }
       return backendApp(req, res, next);
     }
-    return res.status(200).json({ success: true, status: 'starting', service: 'Unu-Raymi API' });
+    if (backendError) {
+      return res.status(503).json({
+        success: false,
+        error: 'Backend API error al iniciar: ' + backendError.message
+      });
+    }
+    return res.status(503).json({
+      success: false,
+      error: 'Backend API inicializándose. Por favor intente en unos segundos.'
+    });
   }
   next();
 });
@@ -149,6 +180,10 @@ app.use(function(req, res) {
 const port = process.env.PORT || 4000;
 const server = app.listen(port, function() {
   console.log('> [Server] Unu-Raymi corriendo en puerto:', port);
+  try {
+    fs.writeFileSync(path.resolve(__dirname, '.port'), String(port));
+    fs.writeFileSync('/tmp/unu_raymi_port', String(port));
+  } catch (e) {}
 });
 
 server.on('error', function(err) {
