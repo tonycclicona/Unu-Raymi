@@ -177,25 +177,13 @@ app.use((req, res) => {
 app.use(errorHandler);
 
 function savePortFile(p) {
-  const rootDir = resolve(__dirname, "../../");
-  const targets = [
-    resolve(rootDir, ".port"),
-    resolve(rootDir, "api/.port"),
-    resolve(rootDir, "backend/.port"),
-    "/home/u209525223/domains/unu-raymi.com/public_html/.port",
-    "/home/u209525223/domains/unu-raymi.com/public_html/api/.port",
-    "/home/u209525223/domains/api.unu-raymi.com/public_html/.port",
-    "/home/u209525223/.port"
-  ];
-  targets.forEach((target) => {
-    try {
-      if (fs.existsSync(dirname(target))) {
-        fs.writeFileSync(target, String(p));
-      }
-    } catch (e) {}
-  });
+  const hostingerPort = '/home/u209525223/domains/unu-raymi.com/public_html/api/.port';
+  const target = fs.existsSync(dirname(hostingerPort))
+    ? hostingerPort
+    : resolve(__dirname, "../../api/.port");
   try {
-    fs.writeFileSync(resolve(os.tmpdir(), "unu_raymi_port"), String(p));
+    fs.mkdirSync(dirname(target), { recursive: true });
+    fs.writeFileSync(target, String(p));
   } catch (e) {}
 }
 

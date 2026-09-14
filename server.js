@@ -69,68 +69,39 @@ function copyStaticFiles(srcDir, destDir) {
   }
 }
 
-// ── Sincronizar frontend/out y admin/out en tiempo de ejecución ─────────────
+// ── Sincronizar frontend, admin y api en tiempo de ejecución ───────────────
 try {
-  const pubTargets = [
-    '/home/u209525223/domains/unu-raymi.com/public_html',
-    path.resolve(__dirname, 'public_html'),
-    path.resolve(__dirname, '../public_html')
-  ];
-  if (__dirname.includes('public_html')) {
-    pubTargets.push(__dirname);
-  }
-  const uniquePubTargets = [...new Set(pubTargets.map(t => path.resolve(t)))];
-  uniquePubTargets.forEach(target => {
-    if ((fs.existsSync(target) || fs.existsSync(path.dirname(target))) && fs.existsSync(frontendDir) && target !== frontendDir) {
-      fs.mkdirSync(target, { recursive: true });
-      copyStaticFiles(frontendDir, target);
-      console.log('> [Server] Synchronized frontend files to:', target);
-    }
-  });
+  const hostingerBase = '/home/u209525223/domains/unu-raymi.com/public_html';
+  const pubDir = fs.existsSync(hostingerBase) ? hostingerBase : path.resolve(__dirname, 'public_html');
+  const adminDest = path.join(pubDir, 'admin');
+  const apiDest = path.join(pubDir, 'api');
 
-  const adminTargets = [
-    '/home/u209525223/domains/unu-raymi.com/public_html/admin',
-    '/home/u209525223/domains/admin.unu-raymi.com/public_html',
-    path.resolve(__dirname, 'public_html/admin')
-  ];
-  if (__dirname.includes('public_html')) {
-    adminTargets.push(path.resolve(__dirname, 'admin'));
+  // 1. Frontend
+  if (fs.existsSync(frontendDir) && pubDir !== frontendDir) {
+    fs.mkdirSync(pubDir, { recursive: true });
+    copyStaticFiles(frontendDir, pubDir);
+    console.log('> [Server] Synchronized frontend to:', pubDir);
   }
-  const uniqueAdminTargets = [...new Set(adminTargets.map(t => path.resolve(t)))];
-  uniqueAdminTargets.forEach(target => {
-    if (fs.existsSync(adminDir) && fs.existsSync(path.dirname(target))) {
-      copyStaticFiles(adminDir, target);
-      console.log('> [Server] Synchronized admin files to:', target);
-    }
-  });
 
-  const apiTargets = [
-    '/home/u209525223/domains/unu-raymi.com/public_html/api',
-    '/home/u209525223/domains/api.unu-raymi.com/public_html',
-    path.resolve(__dirname, 'public_html/api'),
-    path.resolve(__dirname, 'api')
-  ];
-  const uniqueApiTargets = [...new Set(apiTargets.map(t => path.resolve(t)))];
+  // 2. Admin
+  if (fs.existsSync(adminDir)) {
+    fs.mkdirSync(adminDest, { recursive: true });
+    copyStaticFiles(adminDir, adminDest);
+    console.log('> [Server] Synchronized admin to:', adminDest);
+  }
+
+  // 3. API Reverse Proxy
   const proxySource = fs.existsSync(path.resolve(__dirname, 'proxy-api.php'))
-    ? fs.readFileSync(path.resolve(__dirname, 'proxy-api.php'), 'utf8')
-    : null;
-  const htaccessSource = fs.existsSync(path.resolve(__dirname, 'api/.htaccess'))
-    ? fs.readFileSync(path.resolve(__dirname, 'api/.htaccess'), 'utf8')
-    : null;
-
-  if (proxySource) {
-    uniqueApiTargets.forEach(target => {
-      try {
-        if (fs.existsSync(path.dirname(target))) {
-          fs.mkdirSync(target, { recursive: true });
-          fs.writeFileSync(path.join(target, 'index.php'), proxySource);
-          if (htaccessSource) {
-            fs.writeFileSync(path.join(target, '.htaccess'), htaccessSource);
-          }
-          console.log('> [Server] Synchronized API proxy to:', target);
-        }
-      } catch (e) {}
-    });
+    ? path.resolve(__dirname, 'proxy-api.php')
+    : path.resolve(__dirname, 'api/index.php');
+  if (fs.existsSync(proxySource)) {
+    fs.mkdirSync(apiDest, { recursive: true });
+    fs.copyFileSync(proxySource, path.join(apiDest, 'index.php'));
+    const htaccessSource = path.resolve(__dirname, 'api/.htaccess');
+    if (fs.existsSync(htaccessSource)) {
+      fs.copyFileSync(htaccessSource, path.join(apiDest, '.htaccess'));
+    }
+    console.log('> [Server] Synchronized API proxy to:', apiDest);
   }
 } catch (e) {
   console.error('> [Server] Warning syncing web targets:', e.message);
@@ -234,25 +205,13 @@ app.use(function(req, res) {
 });
 
 function savePortFile(p) {
-  const targets = [
-    path.resolve(__dirname, '.port'),
-    path.resolve(__dirname, 'api/.port'),
-    path.resolve(__dirname, 'backend/.port'),
-    '/home/u209525223/domains/unu-raymi.com/public_html/.port',
-    '/home/u209525223/domains/unu-raymi.com/public_html/api/.port',
-    '/home/u209525223/domains/api.unu-raymi.com/public_html/.port',
-    '/home/u209525223/.port'
-  ];
-  targets.forEach(function(target) {
-    try {
-      if (fs.existsSync(path.dirname(target))) {
-        fs.writeFileSync(target, String(p));
-      }
-    } catch (e) {}
-  });
+  const hostingerPort = '/home/u209525223/domains/unu-raymi.com/public_html/api/.port';
+  const target = fs.existsSync(path.dirname(hostingerPort))
+    ? hostingerPort
+    : path.resolve(__dirname, 'api/.port');
   try {
-    const os = require('os');
-    fs.writeFileSync(path.join(os.tmpdir(), 'unu_raymi_port'), String(p));
+    fs.mkdirSync(path.dirname(target), { recursive: true });
+    fs.writeFileSync(target, String(p));
   } catch (e) {}
 }
 

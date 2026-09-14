@@ -68,16 +68,12 @@ if (appType === 'all' || appType === 'backend') {
   } catch (e) {}
   run('npm run build', 'backend');
 
-  // Proxy dinámico index.php para LiteSpeed hacia Node.js
-  const apiCandidates = [
-    '/home/u209525223/domains/unu-raymi.com/public_html/api',
-    '/home/u209525223/domains/api.unu-raymi.com/public_html',
-    path.resolve(process.cwd(), 'public_html', 'api')
-  ];
-  if (process.cwd().includes('public_html')) {
-    apiCandidates.push(path.resolve(process.cwd(), 'api'));
-  }
+  // ── Rutas canónicas ────────────────────────────────────────────────────────
+  const hostingerBase = '/home/u209525223/domains/unu-raymi.com/public_html';
+  const pubDir = fs.existsSync(hostingerBase) ? hostingerBase : path.resolve(process.cwd(), 'public_html');
+  const apiDest = path.join(pubDir, 'api');
 
+  // Proxy dinámico index.php para LiteSpeed hacia Node.js
   const proxySourcePath = path.resolve(process.cwd(), 'proxy-api.php');
   const apiIndexContent = fs.existsSync(proxySourcePath)
     ? fs.readFileSync(proxySourcePath, 'utf8')
@@ -92,19 +88,16 @@ RewriteRule ^(.*)$ index.php [QSA,L]
 </IfModule>
 `;
 
-  const uniqueApiCandidates = [...new Set(apiCandidates.map(t => path.resolve(t)))];
-  for (const target of uniqueApiCandidates) {
-    try {
-      if (fs.existsSync(path.dirname(target))) {
-        fs.mkdirSync(target, { recursive: true });
-        if (fs.existsSync(path.join(target, 'default.php'))) {
-          fs.unlinkSync(path.join(target, 'default.php'));
-        }
-        fs.writeFileSync(path.join(target, 'index.php'), apiIndexContent);
-        fs.writeFileSync(path.join(target, '.htaccess'), apiHtaccessContent);
-        console.log(`[postinstall] ✅ Created dynamic API reverse proxy in: ${target}`);
-      }
-    } catch (err) {}
+  try {
+    fs.mkdirSync(apiDest, { recursive: true });
+    if (fs.existsSync(path.join(apiDest, 'default.php'))) {
+      fs.unlinkSync(path.join(apiDest, 'default.php'));
+    }
+    fs.writeFileSync(path.join(apiDest, 'index.php'), apiIndexContent);
+    fs.writeFileSync(path.join(apiDest, '.htaccess'), apiHtaccessContent);
+    console.log(`[postinstall] ✅ Created API reverse proxy in: ${apiDest}`);
+  } catch (err) {
+    console.error(`[postinstall] Warning creating API proxy:`, err.message);
   }
 }
 
@@ -119,17 +112,8 @@ if (appType === 'all' || appType === 'frontend') {
       copyStaticFiles(srcOut, destOut);
     }
 
-    const publicHtmlTargets = [
-      '/home/u209525223/domains/unu-raymi.com/public_html',
-      path.resolve(process.cwd(), 'public_html'),
-      path.resolve(process.cwd(), '../public_html')
-    ];
-
-    if (process.cwd().includes('public_html')) {
-      publicHtmlTargets.push(process.cwd());
-    }
-
-    const uniqueTargets = [...new Set(publicHtmlTargets.map(t => path.resolve(t)))];
+    const hostingerBase = '/home/u209525223/domains/unu-raymi.com/public_html';
+    const pubDir = fs.existsSync(hostingerBase) ? hostingerBase : path.resolve(process.cwd(), 'public_html');
 
     const frontendHtaccess = `<IfModule mod_rewrite.c>
 RewriteEngine On
@@ -145,21 +129,12 @@ RewriteRule . /index.html [L]
 </IfModule>
 `;
 
-    uniqueTargets.forEach(target => {
-      try {
-        const targetExists = fs.existsSync(target);
-        const parentExists = fs.existsSync(path.dirname(target));
-        console.log(`[postinstall] Target candidate: ${target} (exists: ${targetExists}, parentExists: ${parentExists})`);
-        if ((targetExists || parentExists) && fs.existsSync(srcOut) && target !== srcOut) {
-          fs.mkdirSync(target, { recursive: true });
-          copyStaticFiles(srcOut, target);
-          fs.writeFileSync(path.join(target, '.htaccess'), frontendHtaccess);
-          console.log(`[postinstall] ✅ Copied frontend static export and secured .htaccess in: ${target}`);
-        }
-      } catch (err) {
-        console.error(`Warning: Failed to copy to ${target}:`, err.message);
-      }
-    });
+    if (fs.existsSync(srcOut) && pubDir !== srcOut) {
+      fs.mkdirSync(pubDir, { recursive: true });
+      copyStaticFiles(srcOut, pubDir);
+      fs.writeFileSync(path.join(pubDir, '.htaccess'), frontendHtaccess);
+      console.log(`[postinstall] ✅ Copied frontend static export and secured .htaccess in: ${pubDir}`);
+    }
   } catch (e) {
     console.error('Warning: Failed to copy frontend build:', e.message);
   }
@@ -171,16 +146,9 @@ if (appType === 'all' || appType === 'admin') {
   run('npm run build', 'admin');
   try {
     const srcOut = path.join(process.cwd(), 'admin', 'out');
-    const adminTargets = [
-      '/home/u209525223/domains/unu-raymi.com/public_html/admin',
-      '/home/u209525223/domains/admin.unu-raymi.com/public_html',
-      path.resolve(process.cwd(), 'public_html', 'admin')
-    ];
-    if (process.cwd().includes('public_html')) {
-      adminTargets.push(path.resolve(process.cwd(), 'admin'));
-    }
-
-    const uniqueAdminTargets = [...new Set(adminTargets.map(t => path.resolve(t)))];
+    const hostingerBase = '/home/u209525223/domains/unu-raymi.com/public_html';
+    const pubDir = fs.existsSync(hostingerBase) ? hostingerBase : path.resolve(process.cwd(), 'public_html');
+    const adminDest = path.join(pubDir, 'admin');
 
     const adminHtaccess = `<IfModule mod_rewrite.c>
 RewriteEngine On
@@ -200,19 +168,15 @@ RewriteRule ^ index.html [L]
 </IfModule>
 `;
 
-    uniqueAdminTargets.forEach(target => {
-      try {
-        if (fs.existsSync(path.dirname(target)) && fs.existsSync(srcOut)) {
-          fs.mkdirSync(target, { recursive: true });
-          if (fs.existsSync(path.join(target, 'default.php'))) {
-            fs.unlinkSync(path.join(target, 'default.php'));
-          }
-          copyStaticFiles(srcOut, target);
-          fs.writeFileSync(path.join(target, '.htaccess'), adminHtaccess);
-          console.log(`[postinstall] ✅ Copied admin static export and created .htaccess in: ${target}`);
-        }
-      } catch (err) {}
-    });
+    if (fs.existsSync(srcOut)) {
+      fs.mkdirSync(adminDest, { recursive: true });
+      if (fs.existsSync(path.join(adminDest, 'default.php'))) {
+        fs.unlinkSync(path.join(adminDest, 'default.php'));
+      }
+      copyStaticFiles(srcOut, adminDest);
+      fs.writeFileSync(path.join(adminDest, '.htaccess'), adminHtaccess);
+      console.log(`[postinstall] ✅ Copied admin static export and created .htaccess in: ${adminDest}`);
+    }
   } catch (e) {
     console.error('Warning: Failed to copy admin build:', e.message);
   }

@@ -1,6 +1,7 @@
 <?php
 // ==============================================================================
-// Unu-Raymi API Dynamic Reverse Proxy (LiteSpeed / PHP -> Node.js Gateway)
+// Unu-Raymi API Reverse Proxy (LiteSpeed / PHP -> Node.js)
+// Directorio: /home/u209525223/domains/unu-raymi.com/public_html/api
 // ==============================================================================
 
 header("Access-Control-Allow-Origin: *");
@@ -8,116 +9,60 @@ header("Access-Control-Allow-Credentials: true");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS, PATCH");
 header("Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept, Authorization");
 
-// Responder inmediatamente a peticiones OPTIONS preflight de CORS
+// Responder preflight CORS
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit(0);
 }
 
-// ── 1. Descubrimiento de puertos y rutas ─────────────────────────────────────
-$portFiles = [
-    __DIR__ . '/.port',
-    __DIR__ . '/../.port',
-    __DIR__ . '/../../unu-raymi.com/public_html/.port',
-    __DIR__ . '/../../unu-raymi.com/public_html/api/.port',
-    __DIR__ . '/../../unu-raymi.com/public_html/backend/.port',
-    '/home/u209525223/domains/unu-raymi.com/public_html/.port',
-    '/home/u209525223/domains/unu-raymi.com/public_html/api/.port',
-    '/home/u209525223/domains/api.unu-raymi.com/public_html/.port',
-    '/home/u209525223/.port',
+// ── 1. Puerto asignado a Node.js ─────────────────────────────────────────────
+// El archivo .port se ubica exclusivamente en la carpeta api/
+$portFile = __DIR__ . '/.port';
+$targetPort = 4000;
+
+if (@file_exists($portFile)) {
+    $p = intval(trim(@file_get_contents($portFile)));
+    if ($p > 0) {
+        $targetPort = $p;
+    }
+}
+
+$targets = [
+    "http://127.0.0.1:$targetPort",
+    "http://localhost:$targetPort"
 ];
 
-$dynamicPorts = [4000, 3000];
-$foundPortFiles = [];
-
-foreach ($portFiles as $pf) {
-    if (@file_exists($pf)) {
-        $raw = @file_get_contents($pf);
-        $p = intval(trim($raw));
-        if ($p > 0) {
-            $foundPortFiles[$pf] = $p;
-            if (!in_array($p, $dynamicPorts)) {
-                array_unshift($dynamicPorts, $p);
-            }
-        }
-    }
-}
-
-// Intentar leer de temp si está permitido
-$tmpPort = @sys_get_temp_dir() . '/unu_raymi_port';
-if (@file_exists($tmpPort)) {
-    $p = intval(trim(@file_get_contents($tmpPort)));
-    if ($p > 0 && !in_array($p, $dynamicPorts)) {
-        array_unshift($dynamicPorts, $p);
-        $foundPortFiles[$tmpPort] = $p;
-    }
-}
-
-// ── 2. Pre-verificación de sockets disponibles ──────────────────────────────
-$openPorts = [];
-foreach ($dynamicPorts as $port) {
-    $fp = @fsockopen('127.0.0.1', $port, $errno, $errstr, 0.15);
+// ── 2. Diagnóstico simple (?diag=1) ──────────────────────────────────────────
+if (isset($_GET['diag']) || isset($_GET['diagnostic'])) {
+    header("Content-Type: application/json; charset=UTF-8");
+    $fp = @fsockopen('127.0.0.1', $targetPort, $errno, $errstr, 0.2);
+    $socketConnected = false;
     if ($fp) {
-        $openPorts[] = $port;
+        $socketConnected = true;
         fclose($fp);
     }
-}
-
-// Priorizar puertos que respondieron al socket check
-$orderedPorts = array_unique(array_merge($openPorts, $dynamicPorts));
-
-$targets = [];
-foreach ($orderedPorts as $dp) {
-    $targets[] = "http://127.0.0.1:$dp";
-    $targets[] = "http://localhost:$dp";
-}
-
-// ── 3. Diagnóstico directo con ?diag=1 ──────────────────────────────────────
-$isDiag = isset($_GET['diag']) || isset($_GET['diagnostic']);
-if ($isDiag) {
-    header("Content-Type: application/json; charset=UTF-8");
-    $parentDir = dirname(__DIR__);
-    $parentFiles = @is_dir($parentDir) ? array_slice(@scandir($parentDir), 0, 30) : [];
-    
-    $candidateServerJs = [
-        $parentDir . '/server.js' => @file_exists($parentDir . '/server.js'),
-        '/home/u209525223/domains/unu-raymi.com/public_html/server.js' => @file_exists('/home/u209525223/domains/unu-raymi.com/public_html/server.js'),
-        '/home/u209525223/domains/unu-raymi.com/server.js' => @file_exists('/home/u209525223/domains/unu-raymi.com/server.js'),
-        '/home/u209525223/public_html/server.js' => @file_exists('/home/u209525223/public_html/server.js'),
-        '/home/u209525223/server.js' => @file_exists('/home/u209525223/server.js')
-    ];
-
-    $nodeProcess = @shell_exec('ps aux | grep node | grep -v grep');
-    $nodeVersion = @shell_exec('node -v 2>&1');
 
     echo json_encode([
-        "proxy_status" => "active",
-        "php_version" => PHP_VERSION,
-        "script_path" => __FILE__,
-        "document_root" => isset($_SERVER['DOCUMENT_ROOT']) ? $_SERVER['DOCUMENT_ROOT'] : null,
-        "parent_dir" => $parentDir,
-        "parent_files_sample" => $parentFiles,
-        "candidate_server_js" => $candidateServerJs,
-        "discovered_port_files" => $foundPortFiles,
-        "active_open_ports" => $openPorts,
-        "tested_targets" => $targets,
-        "node_version_cli" => trim((string)$nodeVersion),
-        "node_running_processes" => $nodeProcess ? trim((string)$nodeProcess) : "No running node process detected via ps aux",
+        "status" => "ok",
+        "api_directory" => __DIR__,
+        "port_file" => $portFile,
+        "port_file_exists" => file_exists($portFile),
+        "target_port" => $targetPort,
+        "socket_open" => $socketConnected,
         "timestamp" => date("c")
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     exit(0);
 }
 
-// ── 4. Normalización de URI de petición ─────────────────────────────────────
+// ── 3. Normalización de URI ──────────────────────────────────────────────────
 $requestUri = $_SERVER['REQUEST_URI'];
-// Remover query strings para la validación de prefijo
 $uriPath = parse_url($requestUri, PHP_URL_PATH);
 
 if (strpos($uriPath, '/api') !== 0 && strpos($uriPath, '/uploads') !== 0) {
     $requestUri = '/api' . (strpos($requestUri, '/') === 0 ? '' : '/') . $requestUri;
 }
 
-// ── 5. Preparación de cabeceras y cuerpo ────────────────────────────────────
+// ── 4. Cabeceras y cuerpo ───────────────────────────────────────────────────
 $headers = [];
 if (function_exists('getallheaders')) {
     foreach (getallheaders() as $name => $value) {
@@ -159,11 +104,11 @@ if ($isMultipart) {
     $body = file_get_contents('php://input');
 }
 
-// ── 6. Reenvío cURL a los objetivos disponibles ─────────────────────────────
+// ── 5. Reenvío cURL ──────────────────────────────────────────────────────────
 $response = false;
 $httpCode = 0;
 $contentType = '';
-$curlErrors = [];
+$lastError = '';
 
 foreach ($targets as $baseTarget) {
     $targetUrl = $baseTarget . $requestUri;
@@ -173,8 +118,8 @@ foreach ($targets as $baseTarget) {
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
     curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-    curl_setopt($ch, CURLOPT_ENCODING, ''); // Decodifica gzip/deflate automáticamente
-    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 3);
+    curl_setopt($ch, CURLOPT_ENCODING, '');
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
     curl_setopt($ch, CURLOPT_TIMEOUT, 30);
     
     $reqHeaders = $headers;
@@ -197,17 +142,15 @@ foreach ($targets as $baseTarget) {
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
-    $err = curl_error($ch);
+    $lastError = curl_error($ch);
     curl_close($ch);
 
     if ($httpCode >= 200 && $httpCode < 500 && $response !== false) {
         break;
-    } else if ($err) {
-        $curlErrors[$baseTarget] = $err;
     }
 }
 
-// ── 7. Respuesta exitosa ────────────────────────────────────────────────────
+// ── 6. Despacho de respuesta ─────────────────────────────────────────────────
 if ($httpCode > 0 && $response !== false) {
     if ($contentType) {
         header("Content-Type: $contentType");
@@ -217,17 +160,15 @@ if ($httpCode > 0 && $response !== false) {
     exit(0);
 }
 
-// ── 8. Manejo de error 502 con reporte detallado ────────────────────────────
+// Error 502 si Node.js no responde en el puerto configurado
 header("Content-Type: application/json; charset=UTF-8");
 http_response_code(502);
 echo json_encode([
     "success" => false,
-    "error" => "El servidor Node.js de Unu-Raymi no está respondiendo en los puertos locales. Asegúrate de que la aplicación Node.js esté iniciada en el panel de Hostinger.",
+    "error" => "El servidor Node.js no responde en el puerto $targetPort. Inicia la aplicación Node.js en Hostinger hPanel.",
     "path" => $requestUri,
-    "attempted_targets" => $targets,
-    "open_ports_detected" => $openPorts,
-    "curl_errors" => $curlErrors,
-    "timestamp" => date("c"),
-    "help" => "Accede a ?diag=1 en este dominio para ver el informe de diagnóstico completo."
+    "port" => $targetPort,
+    "last_error" => $lastError,
+    "timestamp" => date("c")
 ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 exit(0);
