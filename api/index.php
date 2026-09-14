@@ -1,22 +1,27 @@
 <?php
 // ==============================================================================
 // Unu-Raymi API Reverse Proxy (LiteSpeed / PHP -> Node.js)
-// Directorio: /home/u209525223/domains/unu-raymi.com/public_html/api
+// Ubicación: /home/u209525223/domains/unu-raymi.com/public_html/api/index.php
 // ==============================================================================
+
+@error_reporting(0);
+@ini_set('display_errors', '0');
 
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Credentials: true");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS, PATCH");
 header("Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept, Authorization");
 
-// Responder preflight CORS
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+$requestMethod = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : 'GET';
+
+// Responder preflight OPTIONS de CORS
+if ($requestMethod === 'OPTIONS') {
     http_response_code(200);
     exit(0);
 }
 
 // ── 1. Puerto asignado a Node.js ─────────────────────────────────────────────
-// El archivo .port se ubica exclusivamente en la carpeta api/
+// El puerto reside únicamente en api/.port
 $portFile = __DIR__ . '/.port';
 $targetPort = 4000;
 
@@ -39,24 +44,25 @@ if (isset($_GET['diag']) || isset($_GET['diagnostic'])) {
     $socketConnected = false;
     if ($fp) {
         $socketConnected = true;
-        fclose($fp);
+        @fclose($fp);
     }
 
     echo json_encode([
         "status" => "ok",
         "api_directory" => __DIR__,
         "port_file" => $portFile,
-        "port_file_exists" => file_exists($portFile),
+        "port_file_exists" => @file_exists($portFile),
         "target_port" => $targetPort,
         "socket_open" => $socketConnected,
+        "curl_available" => function_exists('curl_init'),
         "timestamp" => date("c")
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     exit(0);
 }
 
 // ── 3. Normalización de URI ──────────────────────────────────────────────────
-$requestUri = $_SERVER['REQUEST_URI'];
-$uriPath = parse_url($requestUri, PHP_URL_PATH);
+$requestUri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '/';
+$uriPath = parse_url($requestUri, PHP_URL_PATH) ?: '/';
 
 if (strpos($uriPath, '/api') !== 0 && strpos($uriPath, '/uploads') !== 0) {
     $requestUri = '/api' . (strpos($requestUri, '/') === 0 ? '' : '/') . $requestUri;
@@ -100,53 +106,55 @@ if ($isMultipart) {
             }
         }
     }
-} else if (in_array($_SERVER['REQUEST_METHOD'], ['POST', 'PUT', 'PATCH', 'DELETE'])) {
+} else if (in_array($requestMethod, ['POST', 'PUT', 'PATCH', 'DELETE'])) {
     $body = file_get_contents('php://input');
 }
 
-// ── 5. Reenvío cURL ──────────────────────────────────────────────────────────
+// ── 5. Reenvío a Node.js ─────────────────────────────────────────────────────
 $response = false;
 $httpCode = 0;
 $contentType = '';
 $lastError = '';
 
-foreach ($targets as $baseTarget) {
-    $targetUrl = $baseTarget . $requestUri;
-    $ch = curl_init($targetUrl);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $_SERVER['REQUEST_METHOD']);
-    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-    curl_setopt($ch, CURLOPT_ENCODING, '');
-    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-    
-    $reqHeaders = $headers;
-    $reqHeaders[] = "Host: api.unu-raymi.com";
+if (function_exists('curl_init')) {
+    foreach ($targets as $baseTarget) {
+        $targetUrl = $baseTarget . $requestUri;
+        $ch = curl_init($targetUrl);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $requestMethod);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+        curl_setopt($ch, CURLOPT_ENCODING, '');
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+        
+        $reqHeaders = $headers;
+        $reqHeaders[] = "Host: api.unu-raymi.com";
 
-    if ($isMultipart) {
-        $filteredHeaders = array_filter($reqHeaders, function($h) {
-            $lh = strtolower($h);
-            return strpos($lh, 'content-type:') !== 0 && strpos($lh, 'content-length:') !== 0;
-        });
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array_values($filteredHeaders));
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $postFields);
-    } else {
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $reqHeaders);
-        if ($body !== null) {
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
+        if ($isMultipart) {
+            $filteredHeaders = array_filter($reqHeaders, function($h) {
+                $lh = strtolower($h);
+                return strpos($lh, 'content-type:') !== 0 && strpos($lh, 'content-length:') !== 0;
+            });
+            curl_setopt($ch, CURLOPT_HTTPHEADER, array_values($filteredHeaders));
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $postFields);
+        } else {
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $reqHeaders);
+            if ($body !== null) {
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
+            }
         }
-    }
 
-    $response = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
-    $lastError = curl_error($ch);
-    curl_close($ch);
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
+        $lastError = curl_error($ch);
+        curl_close($ch);
 
-    if ($httpCode >= 200 && $httpCode < 500 && $response !== false) {
-        break;
+        if ($httpCode >= 200 && $httpCode < 500 && $response !== false) {
+            break;
+        }
     }
 }
 
@@ -168,7 +176,7 @@ echo json_encode([
     "error" => "El servidor Node.js no responde en el puerto $targetPort. Inicia la aplicación Node.js en Hostinger hPanel.",
     "path" => $requestUri,
     "port" => $targetPort,
-    "last_error" => $lastError,
+    "last_error" => $lastError ?: "No se pudo establecer conexion local con Node.js",
     "timestamp" => date("c")
 ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 exit(0);
