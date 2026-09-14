@@ -291,14 +291,20 @@ try {
         fs.cpSync(srcOut, target, { recursive: true });
         
         const adminHtaccess = `<IfModule mod_rewrite.c>
+Options -Indexes
 RewriteEngine On
 RewriteBase /
-RewriteCond %{REQUEST_FILENAME} !-f
+
+# 1. Archivos estáticos reales
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteRule ^ - [L]
+
+# 2. Carpetas con index.html propio
 RewriteCond %{REQUEST_FILENAME}/index.html -f
 RewriteRule ^(.*)$ $1/index.html [L]
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(.*)$ /index.html [L]
+
+# 3. Fallback SPA para subrutas dinámicas
+RewriteRule . /index.html [L]
 </IfModule>
 `;
         fs.writeFileSync(path.join(target, '.htaccess'), adminHtaccess);
