@@ -1,50 +1,8 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useMemo, Component } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
+import React, { useState, useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { AlertCircle, RefreshCw } from 'lucide-react';
-
-// Error Boundary para aislar cualquier excepción de WebGL/Leaflet
-class MapErrorBoundary extends Component {
-  constructor(props) {
-    super(props);
-    this.state = { hasError: false, error: null };
-  }
-
-  static getDerivedStateFromError(error) {
-    return { hasError: true, error };
-  }
-
-  componentDidCatch(error, errorInfo) {
-    console.warn('[Leaflet Map Warning]:', error, errorInfo);
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div className="w-full h-full min-h-[360px] rounded-2xl bg-[#f5f4f0] border border-[#b0c4b1] flex flex-col items-center justify-center p-6 text-center space-y-3">
-          <AlertCircle className="w-8 h-8 text-amber-600" />
-          <div className="text-xs font-bold text-[#4a5759]">
-            El mapa interactivo no pudo inicializarse en este entorno.
-          </div>
-          <p className="text-[11px] text-[#6c7a7c] max-w-sm">
-            Puedes ajustar las coordenadas numéricamente en el formulario a la izquierda o reintentar.
-          </p>
-          <button
-            type="button"
-            onClick={() => this.setState({ hasError: false })}
-            className="px-3 py-1.5 bg-[#4a5759] text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm hover:bg-[#3b4749] transition-all cursor-pointer"
-          >
-            <RefreshCw className="w-3.5 h-3.5" /> Reintentar Mapa
-          </button>
-        </div>
-      );
-    }
-    return this.props.children;
-  }
-}
 
 const categoryBorderColors = {
   ATRACTIVO: '#ef4444',
@@ -116,164 +74,144 @@ function createCustomMarkerIcon(imageUrl, category, orden) {
   }
 }
 
-// Controlador del mapa para redimensionamiento seguro y movimiento fluido
-function MapViewController({ center }) {
-  const map = useMap();
-  const lastCenterRef = useRef(null);
+export default function AttractionMapPicker({ position, setPosition, imageUrl, category, orden }) {
+  const containerRef = useRef(null);
+  const mapRef = useRef(null);
+  const markerRef = useRef(null);
+  const setPositionRef = useRef(setPosition);
 
-  // Invalidate size seguro tras el montaje
+  // Mantener setPosition actualizado en el ref
   useEffect(() => {
-    if (!map) return;
-    const timer = setTimeout(() => {
-      try {
-        if (map._loaded) {
-          map.invalidateSize();
-        }
-      } catch (e) {}
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [map]);
+    setPositionRef.current = setPosition;
+  }, [setPosition]);
 
-  // Actualización fluida sin animación flyTo para evitar colisiones con el render de tiles
+  const safeLat = Number(position?.[0] || -13.5319);
+  const safeLng = Number(position?.[1] || -71.9675);
+
+  const getPopupContent = (lat, lng) => `
+    <div style="text-align:center;font-family:sans-serif;font-size:12px;">
+      <div style="font-weight:bold;color:#1e293b;">Ubicación Seleccionada</div>
+      <div style="color:#64748b;margin-top:2px;font-family:monospace;">${lat.toFixed(5)}, ${lng.toFixed(5)}</div>
+      <div style="font-size:10px;color:#059669;font-weight:600;margin-top:4px;">Arrastra para ajustar</div>
+    </div>
+  `;
+
+  // 1. Inicialización y destrucción limpia del mapa Leaflet
   useEffect(() => {
-    if (!map || !center || !Array.isArray(center) || center.length !== 2) return;
-    const [lat, lng] = center;
-    if (isNaN(lat) || isNaN(lng)) return;
+    if (typeof window === 'undefined' || !containerRef.current) return;
 
-    // Solo actualizar si las coordenadas difieren respecto al último centro conocido
-    if (
-      lastCenterRef.current &&
-      Math.abs(lastCenterRef.current[0] - lat) < 0.00001 &&
-      Math.abs(lastCenterRef.current[1] - lng) < 0.00001
-    ) {
-      return;
+    // Si el contenedor tenía un mapa previo o _leaflet_id colgado, limpiarlo
+    if (containerRef.current._leaflet_id) {
+      containerRef.current._leaflet_id = null;
     }
 
-    lastCenterRef.current = [lat, lng];
-    try {
-      map.setView([lat, lng], map.getZoom() || 13);
-    } catch (e) {}
-  }, [center, map]);
+    const map = L.map(containerRef.current, {
+      center: [safeLat, safeLng],
+      zoom: 12,
+      scrollWheelZoom: true,
+    });
+    mapRef.current = map;
 
-  return null;
-}
+    // Capa base de OpenStreetMap
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      maxZoom: 19,
+    }).addTo(map);
 
-// Escuchador de clics en el mapa para posicionar el marcador
-function MapClickHandler({ onLocationChange }) {
-  useMapEvents({
-    click(e) {
-      if (e?.latlng && onLocationChange) {
-        onLocationChange([e.latlng.lat, e.latlng.lng]);
+    // Marcador arrastrable
+    const marker = L.marker([safeLat, safeLng], {
+      draggable: true,
+      icon: createCustomMarkerIcon(imageUrl, category, orden),
+    }).addTo(map);
+    markerRef.current = marker;
+
+    marker.bindPopup(getPopupContent(safeLat, safeLng), { minWidth: 140 });
+
+    // Evento arrastrar marcador
+    marker.on('dragend', () => {
+      const latLng = marker.getLatLng();
+      if (latLng) {
+        marker.setPopupContent(getPopupContent(latLng.lat, latLng.lng));
+        setPositionRef.current?.([latLng.lat, latLng.lng]);
       }
-    },
-  });
-  return null;
-}
+    });
 
-// Marcador arrastrable
-function DraggableMarker({ position, onLocationChange, icon }) {
-  const markerRef = useRef(null);
+    // Evento clic en cualquier parte del mapa
+    map.on('click', (e) => {
+      if (e?.latlng) {
+        marker.setLatLng(e.latlng);
+        marker.setPopupContent(getPopupContent(e.latlng.lat, e.latlng.lng));
+        setPositionRef.current?.([e.latlng.lat, e.latlng.lng]);
+      }
+    });
 
-  const eventHandlers = useMemo(
-    () => ({
-      dragend() {
-        const marker = markerRef.current;
-        if (marker != null) {
-          const latLng = marker.getLatLng();
-          if (latLng && onLocationChange) {
-            onLocationChange([latLng.lat, latLng.lng]);
-          }
-        }
-      },
-    }),
-    [onLocationChange]
-  );
+    // Invalidar tamaño para asegurar que todos los tiles carguen correctamente
+    const timer = setTimeout(() => {
+      try {
+        map.invalidateSize();
+      } catch (_) {}
+    }, 250);
 
-  const safePos = [
-    Number(position?.[0] || -13.5319),
-    Number(position?.[1] || -71.9675),
-  ];
+    const handleResize = () => {
+      try {
+        map.invalidateSize();
+      } catch (_) {}
+    };
+    window.addEventListener('resize', handleResize);
 
-  return (
-    <Marker
-      draggable={true}
-      eventHandlers={eventHandlers}
-      position={safePos}
-      ref={markerRef}
-      icon={icon}
-    >
-      <Popup minWidth={140}>
-        <div className="text-center font-sans text-xs">
-          <div className="font-bold text-slate-800">Ubicación Seleccionada</div>
-          <div className="text-slate-500 mt-0.5 font-mono">
-            {safePos[0].toFixed(5)}, {safePos[1].toFixed(5)}
-          </div>
-          <div className="text-[10px] text-emerald-600 font-semibold mt-1">Arrastra para ajustar</div>
-        </div>
-      </Popup>
-    </Marker>
-  );
-}
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', handleResize);
+      try {
+        map.remove();
+      } catch (_) {}
+      mapRef.current = null;
+      markerRef.current = null;
+      if (containerRef.current) {
+        containerRef.current._leaflet_id = null;
+      }
+    };
+  }, []); // Montaje único
 
-// Componente interno del mapa
-function MapInner({ position, setPosition, imageUrl, category, orden }) {
-  const markerIcon = useMemo(() => {
-    return createCustomMarkerIcon(imageUrl, category, orden);
-  }, [imageUrl, category, orden]);
-
-  const safeCenter = [
-    Number(position?.[0] || -13.5319),
-    Number(position?.[1] || -71.9675),
-  ];
-
-  return (
-    <MapContainer
-      center={safeCenter}
-      zoom={12}
-      scrollWheelZoom={true}
-      style={{ height: '100%', width: '100%', minHeight: '380px' }}
-    >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-      <DraggableMarker
-        position={safeCenter}
-        onLocationChange={setPosition}
-        icon={markerIcon}
-      />
-      <MapClickHandler onLocationChange={setPosition} />
-      <MapViewController center={safeCenter} />
-    </MapContainer>
-  );
-}
-
-export default function AttractionMapPicker({ position, setPosition, imageUrl, category, orden }) {
-  const [mounted, setMounted] = useState(false);
-
+  // 2. Sincronizar coordenadas externas (buscador Nominatim o campos numéricos)
   useEffect(() => {
-    setMounted(true);
-  }, []);
+    if (!position || !Array.isArray(position) || position.length !== 2) return;
+    const lat = Number(position[0]);
+    const lng = Number(position[1]);
+    if (isNaN(lat) || isNaN(lng)) return;
 
-  if (!mounted) {
-    return (
-      <div className="w-full h-full min-h-[380px] bg-[#dedbd2]/50 animate-pulse rounded-2xl flex items-center justify-center text-xs text-[#6c7a7c]">
-        Cargando Mapa Interactivo Leaflet...
-      </div>
-    );
-  }
+    const marker = markerRef.current;
+    const map = mapRef.current;
+    if (!marker || !map) return;
+
+    const currentLatLng = marker.getLatLng();
+    if (
+      Math.abs(currentLatLng.lat - lat) > 0.00001 ||
+      Math.abs(currentLatLng.lng - lng) > 0.00001
+    ) {
+      marker.setLatLng([lat, lng]);
+      marker.setPopupContent(getPopupContent(lat, lng));
+      map.setView([lat, lng], map.getZoom() || 12);
+    }
+  }, [position]);
+
+  // 3. Sincronizar cambios en categoría, imagen o número de orden del icono
+  useEffect(() => {
+    if (!markerRef.current) return;
+    const newIcon = createCustomMarkerIcon(imageUrl, category, orden);
+    if (newIcon) {
+      markerRef.current.setIcon(newIcon);
+    }
+  }, [imageUrl, category, orden]);
 
   return (
     <div className="w-full h-full min-h-[380px] rounded-2xl overflow-hidden border border-[#b0c4b1] relative z-0 shadow-inner">
-      <MapErrorBoundary>
-        <MapInner
-          position={position}
-          setPosition={setPosition}
-          imageUrl={imageUrl}
-          category={category}
-          orden={orden}
-        />
-      </MapErrorBoundary>
+      <div
+        ref={containerRef}
+        className="w-full h-full min-h-[380px]"
+        style={{ height: '100%', width: '100%', minHeight: '380px' }}
+      />
     </div>
   );
 }
+
