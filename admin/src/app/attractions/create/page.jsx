@@ -4,15 +4,13 @@ import { useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import useSWR from 'swr';
 import { MapPin, Search, Plus, Trash2, CheckCircle2, AlertCircle, Loader2, Navigation, Edit2, Upload, X, ArrowUpDown, Image as ImageIcon } from 'lucide-react';
-import { API_BASE_URL, API_ASSETS_URL, uploadApi } from '@/lib/api';
+import { API_BASE_URL, API_ASSETS_URL, uploadApi, fetcher, mutateApi } from '@/lib/api';
 
 // Carga dinámica de Leaflet para evitar errores con window durante SSR
 const AttractionMapPicker = dynamic(
   () => import('@/components/AttractionMapPicker'),
-  { ssr: false, loading: () => <div className="w-full h-full min-h-[360px] bg-[#dedbd2]/50 animate-pulse rounded-2xl flex items-center justify-center text-xs text-[#6c7a7c]">Cargando Mapa Leaflet...</div> }
+  { ssr: false, loading: () => <div className="w-full h-full min-h-[380px] bg-[#dedbd2]/50 animate-pulse rounded-2xl flex items-center justify-center text-xs text-[#6c7a7c]">Cargando Mapa Leaflet...</div> }
 );
-
-const fetcher = (url) => fetch(url).then((res) => res.json());
 
 export default function CreateAttractionPage() {
   const [editingId, setEditingId] = useState(null);
@@ -40,11 +38,11 @@ export default function CreateAttractionPage() {
   const [message, setMessage] = useState(null);
 
   // Obtener la lista de tours para el desplegable
-  const { data: toursResponse } = useSWR(`${API_BASE_URL}/tours`, fetcher);
+  const { data: toursResponse } = useSWR('/tours', fetcher);
   const tours = toursResponse?.data || [];
 
   // Obtener la lista de attractions existentes para la tabla admin
-  const { data: attractionsResponse, mutate: mutateAttractions } = useSWR(`${API_BASE_URL}/admin/attractions`, fetcher);
+  const { data: attractionsResponse, mutate: mutateAttractions } = useSWR('/admin/attractions', fetcher);
   const attractionsList = attractionsResponse?.data || [];
 
   // Buscador con debounce de 500ms hacia la API pública de Nominatim
@@ -151,8 +149,8 @@ export default function CreateAttractionPage() {
       const payload = {
         name,
         category,
-        latitude: position[0],
-        longitude: position[1],
+        latitude: parseFloat(position[0]),
+        longitude: parseFloat(position[1]),
         altitude: altitude ? parseInt(altitude, 10) : null,
         description,
         tourId: tourId ? parseInt(tourId, 10) : null,
@@ -161,20 +159,17 @@ export default function CreateAttractionPage() {
       };
 
       const url = editingId
-        ? `${API_BASE_URL}/admin/attractions/${editingId}`
-        : `${API_BASE_URL}/admin/attractions`;
+        ? `/admin/attractions/${editingId}`
+        : '/admin/attractions';
 
       const method = editingId ? 'PUT' : 'POST';
 
-      const res = await fetch(url, {
+      const data = await mutateApi(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: payload,
       });
 
-      const data = await res.json();
-
-      if (res.ok && data.success) {
+      if (data && data.success) {
         setMessage({
           type: 'success',
           text: editingId
@@ -185,11 +180,11 @@ export default function CreateAttractionPage() {
         handleCancelEdit();
         mutateAttractions();
       } else {
-        setMessage({ type: 'error', text: data.error || 'No se pudo guardar el punto geográfico.' });
+        setMessage({ type: 'error', text: data?.error || 'No se pudo guardar el punto geográfico.' });
       }
     } catch (err) {
       console.error('Error al guardar punto GIS:', err);
-      setMessage({ type: 'error', text: 'Error de conexión con el servidor.' });
+      setMessage({ type: 'error', text: err.message || 'Error de conexión con el servidor.' });
     } finally {
       setLoading(false);
     }
@@ -199,15 +194,14 @@ export default function CreateAttractionPage() {
     if (!confirm(`¿Eliminar el punto "${attrName}"?`)) return;
 
     try {
-      const res = await fetch(`${API_BASE_URL}/admin/attractions/${id}`, {
+      await mutateApi(`/admin/attractions/${id}`, {
         method: 'DELETE',
       });
-      if (res.ok) {
-        if (editingId === id) handleCancelEdit();
-        mutateAttractions();
-      }
+      if (editingId === id) handleCancelEdit();
+      mutateAttractions();
     } catch (err) {
       console.error('Error al eliminar atracción:', err);
+      alert(err.message || 'Error al eliminar el punto geográfico');
     }
   };
 
@@ -309,15 +303,39 @@ export default function CreateAttractionPage() {
                   </select>
                 </div>
 
-                {/* Coordenadas en tiempo real */}
+                {/* Coordenadas en tiempo real y editables */}
                 <div className="grid grid-cols-2 gap-2 text-xs bg-[#f5f4f0] p-3 rounded-xl border border-[#b0c4b1]/60">
                   <div>
-                    <span className="text-[10px] text-[#6c7a7c] font-bold uppercase block">Latitud</span>
-                    <span className="font-extrabold text-[#4a5759]">{position[0].toFixed(5)}</span>
+                    <label className="text-[10px] text-[#6c7a7c] font-bold uppercase block mb-1">
+                      Latitud GPS <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      step="any"
+                      required
+                      value={position[0]}
+                      onChange={(e) => {
+                        const val = parseFloat(e.target.value);
+                        if (!isNaN(val)) setPosition([val, position[1]]);
+                      }}
+                      className="w-full bg-white border border-[#b0c4b1] p-2 rounded-lg font-mono text-xs text-[#4a5759] font-extrabold focus:outline-none focus:border-[#4a5759]"
+                    />
                   </div>
                   <div>
-                    <span className="text-[10px] text-[#6c7a7c] font-bold uppercase block">Longitud</span>
-                    <span className="font-extrabold text-[#4a5759]">{position[1].toFixed(5)}</span>
+                    <label className="text-[10px] text-[#6c7a7c] font-bold uppercase block mb-1">
+                      Longitud GPS <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      step="any"
+                      required
+                      value={position[1]}
+                      onChange={(e) => {
+                        const val = parseFloat(e.target.value);
+                        if (!isNaN(val)) setPosition([position[0], val]);
+                      }}
+                      className="w-full bg-white border border-[#b0c4b1] p-2 rounded-lg font-mono text-xs text-[#4a5759] font-extrabold focus:outline-none focus:border-[#4a5759]"
+                    />
                   </div>
                 </div>
 
