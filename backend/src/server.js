@@ -3,16 +3,23 @@
 // Unu-Raymi Backend API
 // ============================================================
 
-import "dotenv/config";
+import dotenv from "dotenv";
+import { resolve, dirname } from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+// Cargar variables de entorno desde múltiples rutas posibles en Hostinger
+dotenv.config();
+dotenv.config({ path: resolve(__dirname, "../.env") });
+dotenv.config({ path: resolve(process.cwd(), "backend/.env") });
+dotenv.config({ path: resolve(process.cwd(), ".env") });
+
 import express from "express";
 import cors from "cors";
 import morgan from "morgan";
-import { resolve, dirname } from "path";
-import { fileURLToPath } from "url";
 import fs from "fs";
 import os from "os";
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
 
 import tourRoutes from "./routes/tourRoutes.js";
 import reservaRoutes from "./routes/reservaRoutes.js";

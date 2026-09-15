@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Users, DollarSign, Calendar, ShieldCheck, Mail, Phone, User, CheckCircle, CreditCard, ArrowLeft } from 'lucide-react';
+import { X, Users, DollarSign, Calendar, ShieldCheck, Mail, Phone, User, CheckCircle, CreditCard, ArrowLeft, ExternalLink } from 'lucide-react';
 import { mutateApi, API_BASE_URL } from '@/lib/api';
 import { useLanguage } from '@/context/LanguageContext';
 import { useCurrency } from '@/context/CurrencyContext';
@@ -164,17 +164,26 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
         });
         setOpenpayData(openpayRes);
       } catch (errOpenpay) {
-        console.warn('Sandbox OpenPay active:', errOpenpay);
+        console.error('Error al generar enlace de pago OpenPay:', errOpenpay);
+        setError(errOpenpay.message || (language === 'es' ? 'Ocurrió un error al contactar la pasarela OpenPay Perú.' : 'Error contacting OpenPay Peru payment gateway.'));
+        setLoading(false);
+        return;
+      }
+
+      if (!openpayRes || !openpayRes.paymentUrl) {
+        setError(openpayRes?.error || (language === 'es' ? 'No se pudo generar la sesión de cobro con OpenPay Perú.' : 'Could not generate payment session with OpenPay Peru.'));
+        setLoading(false);
+        return;
       }
 
       setSuccessData({
         ...reservaCreada,
-        openpayUrl: openpayRes?.paymentUrl,
+        openpayUrl: openpayRes.paymentUrl,
         provider: 'OpenPay Perú',
       });
     } catch (err) {
       console.error('Error al procesar reserva:', err);
-      setError(err.message || (language === 'es' ? 'Ocurrió un error al procesar el pago con OpenPay Perú.' : 'An error occurred processing the payment with OpenPay Peru.'));
+      setError(err.message || (language === 'es' ? 'Ocurrió un error al procesar la reserva.' : 'An error occurred processing the booking.'));
     } finally {
       setLoading(false);
     }
@@ -223,24 +232,25 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
           </div>
 
           <div className="p-4 bg-emerald-950/40 border border-emerald-500/30 rounded-2xl text-left space-y-2">
-            <span className="text-xs font-bold text-emerald-400 block flex items-center gap-1">
+            <span className="text-xs font-bold text-emerald-400 flex items-center gap-1">
               <CreditCard className="w-4 h-4" /> Pasarela OpenPay Perú (Tarjetas / Yape / PagoEfectivo)
             </span>
             <p className="text-[11px] text-[var(--foreground)] leading-relaxed">
               {language === 'es'
-                ? 'La evaluación médica y orden de reserva fueron guardadas. Haz clic en el botón a continuación para completar la transacción segura.'
-                : 'The health evaluation and booking order have been saved. Click the button below to complete the secure transaction.'}
+                ? 'La orden de reserva ha sido registrada con éxito. Haz clic en el botón a continuación para abrir la pasarela segura de OpenPay Perú y realizar el pago.'
+                : 'The booking order has been saved successfully. Click the button below to open the OpenPay Peru secure gateway and complete payment.'}
             </p>
           </div>
 
           <div className="flex gap-4">
             <a
-              href={successData.openpayUrl || `${API_BASE_URL}/reservas/${successData.reservaId || successData.id}/invoice?token=${successData.tokenSeguridad}`}
+              href={successData.openpayUrl}
               target="_blank"
               rel="noreferrer"
-              className="flex-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 py-3.5 rounded-xl text-sm font-bold shadow-lg shadow-emerald-500/20 transition-all text-center"
+              className="flex-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 py-3.5 rounded-xl text-sm font-bold shadow-lg shadow-emerald-500/20 transition-all text-center flex items-center justify-center gap-2"
             >
-              {language === 'es' ? 'Pagar con OpenPay Perú' : 'Pay with OpenPay Peru'}
+              <span>{language === 'es' ? 'Pagar con OpenPay Perú' : 'Pay with OpenPay Peru'}</span>
+              <ExternalLink className="w-4 h-4" />
             </a>
 
             <button

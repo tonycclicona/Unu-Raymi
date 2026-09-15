@@ -319,9 +319,18 @@ export const crearPagoOpenPay = async (req, res, next) => {
     const { createOpenpayChargeSession } = await import('../services/openpayService.js');
     const openpayRes = await createOpenpayChargeSession(reserva);
 
+    if (!openpayRes.success) {
+      console.error(`[crearPagoOpenPay] ❌ Error creando pago OpenPay:`, openpayRes.error);
+      return res.status(400).json({
+        success: false,
+        error: openpayRes.error || 'No se pudo generar la pasarela de pago en OpenPay Perú',
+        details: openpayRes.details || null,
+      });
+    }
+
     return res.json({
       success: true,
-      message: 'Sesión de pago OpenPay Perú generada',
+      message: 'Sesión de pago OpenPay Perú generada exitosamente',
       paymentUrl: openpayRes.paymentUrl,
       chargeId: openpayRes.chargeId,
       provider: 'OpenPay Perú',
