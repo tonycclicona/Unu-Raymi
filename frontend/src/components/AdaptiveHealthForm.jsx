@@ -12,6 +12,7 @@ export default function AdaptiveHealthForm({ tour, pasajeros = [], onEvaluations
   const [activePassengerIndex, setActivePassengerIndex] = useState(0);
   const [formsData, setFormsData] = useState([]);
   const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
   // 1. Cargar la estructura del formulario activo según el idioma seleccionado
@@ -146,6 +147,10 @@ export default function AdaptiveHealthForm({ tour, pasajeros = [], onEvaluations
       if (onEvaluationsComplete) {
         onEvaluationsComplete(data);
       }
+
+      // Mostrar feedback de éxito en el botón durante 8 segundos
+      setSubmitted(true);
+      setTimeout(() => setSubmitted(false), 8000);
     } catch (err) {
       console.error('Error al enviar formulario:', err);
       setErrorMsg(err.message || 'Error procesando la evaluación.');
@@ -403,12 +408,21 @@ export default function AdaptiveHealthForm({ tour, pasajeros = [], onEvaluations
               type="button"
               onClick={handleSubmitAll}
               disabled={submitting}
-              className="px-6 py-2.5 bg-rose-500 hover:bg-rose-600 disabled:opacity-50 text-white font-black rounded-xl text-sm transition-all shadow-lg flex items-center space-x-2"
+              className={`px-6 py-2.5 font-black rounded-xl text-sm transition-all shadow-lg flex items-center space-x-2 ${
+                submitted
+                  ? 'bg-emerald-500 hover:bg-emerald-400 text-white animate-pulse'
+                  : 'bg-rose-500 hover:bg-rose-600 disabled:opacity-50 text-white'
+              }`}
             >
               {submitting ? (
                 <>
                   <Activity className="w-4 h-4 animate-spin" />
                   <span>{t('health_form.procesando')}</span>
+                </>
+              ) : submitted ? (
+                <>
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>{t('health_form.registrado_exito')}</span>
                 </>
               ) : (
                 <>

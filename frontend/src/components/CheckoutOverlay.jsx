@@ -210,23 +210,23 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
           </div>
 
           <div className="space-y-2">
-            <h2 className="text-2xl font-black text-[var(--foreground)]">{language === 'es' ? '¡Reserva Registrada!' : 'Booking Registered!'}</h2>
+            <h2 className="text-2xl font-black text-[var(--foreground)]">{t('checkout_success.titulo')}</h2>
             <p className="text-[var(--muted-foreground)] text-sm">
-              {language === 'es' ? 'Procesando pago con la pasarela' : 'Processing payment with'} <span className="text-emerald-400 font-bold">OpenPay Perú</span>.
+              {t('checkout_success.procesando')} <span className="text-emerald-400 font-bold">OpenPay Perú</span>.
             </p>
           </div>
 
           <div className="bg-[var(--card)] border border-[var(--border)] p-5 rounded-2xl space-y-3 text-left">
             <div className="flex justify-between text-sm text-[var(--muted-foreground)]">
-              <span>{language === 'es' ? 'Tour:' : 'Tour:'}</span>
+              <span>{t('checkout_success.tour_label')}</span>
               <span className="text-[var(--foreground)] font-bold">{tour.nombre} ({displayDuration} {displayDuration === 1 ? t('tour_card.dia') : t('tour_card.dias')})</span>
             </div>
             <div className="flex justify-between text-sm text-[var(--muted-foreground)]">
-              <span>{language === 'es' ? 'Total a Pagar:' : 'Total to Pay:'}</span>
+              <span>{t('checkout_success.total_label')}</span>
               <span className="text-emerald-400 font-extrabold">${parseFloat(successData.precioTotal || total).toFixed(2)} USD</span>
             </div>
             <div className="border-t border-[var(--border)]/50 my-2 pt-2">
-              <span className="text-[10px] text-[var(--muted-foreground)]/80 block uppercase font-bold tracking-wider mb-1">{language === 'es' ? 'Token de Seguridad (Invoice PDF)' : 'Security Token (Invoice PDF)'}</span>
+              <span className="text-[10px] text-[var(--muted-foreground)]/80 block uppercase font-bold tracking-wider mb-1">{t('checkout_success.token_label')}</span>
               <span className="text-[11px] text-[var(--muted-foreground)] font-mono select-all break-all">{successData.tokenSeguridad}</span>
             </div>
           </div>
@@ -236,9 +236,7 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
               <CreditCard className="w-4 h-4" /> Pasarela OpenPay Perú (Tarjetas / Yape / PagoEfectivo)
             </span>
             <p className="text-[11px] text-[var(--foreground)] leading-relaxed">
-              {language === 'es'
-                ? 'La orden de reserva ha sido registrada con éxito. Haz clic en el botón a continuación para abrir la pasarela segura de OpenPay Perú y realizar el pago.'
-                : 'The booking order has been saved successfully. Click the button below to open the OpenPay Peru secure gateway and complete payment.'}
+              {t('checkout_success.descripcion_pago')}
             </p>
           </div>
 
@@ -249,7 +247,7 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
               rel="noreferrer"
               className="flex-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 py-3.5 rounded-xl text-sm font-bold shadow-lg shadow-emerald-500/20 transition-all text-center flex items-center justify-center gap-2"
             >
-              <span>{language === 'es' ? 'Pagar con OpenPay Perú' : 'Pay with OpenPay Peru'}</span>
+              <span>{t('checkout_success.boton_pagar')}</span>
               <ExternalLink className="w-4 h-4" />
             </a>
 
@@ -257,7 +255,7 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
               onClick={onClose}
               className="px-6 bg-[var(--sidebar)] hover:bg-slate-800 text-white py-3.5 rounded-xl text-sm font-bold transition-all"
             >
-              {language === 'es' ? 'Cerrar' : 'Close'}
+              {t('checkout_success.cerrar')}
             </button>
           </div>
         </div>
@@ -287,11 +285,11 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
               className="text-[var(--muted-foreground)] hover:text-[var(--foreground)] p-2.5 bg-[var(--sidebar)] rounded-xl border border-black/5 transition-all flex items-center gap-1.5 text-xs font-bold shrink-0"
             >
               <ArrowLeft className="w-4 h-4" />
-              {language === 'es' ? 'Volver' : 'Back'}
+              {t('checkout_success.volver')}
             </button>
             <div>
-              <span className="text-[10px] text-emerald-400 font-extrabold uppercase tracking-widest">{language === 'es' ? 'Checkout & Evaluación Médica' : 'Checkout & Health Assessment'}</span>
-              <h2 className="font-extrabold text-[var(--foreground)] text-base leading-tight">{language === 'es' ? 'Registro, Aptitud Física y Pago' : 'Registration, Fitness & Payment'}</h2>
+              <span className="text-[10px] text-emerald-400 font-extrabold uppercase tracking-widest">{t('checkout_success.checkout_header')}</span>
+              <h2 className="font-extrabold text-[var(--foreground)] text-base leading-tight">{t('checkout_success.registro_header')}</h2>
             </div>
           </div>
         </div>
@@ -308,7 +306,7 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
           <div className="bg-[var(--card)] border border-[var(--border)]/40 p-5 rounded-2xl space-y-4">
             <div className="border-b border-[var(--border)]/30 pb-3 flex justify-between items-center">
               <div>
-                <span className="text-[10px] text-[var(--muted-foreground)] block uppercase font-bold tracking-wider">{language === 'es' ? 'Aventura' : 'Adventure'}</span>
+                <span className="text-[10px] text-[var(--muted-foreground)] block uppercase font-bold tracking-wider">{t('checkout_success.aventura')}</span>
                 <span className="text-xs font-bold text-[var(--foreground)]">{tour.nombre}</span>
               </div>
               <div className="text-right">
@@ -321,12 +319,12 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
 
             <h3 className="text-xs font-bold text-[var(--foreground)] uppercase tracking-wider flex items-center gap-1.5">
               <Calendar className="w-4 h-4 text-[var(--foreground)]" />
-              {language === 'es' ? 'Fecha de Viaje y Cantidad' : 'Travel Date & Quantity'}
+              {t('checkout_success.fecha_viaje')}
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase">{language === 'es' ? 'Calendario *' : 'Calendar *'}</label>
+                <label className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase">{t('checkout_success.calendario')}</label>
                 {fechasDisponibles.length > 0 ? (
                   <select
                     value={fechaViaje}
@@ -352,7 +350,7 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase">{language === 'es' ? 'Adultos' : 'Adults'}</label>
+                <label className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase">{t('checkout_success.adultos')}</label>
                 <input
                   type="number"
                   min="1"
@@ -364,7 +362,7 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase">{language === 'es' ? 'Niños (0-12)' : 'Children (0-12)'}</label>
+                <label className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase">{t('checkout_success.ninos')}</label>
                 <input
                   type="number"
                   min="0"
@@ -474,7 +472,7 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
 
               <div className="space-y-4">
                 {pasajerosAdicionales.map((p, index) => {
-                  const labelTipo = index < (cantAdultos - 1) ? (language === 'es' ? 'Adulto' : 'Adult') : (language === 'es' ? 'Niño' : 'Child');
+                  const labelTipo = index < (cantAdultos - 1) ? t('tour_card.adulto') : t('tour_card.nino');
 
                   return (
                     <div key={index} className="bg-[var(--card)] border border-[var(--border)]/40 p-4 rounded-2xl space-y-3">

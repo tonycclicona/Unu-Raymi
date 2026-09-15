@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, Compass, Receipt, LogOut, X, Users, ShieldCheck, MapPin } from 'lucide-react';
+import { LayoutDashboard, Compass, Receipt, LogOut, X, Users, ShieldCheck, MapPin, ClipboardList } from 'lucide-react';
 
 export default function Sidebar({ isOpen = false, onClose = () => {} }) {
   const pathname = usePathname();
@@ -16,6 +16,7 @@ export default function Sidebar({ isOpen = false, onClose = () => {} }) {
     { name: 'Guías', path: '/guias/', icon: Users },
     { name: 'Garantías', path: '/garantias/', icon: ShieldCheck },
     { name: 'Evaluación Salud', path: '/evaluaciones/', icon: ShieldCheck },
+    { name: 'Reclamaciones', path: '/reclamaciones/', icon: ClipboardList },
   ];
 
   const handleLogout = () => {

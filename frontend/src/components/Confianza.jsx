@@ -116,39 +116,31 @@ export default function Confianza() {
                 {
                   id: 1,
                   titulo: 'MINCETUR',
-                  descripcion: language === 'es' 
-                    ? 'Operador oficial autorizado de turismo de aventura.' 
-                    : 'Official authorized adventure tourism operator.',
+                  descripcion: t('confianza.mincetur_desc'),
                   icono: 'Award',
                   color: 'red',
                   imagenUrl: '',
                 },
                 {
                   id: 2,
-                  titulo: 'SSL Encriptado',
-                  descripcion: language === 'es'
-                    ? 'Tus transacciones y datos están protegidos bajo cifrado SSL.'
-                    : 'Your transactions and data are protected under SSL encryption.',
+                  titulo: t('confianza.ssl_titulo'),
+                  descripcion: t('confianza.ssl_desc'),
                   icono: 'Lock',
                   color: 'emerald',
                   imagenUrl: '',
                 },
                 {
                   id: 3,
-                  titulo: 'Stripe Verified',
-                  descripcion: language === 'es'
-                    ? 'Procesamiento de tarjetas bajo estándares PCI-DSS.'
-                    : 'Card processing under PCI-DSS standards.',
+                  titulo: t('confianza.stripe_titulo'),
+                  descripcion: t('confianza.stripe_desc'),
                   icono: 'ShieldCheck',
                   color: 'blue',
                   imagenUrl: '',
                 },
                 {
                   id: 4,
-                  titulo: 'Marca Perú',
-                  descripcion: language === 'es'
-                    ? 'Promotor del turismo sostenible e identidad nacional.'
-                    : 'Promoter of sustainable tourism and national identity.',
+                  titulo: t('confianza.marca_peru_titulo'),
+                  descripcion: t('confianza.marca_peru_desc'),
                   icono: 'Star',
                   color: 'amber',
                   imagenUrl: '',

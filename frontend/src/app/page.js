@@ -13,6 +13,7 @@ import Confianza from '@/components/Confianza';
 import Guias from '@/components/Guias';
 import { Compass, HelpCircle, Phone, Mail, MapPin, Search, X } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
+import LibroReclamaciones from '@/components/LibroReclamaciones';
 
 export default function Home() {
   const [filtroPais, setFiltroPais] = useState('Todos');
@@ -22,6 +23,7 @@ export default function Home() {
   const [selectedDuration, setSelectedDuration] = useState(null);
   const [visibleCount, setVisibleCount] = useState(6);
   const [busqueda, setBusqueda] = useState('');
+  const [showReclamaciones, setShowReclamaciones] = useState(false);
   const { t, language } = useLanguage();
 
   // Cerrar todos los overlays al presionar Escape
@@ -110,7 +112,7 @@ export default function Home() {
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-black text-[var(--foreground)] flex items-center gap-1.5">
                 <Compass className="w-4 h-4 text-[var(--foreground)]" />
-                {t('catalog.title_country').replace('{country}', filtroPais === 'Todos' ? (language === 'es' ? 'Sudamérica' : 'South America') : filtroPais)}
+                {t('catalog.title_country').replace('{country}', filtroPais === 'Todos' ? t('footer.sudamerica') : filtroPais)}
               </h2>
               <div className="flex items-center gap-2">
                 <span className="text-[9px] text-[var(--muted-foreground)]">
@@ -235,7 +237,7 @@ export default function Home() {
                   <div className="flex items-center gap-2">
                     <h2 className="text-base md:text-lg font-black text-[var(--foreground)] flex items-center gap-1.5">
                       <Compass className="w-4 h-4 text-[var(--foreground)]" />
-                      {t('catalog.title_country').replace('{country}', filtroPais === 'Todos' ? (language === 'es' ? 'Sudamérica' : 'South America') : filtroPais)}
+                      {t('catalog.title_country').replace('{country}', filtroPais === 'Todos' ? t('footer.sudamerica') : filtroPais)}
                     </h2>
                     {filtroPais !== 'Todos' && (
                       <button
@@ -355,9 +357,9 @@ export default function Home() {
           <div className="space-y-4">
             <h4 className="font-extrabold text-[var(--foreground)] uppercase text-xs tracking-widest">{t('footer.destinos')}</h4>
             <ul className="space-y-2 text-sm text-[var(--muted-foreground)]">
-              <li><button onClick={() => setFiltroPais('Perú')} className="hover:text-[var(--foreground)] transition-colors">{language === 'es' ? 'Perú y Machupicchu' : 'Peru & Machu Picchu'}</button></li>
-              <li><button onClick={() => setFiltroPais('Colombia')} className="hover:text-[var(--foreground)] transition-colors">{language === 'es' ? 'Colombia Cafetera' : 'Colombia Coffee Region'}</button></li>
-              <li><button onClick={() => setFiltroPais('Chile')} className="hover:text-[var(--foreground)] transition-colors">{language === 'es' ? 'Chile y Lagos Patagónicos' : 'Chile & Patagonian Lakes'}</button></li>
+              <li><button onClick={() => setFiltroPais('Perú')} className="hover:text-[var(--foreground)] transition-colors">{t('footer.peru_machu')}</button></li>
+              <li><button onClick={() => setFiltroPais('Colombia')} className="hover:text-[var(--foreground)] transition-colors">{t('footer.colombia_cafetera')}</button></li>
+              <li><button onClick={() => setFiltroPais('Chile')} className="hover:text-[var(--foreground)] transition-colors">{t('footer.chile_lagos')}</button></li>
             </ul>
           </div>
 
@@ -380,8 +382,14 @@ export default function Home() {
             </div>
           </div>
         </div>
-        <div className="max-w-7xl mx-auto border-t border-[var(--border)]/30 mt-12 pt-6 text-center text-xs text-[var(--muted-foreground)]/80">
-          © {new Date().getFullYear()} {t('footer.derechos')}
+        <div className="max-w-7xl mx-auto border-t border-[var(--border)]/30 mt-12 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[var(--muted-foreground)]/80">
+          <span>© {new Date().getFullYear()} {t('footer.derechos')}</span>
+          <button
+            onClick={() => setShowReclamaciones(true)}
+            className="flex items-center gap-1.5 hover:text-[var(--foreground)] transition-colors font-semibold underline underline-offset-2"
+          >
+            📋 {t('footer.libro_reclamaciones')}
+          </button>
         </div>
       </section>
 
@@ -416,6 +424,11 @@ export default function Home() {
             setCheckoutTour(null);
           }}
         />
+      )}
+
+      {/* Libro de Reclamaciones Overlay */}
+      {showReclamaciones && (
+        <LibroReclamaciones onClose={() => setShowReclamaciones(false)} />
       )}
 
       {/* Botón Flotante de WhatsApp */}

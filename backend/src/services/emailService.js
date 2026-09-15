@@ -285,3 +285,85 @@ Unu-Raymi Tours
 info@unu-raymi.com | www.unu-raymi.com
 `.trim();
 };
+
+// ── Email de Acuse de Recibo de Reclamación ───────────────────
+/**
+ * Envía email de confirmación al reclamante al registrar su reclamo.
+ * @param {Object} reclamo - { id, nombre, email, tipo_reclamo }
+ */
+export const enviarEmailAcuseReclamacion = async (reclamo) => {
+  const resend = getResendClient();
+  const numeroReclamo = String(reclamo.id || '000000').padStart(6, '0');
+
+  const tipoLabel = {
+    QUEJA: 'Queja',
+    RECLAMO: 'Reclamo',
+    CONSULTA: 'Consulta',
+  }[reclamo.tipo_reclamo] || reclamo.tipo_reclamo;
+
+  const htmlBody = `
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"/></head>
+<body style="font-family:sans-serif;color:#333;max-width:600px;margin:auto;padding:24px;">
+  <div style="background:#1a1a2e;color:white;padding:24px;border-radius:12px 12px 0 0;text-align:center;">
+    <h1 style="margin:0;font-size:20px;">📋 Libro de Reclamaciones</h1>
+    <p style="margin:8px 0 0;opacity:0.8;font-size:13px;">Unu-Raymi Tours — Ley N° 29571</p>
+  </div>
+  <div style="border:1px solid #e2e8f0;border-top:none;padding:24px;border-radius:0 0 12px 12px;">
+    <p>Estimado/a <strong>${reclamo.nombre}</strong>,</p>
+    <p>Hemos recibido correctamente tu <strong>${tipoLabel}</strong>. Procesaremos tu solicitud y te enviaremos una respuesta en un plazo máximo de <strong>30 días calendario</strong>.</p>
+    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:16px;margin:16px 0;">
+      <p style="margin:0 0 8px;font-size:12px;color:#64748b;text-transform:uppercase;font-weight:bold;">N° de Reclamo</p>
+      <p style="margin:0;font-size:24px;font-weight:900;font-family:monospace;">#${numeroReclamo}</p>
+    </div>
+    <p style="font-size:12px;color:#64748b;">Guarda este número para hacer seguimiento de tu reclamo.</p>
+    <hr style="border:none;border-top:1px solid #e2e8f0;margin:16px 0;"/>
+    <p style="font-size:12px;color:#94a3b8;">Unu-Raymi Agencia de Viajes — reservas@unu-raymi.com</p>
+  </div>
+</body></html>`;
+
+  await resend.emails.send({
+    from: 'Unu-Raymi Tours <onboarding@resend.dev>',
+    to: [reclamo.email],
+    subject: `📋 Reclamo #${numeroReclamo} Recibido — Unu-Raymi`,
+    html: htmlBody,
+  });
+};
+
+// ── Email de Respuesta al Reclamante ─────────────────────────
+/**
+ * Envía la respuesta del equipo admin al reclamante.
+ * @param {Object} reclamo - Objeto completo del reclamo de la BD
+ * @param {string} respuesta - Texto de la respuesta
+ */
+export const enviarEmailRespuestaReclamo = async (reclamo, respuesta) => {
+  const resend = getResendClient();
+  const numeroReclamo = String(reclamo.id || '000000').padStart(6, '0');
+
+  const htmlBody = `
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"/></head>
+<body style="font-family:sans-serif;color:#333;max-width:600px;margin:auto;padding:24px;">
+  <div style="background:#0f372d;color:white;padding:24px;border-radius:12px 12px 0 0;text-align:center;">
+    <h1 style="margin:0;font-size:20px;">✅ Respuesta a tu Reclamo</h1>
+    <p style="margin:8px 0 0;opacity:0.8;font-size:13px;">N° #${numeroReclamo}</p>
+  </div>
+  <div style="border:1px solid #e2e8f0;border-top:none;padding:24px;border-radius:0 0 12px 12px;">
+    <p>Estimado/a <strong>${reclamo.nombre} ${reclamo.apellido}</strong>,</p>
+    <p>Hemos procesado tu reclamo y te enviamos nuestra respuesta oficial:</p>
+    <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:16px;margin:16px 0;">
+      <p style="margin:0;white-space:pre-line;font-size:14px;line-height:1.6;">${respuesta}</p>
+    </div>
+    <p style="font-size:12px;color:#64748b;">Si tienes alguna pregunta adicional, puedes responder a este correo o contactarnos en reservas@unu-raymi.com</p>
+    <hr style="border:none;border-top:1px solid #e2e8f0;margin:16px 0;"/>
+    <p style="font-size:12px;color:#94a3b8;">Unu-Raymi Agencia de Viajes — reservas@unu-raymi.com</p>
+  </div>
+</body></html>`;
+
+  await resend.emails.send({
+    from: 'Unu-Raymi Tours <onboarding@resend.dev>',
+    to: [reclamo.email],
+    subject: `✅ Respuesta a tu Reclamo #${numeroReclamo} — Unu-Raymi`,
+    html: htmlBody,
+  });
+};

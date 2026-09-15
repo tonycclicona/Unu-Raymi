@@ -51,7 +51,25 @@ export async function ensureTablesExist() {
     await addColumnSafe('tours', 'destacado', 'BOOLEAN NOT NULL DEFAULT FALSE');
     await addColumnSafe('tours', 'nivel_dificultad', 'VARCHAR(50) NOT NULL DEFAULT "Moderado"');
 
-    // 2. Tabla: imagenes
+    // 1b. Tabla: reclamaciones (Libro de Reclamaciones — Ley 29571)
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS \`reclamaciones\` (
+        \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+        \`nombre\` VARCHAR(100) NOT NULL,
+        \`apellido\` VARCHAR(100) NOT NULL,
+        \`email\` VARCHAR(200) NOT NULL,
+        \`telefono\` VARCHAR(30) NULL,
+        \`tipo_reclamo\` ENUM('QUEJA','RECLAMO','CONSULTA') NOT NULL,
+        \`descripcion\` TEXT NOT NULL,
+        \`pedido\` TEXT NOT NULL,
+        \`fecha_ocurrencia\` DATE NOT NULL,
+        \`estado\` ENUM('PENDIENTE','RESPONDIDO') NOT NULL DEFAULT 'PENDIENTE',
+        \`respuesta_admin\` TEXT NULL,
+        \`fecha_respuesta\` DATETIME NULL,
+        \`created_at\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `);
+
     await prisma.$executeRawUnsafe(`
       CREATE TABLE IF NOT EXISTS \`imagenes\` (
         \`id\` INT AUTO_INCREMENT PRIMARY KEY,

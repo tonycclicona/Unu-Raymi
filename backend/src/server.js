@@ -31,6 +31,7 @@ import garantiaRoutes from "./routes/garantiaRoutes.js";
 import formEngineRoutes from "./routes/formEngineRoutes.js";
 import gisRoutes from "./routes/gisRoutes.js";
 import attractionsRoutes from "./routes/attractionsRoutes.js";
+import reclamacionRoutes from "./routes/reclamacionRoutes.js";
 import errorHandler from "./middlewares/errorHandler.js";
 import { ensureTablesExist } from "./lib/initDb.js";
 
@@ -170,6 +171,7 @@ app.use("/api/garantias", garantiaRoutes);
 app.use("/api/form-engine", formEngineRoutes);
 app.use("/api/gis", gisRoutes);
 app.use("/api", attractionsRoutes);
+app.use("/api/reclamaciones", reclamacionRoutes);
 // Nota: /api/webhooks ya está montado antes de express.json()
 
 // ── Ruta 404 para endpoints no existentes ────────────────────

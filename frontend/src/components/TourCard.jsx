@@ -54,7 +54,7 @@ export default function TourCard({ tour, onReservar }) {
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-[var(--muted-foreground)]/80">
-            {language === 'es' ? 'Sin Imagen' : 'No Image'}
+            {t('tour_card.sin_imagen')}
           </div>
         )}
         <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
@@ -142,7 +142,7 @@ export default function TourCard({ tour, onReservar }) {
               onClick={() => onReservar(tour, displayDuration)}
               className="flex items-center gap-1.5 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow-lg shadow-[var(--accent)]/10 hover:shadow-[var(--accent)]/20 transition-all duration-300 group/btn whitespace-nowrap"
             >
-              {language === 'es' ? 'Reservar' : 'Book'}
+              {t('tour_card.reservar')}
               <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-1 transition-transform" />
             </button>
           </div>

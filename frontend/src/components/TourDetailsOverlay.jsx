@@ -346,7 +346,7 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
               onClick={onClose}
               className="text-xs text-[var(--muted-foreground)] hover:text-[var(--foreground)] font-semibold transition-colors"
             >
-              {language === 'es' ? '← Volver al catálogo' : '← Back to catalog'}
+              {t('tour_details.volver_catalogo')}
             </button>
           </div>
         </div>
