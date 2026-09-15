@@ -201,12 +201,33 @@ app.use(function(req, res, next) {
   const host = (req.headers.host || '').toLowerCase();
   if (host.startsWith('admin.') || req.url.startsWith('/admin')) {
     if (fs.existsSync(adminDir)) {
+      const cleanPath = req.path.replace(/^\/+|\/+$/g, '');
+      const isRsc = req.headers['rsc'] === '1' || req.query._rsc;
+
+      // Servir RSC Flight payloads cuando Next.js navega internamente entre apartados
+      if (isRsc || cleanPath.endsWith('.txt')) {
+        const pathNoTxt = cleanPath.replace(/\.txt$/, '');
+        const rscCandidates = [
+          path.join(adminDir, pathNoTxt, 'index.txt'),
+          path.join(adminDir, cleanPath),
+          path.join(adminDir, pathNoTxt, '__next._full.txt')
+        ];
+        for (const candidate of rscCandidates) {
+          if (fs.existsSync(candidate)) {
+            res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+            return res.sendFile(candidate);
+          }
+        }
+      }
+
       return express.static(adminDir, { extensions: ['html'] })(req, res, function() {
-        const parsed = req.path.replace(/^\/+|\/+$/g, '').split('/');
+        const parsed = cleanPath.split('/');
         if (parsed.length >= 3 && parsed[2] === 'editar') {
           const editPage = path.join(adminDir, parsed[0], '1', 'editar', 'index.html');
           if (fs.existsSync(editPage)) return res.sendFile(editPage);
         }
+        const indexHtml = path.join(adminDir, cleanPath, 'index.html');
+        if (fs.existsSync(indexHtml)) return res.sendFile(indexHtml);
         res.sendFile(path.join(adminDir, 'index.html'));
       });
     }

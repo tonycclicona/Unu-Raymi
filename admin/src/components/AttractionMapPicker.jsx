@@ -106,35 +106,53 @@ function createCustomMarkerIcon(imageUrl, category, orden) {
       shadowSize: [41, 41],
     });
   } catch (e) {
-    return undefined;
+    // Garantizar que NUNCA retorne undefined
+    return L.divIcon({
+      className: 'gis-default-pin',
+      html: '<div style="background-color:#ef4444;width:18px;height:18px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.4);"></div>',
+      iconSize: [18, 18],
+      iconAnchor: [9, 9],
+    });
   }
 }
 
 // Controlador del mapa para redimensionamiento seguro y movimiento fluido
 function MapViewController({ center }) {
   const map = useMap();
+  const lastCenterRef = useRef(null);
 
+  // Invalidate size seguro tras el montaje
   useEffect(() => {
     if (!map) return;
     const timer = setTimeout(() => {
       try {
-        map.invalidateSize();
+        if (map._loaded) {
+          map.invalidateSize();
+        }
       } catch (e) {}
-    }, 250);
+    }, 300);
     return () => clearTimeout(timer);
   }, [map]);
 
+  // Actualización fluida sin animación flyTo para evitar colisiones con el render de tiles
   useEffect(() => {
     if (!map || !center || !Array.isArray(center) || center.length !== 2) return;
     const [lat, lng] = center;
     if (isNaN(lat) || isNaN(lng)) return;
-    try {
-      map.flyTo([lat, lng], 14, { duration: 1.2 });
-    } catch (e) {
-      try {
-        map.setView([lat, lng], 14);
-      } catch (err) {}
+
+    // Solo actualizar si las coordenadas difieren respecto al último centro conocido
+    if (
+      lastCenterRef.current &&
+      Math.abs(lastCenterRef.current[0] - lat) < 0.00001 &&
+      Math.abs(lastCenterRef.current[1] - lng) < 0.00001
+    ) {
+      return;
     }
+
+    lastCenterRef.current = [lat, lng];
+    try {
+      map.setView([lat, lng], map.getZoom() || 13);
+    } catch (e) {}
   }, [center, map]);
 
   return null;
@@ -171,11 +189,16 @@ function DraggableMarker({ position, onLocationChange, icon }) {
     [onLocationChange]
   );
 
+  const safePos = [
+    Number(position?.[0] || -13.5319),
+    Number(position?.[1] || -71.9675),
+  ];
+
   return (
     <Marker
       draggable={true}
       eventHandlers={eventHandlers}
-      position={position}
+      position={safePos}
       ref={markerRef}
       icon={icon}
     >
@@ -183,7 +206,7 @@ function DraggableMarker({ position, onLocationChange, icon }) {
         <div className="text-center font-sans text-xs">
           <div className="font-bold text-slate-800">Ubicación Seleccionada</div>
           <div className="text-slate-500 mt-0.5 font-mono">
-            {Number(position[0]).toFixed(5)}, {Number(position[1]).toFixed(5)}
+            {safePos[0].toFixed(5)}, {safePos[1].toFixed(5)}
           </div>
           <div className="text-[10px] text-emerald-600 font-semibold mt-1">Arrastra para ajustar</div>
         </div>
@@ -198,9 +221,14 @@ function MapInner({ position, setPosition, imageUrl, category, orden }) {
     return createCustomMarkerIcon(imageUrl, category, orden);
   }, [imageUrl, category, orden]);
 
+  const safeCenter = [
+    Number(position?.[0] || -13.5319),
+    Number(position?.[1] || -71.9675),
+  ];
+
   return (
     <MapContainer
-      center={position}
+      center={safeCenter}
       zoom={12}
       scrollWheelZoom={true}
       style={{ height: '100%', width: '100%', minHeight: '380px' }}
@@ -210,12 +238,12 @@ function MapInner({ position, setPosition, imageUrl, category, orden }) {
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       <DraggableMarker
-        position={position}
+        position={safeCenter}
         onLocationChange={setPosition}
         icon={markerIcon}
       />
       <MapClickHandler onLocationChange={setPosition} />
-      <MapViewController center={position} />
+      <MapViewController center={safeCenter} />
     </MapContainer>
   );
 }

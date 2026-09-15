@@ -1,7 +1,7 @@
 'use client';
 
 import useSWR from 'swr';
-import { fetcher, mutateApi, API_ASSETS_URL } from '@/lib/api';
+import { fetcher, mutateApi, API_ASSETS_URL, getImageUrl, handleImageFallback } from '@/lib/api';
 import Link from 'next/link';
 import { Compass, Plus, Trash2, Calendar, Users, DollarSign } from 'lucide-react';
 import { useState } from 'react';
@@ -35,7 +35,7 @@ export default function ToursList() {
           <p className="text-[#6c7a7c] mt-1 text-sm">Gestiona el catálogo de aventuras y precios de Unu-Raymi.</p>
         </div>
         <Link
-          href="/tours/nuevo"
+          href="/tours/nuevo/"
           className="flex items-center gap-2 bg-[#4a5759] hover:bg-[#384244] text-white px-5 py-2.5 rounded-xl font-bold shadow-lg shadow-[#4a5759]/20 hover:shadow-[#4a5759]/30 transition-all text-sm"
         >
           <Plus className="w-4 h-4" />
@@ -72,17 +72,25 @@ export default function ToursList() {
               >
                 {/* Imagen del Tour */}
                 <div className="h-48 overflow-hidden relative bg-gray-900">
-                  {tour.imagenes && tour.imagenes[0] ? (
-                    <img
-                      src={tour.imagenes[0].url.startsWith('http') ? tour.imagenes[0].url : `${API_ASSETS_URL}${tour.imagenes[0].url}`}
-                      alt={tour.nombre}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-600">
-                      <Compass className="w-12 h-12" />
-                    </div>
-                  )}
+                  {(() => {
+                    const firstImg = tour.imagenes?.[0];
+                    const url = typeof firstImg === 'string' ? firstImg : firstImg?.url;
+                    if (!url) {
+                      return (
+                        <div className="w-full h-full flex items-center justify-center text-gray-600">
+                          <Compass className="w-12 h-12" />
+                        </div>
+                      );
+                    }
+                    return (
+                      <img
+                        src={getImageUrl(url)}
+                        onError={(e) => handleImageFallback(e, url)}
+                        alt={tour.nombre}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                    );
+                  })()}
                   <span className="absolute top-4 right-4 bg-black/60  border border-black/10 px-3 py-1 rounded-full text-xs font-semibold text-[#4a5759] flex items-center gap-1">
                     <Calendar className="w-3.5 h-3.5 text-[#4a5759]" />
                     {tour.duracion_dias} {tour.duracion_dias === 1 ? 'Día' : 'Días'}
@@ -114,7 +122,7 @@ export default function ToursList() {
                   {/* Acciones */}
                   <div className="flex gap-2">
                     <Link
-                      href={`/tours/${tour.id}/editar`}
+                      href={`/tours/${tour.id}/editar/`}
                       className="flex-1 bg-[#b0c4b1]/45 hover:bg-[#4a5759]/10 hover:text-[#4a5759] border border-[#b0c4b1] hover:border-[#4a5759]/20 text-[#4a5759] text-center py-2.5 rounded-xl text-xs font-semibold transition-all duration-200"
                     >
                       Editar Tour

@@ -84,25 +84,25 @@ export default function ReservasPage() {
                   <tr key={reserva.id} className="hover:bg-white/[0.01] transition-colors">
                     <td className="py-4 px-4 font-mono text-xs text-[#6c7a7c]">
                       #{reserva.id}
-                      <span className="block text-[10px] text-gray-600 truncate max-w-[80px]" title={reserva.tokenSeguridad}>
-                        {reserva.tokenSeguridad.slice(0, 8)}...
+                      <span className="block text-[10px] text-gray-600 truncate max-w-[80px]" title={reserva.tokenSeguridad || ''}>
+                        {(reserva.tokenSeguridad || '').slice(0, 8)}...
                       </span>
                     </td>
                     <td className="py-4 px-4">
-                      <div className="font-medium text-[#4a5759]">{reserva.titularNombre}</div>
-                      <div className="text-xs text-[#6c7a7c]/80">{reserva.titularEmail}</div>
+                      <div className="font-medium text-[#4a5759]">{reserva.titularNombre || 'Sin titular'}</div>
+                      <div className="text-xs text-[#6c7a7c]/80">{reserva.titularEmail || ''}</div>
                     </td>
                     <td className="py-4 px-4">
-                      <div className="text-[#4a5759]">{reserva.tour?.nombre || 'Tour cargando...'}</div>
+                      <div className="text-[#4a5759]">{reserva.tour?.nombre || 'Tour General'}</div>
                       <div className="text-xs text-[#6c7a7c]/80 flex items-center gap-1 mt-0.5">
                         <Calendar className="w-3.5 h-3.5 text-[#4a5759]" />
-                        {new Date(reserva.fechaViaje).toLocaleDateString('es-PE')}
+                        {reserva.fechaViaje ? new Date(reserva.fechaViaje).toLocaleDateString('es-PE') : 'Pendiente'}
                       </div>
                     </td>
                     <td className="py-4 px-4">
                       <div className="flex items-center gap-1.5 text-xs text-[#4a5759]">
                         <Users className="w-4 h-4 text-purple-400" />
-                        <span>{reserva.pasajeros.length} viajeros</span>
+                        <span>{reserva.pasajeros?.length ?? 0} viajeros</span>
                       </div>
                     </td>
                     <td className="py-4 px-4">

@@ -1,7 +1,7 @@
 'use client';
 
 import useSWR from 'swr';
-import { fetcher, mutateApi, API_ASSETS_URL } from '@/lib/api';
+import { fetcher, mutateApi, API_ASSETS_URL, getImageUrl, handleImageFallback } from '@/lib/api';
 import Link from 'next/link';
 import { Users, Plus, Trash2, Edit } from 'lucide-react';
 import { useState } from 'react';
@@ -36,7 +36,7 @@ export default function GuiasList() {
           <p className="text-[#6c7a7c] mt-1 text-sm">Gestiona el equipo de guías y líderes que se muestran en la landing page.</p>
         </div>
         <Link
-          href="/guias/nuevo"
+          href="/guias/nuevo/"
           className="flex items-center gap-2 bg-[#4a5759] hover:bg-[#384244] text-white px-5 py-2.5 rounded-xl font-bold shadow-lg shadow-[#4a5759]/20 hover:shadow-[#4a5759]/30 transition-all text-sm"
         >
           <Plus className="w-4 h-4" />
@@ -83,8 +83,9 @@ export default function GuiasList() {
                   <tr key={guia.id} className="hover:bg-white/40 transition-colors">
                     <td className="py-4 pl-4">
                       <img
-                        src={guia.foto.startsWith('http') ? guia.foto : `${API_ASSETS_URL}${guia.foto}`}
-                        alt={guia.nombre}
+                        src={getImageUrl(guia.foto || '')}
+                        onError={(e) => handleImageFallback(e, guia.foto)}
+                        alt={guia.nombre || 'Guía'}
                         className="w-12 h-12 rounded-full object-cover border border-[#b0c4b1]"
                       />
                     </td>
@@ -95,7 +96,7 @@ export default function GuiasList() {
                     <td className="py-4">
                       <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
                         guia.activo
-                          ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
+                           ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
                           : 'bg-red-500/10 text-red-500 border border-red-500/20'
                       }`}>
                         {guia.activo ? 'Activo' : 'Inactivo'}
@@ -104,7 +105,7 @@ export default function GuiasList() {
                     <td className="py-4 pr-4 text-right">
                       <div className="flex justify-end gap-2">
                         <Link
-                          href={`/guias/${guia.id}/editar`}
+                          href={`/guias/${guia.id}/editar/`}
                           className="p-2 bg-[#b0c4b1]/30 hover:bg-[#4a5759]/10 rounded-xl text-[#4a5759] transition-all"
                         >
                           <Edit className="w-4 h-4" />

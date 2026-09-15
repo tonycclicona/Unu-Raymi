@@ -128,6 +128,13 @@ RewriteRule ^api(/.*)?$ - [L]
 RewriteRule ^admin(/.*)?$ - [L]
 RewriteRule ^uploads(/.*)?$ - [L]
 
+# Peticiones de RSC / Prefetch de Next.js
+RewriteCond %{HTTP:RSC} 1 [OR]
+RewriteCond %{QUERY_STRING} (^|&)_rsc=
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteCond %{REQUEST_FILENAME}/index.txt -f
+RewriteRule ^(.*)$ $1/index.txt [T=text/plain,L]
+
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule . /index.html [L]
@@ -226,16 +233,40 @@ if (appType === 'all' || appType === 'admin') {
 RewriteEngine On
 RewriteBase /
 
+# 1. Peticiones de RSC / Prefetch de Next.js (navegación SPA interna entre apartados)
+RewriteCond %{HTTP:RSC} 1 [OR]
+RewriteCond %{QUERY_STRING} (^|&)_rsc=
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteCond %{REQUEST_FILENAME}/index.txt -f
+RewriteRule ^(.*)$ $1/index.txt [T=text/plain,L]
+
+RewriteCond %{HTTP:RSC} 1 [OR]
+RewriteCond %{QUERY_STRING} (^|&)_rsc=
+RewriteCond %{REQUEST_FILENAME}.txt -f
+RewriteRule ^(.*)$ $1.txt [T=text/plain,L]
+
+# 2. Si Next.js solicita directamente un .txt correspondiente a una subcarpeta
+RewriteCond %{DOCUMENT_ROOT}/$1/index.txt -f
+RewriteRule ^(.*)\\.txt$ /$1/index.txt [T=text/plain,L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME}/index.txt -f
+RewriteRule ^(.*)$ $1/index.txt [T=text/plain,L]
+
+# 3. Directorios con index.html (visitas directas o refresco del navegador)
 RewriteCond %{REQUEST_FILENAME} -d
 RewriteCond %{REQUEST_FILENAME}/index.html -f
 RewriteRule ^(.*)$ $1/index.html [L]
 
+# 4. Archivos .html existentes
 RewriteCond %{REQUEST_FILENAME}.html -f
 RewriteRule ^(.*)$ $1.html [L]
 
+# 5. Archivos estáticos existentes
 RewriteCond %{REQUEST_FILENAME} -f
 RewriteRule ^ - [L]
 
+# 6. Fallback general a index.html
 RewriteRule ^ index.html [L]
 </IfModule>
 

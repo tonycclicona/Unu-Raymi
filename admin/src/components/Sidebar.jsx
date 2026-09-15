@@ -10,12 +10,12 @@ export default function Sidebar({ isOpen = false, onClose = () => {} }) {
 
   const menuItems = [
     { name: 'Dashboard', path: '/', icon: LayoutDashboard },
-    { name: 'Tours', path: '/tours', icon: Compass },
-    { name: 'Puntos GIS', path: '/attractions/create', icon: MapPin },
-    { name: 'Reservas', path: '/reservas', icon: Receipt },
-    { name: 'Guías', path: '/guias', icon: Users },
-    { name: 'Garantías', path: '/garantias', icon: ShieldCheck },
-    { name: 'Evaluación Salud', path: '/evaluaciones', icon: ShieldCheck },
+    { name: 'Tours', path: '/tours/', icon: Compass },
+    { name: 'Puntos GIS', path: '/attractions/create/', icon: MapPin },
+    { name: 'Reservas', path: '/reservas/', icon: Receipt },
+    { name: 'Guías', path: '/guias/', icon: Users },
+    { name: 'Garantías', path: '/garantias/', icon: ShieldCheck },
+    { name: 'Evaluación Salud', path: '/evaluaciones/', icon: ShieldCheck },
   ];
 
   const handleLogout = () => {
@@ -28,6 +28,8 @@ export default function Sidebar({ isOpen = false, onClose = () => {} }) {
     // Close drawer on mobile when a link is clicked
     onClose();
   };
+
+  const cleanCurrent = (pathname || '').replace(/\/+$/, '') || '/';
 
   return (
     <>
@@ -68,7 +70,8 @@ export default function Sidebar({ isOpen = false, onClose = () => {} }) {
         <nav className="flex-1 p-4 space-y-1">
           {menuItems.map((item) => {
             const Icon = item.icon;
-            const isActive = pathname === item.path || (item.path !== '/' && pathname.startsWith(item.path));
+            const cleanItem = item.path.replace(/\/+$/, '') || '/';
+            const isActive = cleanCurrent === cleanItem || (cleanItem !== '/' && cleanCurrent.startsWith(cleanItem));
 
             return (
               <Link

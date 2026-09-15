@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import useSWR from 'swr';
 import { MapPin, Search, Plus, Trash2, CheckCircle2, AlertCircle, Loader2, Navigation, Edit2, Upload, X, ArrowUpDown, Image as ImageIcon } from 'lucide-react';
-import { API_BASE_URL, API_ASSETS_URL, uploadApi, fetcher, mutateApi } from '@/lib/api';
+import { API_BASE_URL, API_ASSETS_URL, uploadApi, fetcher, mutateApi, getImageUrl, handleImageFallback } from '@/lib/api';
 
 // Carga dinámica de Leaflet para evitar errores con window durante SSR
 const AttractionMapPicker = dynamic(
@@ -398,16 +398,10 @@ export default function CreateAttractionPage() {
                   {imageUrl ? (
                     <div className="relative w-full h-32 rounded-xl overflow-hidden border border-[#b0c4b1] group">
                       <img
-                        src={imageUrl.startsWith('http') ? imageUrl : `${API_ASSETS_URL}${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`}
+                        src={getImageUrl(imageUrl)}
                         alt="Preview punto"
                         className="w-full h-full object-cover"
-                        onError={(e) => {
-                          if (!e.target.dataset.triedFallback) {
-                            e.target.dataset.triedFallback = '1';
-                            const cleanPath = imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
-                            e.target.src = `https://unu-raymi.com${cleanPath}`;
-                          }
-                        }}
+                        onError={(e) => handleImageFallback(e, imageUrl)}
                       />
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                         <button
@@ -514,7 +508,7 @@ export default function CreateAttractionPage() {
                 <AttractionMapPicker
                   position={position}
                   setPosition={setPosition}
-                  imageUrl={imageUrl ? (imageUrl.startsWith('http') ? imageUrl : `${API_ASSETS_URL}${imageUrl}`) : null}
+                  imageUrl={getImageUrl(imageUrl)}
                   category={category}
                   orden={orden}
                 />
@@ -561,7 +555,8 @@ export default function CreateAttractionPage() {
                         <td className="p-3">
                           {attr.imageUrl ? (
                             <img
-                              src={attr.imageUrl.startsWith('http') ? attr.imageUrl : `${API_ASSETS_URL}${attr.imageUrl}`}
+                              src={getImageUrl(attr.imageUrl)}
+                              onError={(e) => handleImageFallback(e, attr.imageUrl)}
                               alt={attr.name}
                               className="w-10 h-10 object-cover rounded-lg border border-[#b0c4b1]"
                             />
@@ -583,7 +578,7 @@ export default function CreateAttractionPage() {
                           </span>
                         </td>
                         <td className="p-3 text-[#6c7a7c]">
-                          {attr.latitude.toFixed(4)}, {attr.longitude.toFixed(4)}
+                          {Number(attr.latitude || 0).toFixed(4)}, {Number(attr.longitude || 0).toFixed(4)}
                         </td>
                         <td className="p-3 text-[#6c7a7c]">{attr.altitude ? `${attr.altitude} msnm` : '-'}</td>
                         <td className="p-3 text-[#6c7a7c]">{attr.tour?.nombre || 'General'}</td>

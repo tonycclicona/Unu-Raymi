@@ -75,7 +75,7 @@ export default function Dashboard() {
             <Calendar className="w-5 h-5 text-[#4a5759]" />
             Últimas Reservas
           </h2>
-          <Link href="/reservas" className="text-xs text-[#4a5759] hover:text-[#384244] font-semibold transition-colors">
+          <Link href="/reservas/" className="text-xs text-[#4a5759] hover:text-[#384244] font-semibold transition-colors">
             Ver todas las reservas →
           </Link>
         </div>
@@ -99,9 +99,9 @@ export default function Dashboard() {
               <tbody className="divide-y divide-[#b0c4b1]/50">
                 {ultimasReservas.map((reserva) => (
                   <tr key={reserva.id} className="hover:bg-white/[0.01] transition-colors">
-                    <td className="py-4 px-4 font-medium text-[#4a5759]">{reserva.titularNombre}</td>
-                    <td className="py-4 px-4">{reserva.tour?.nombre || 'Tour desconocido'}</td>
-                    <td className="py-4 px-4">{new Date(reserva.fechaViaje).toLocaleDateString('es-PE')}</td>
+                    <td className="py-4 px-4 font-medium text-[#4a5759]">{reserva.titularNombre || 'Sin titular'}</td>
+                    <td className="py-4 px-4">{reserva.tour?.nombre || 'Tour General'}</td>
+                    <td className="py-4 px-4">{reserva.fechaViaje ? new Date(reserva.fechaViaje).toLocaleDateString('es-PE') : 'Pendiente'}</td>
                     <td className="py-4 px-4 font-bold text-[#4a5759]">${Number(reserva.precioTotal || 0).toFixed(2)}</td>
                     <td className="py-4 px-4">
                       <EstadoBadge estado={reserva.estado} />
