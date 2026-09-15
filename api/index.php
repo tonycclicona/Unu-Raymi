@@ -1,6 +1,7 @@
 <?php
 // ==============================================================================
 // Unu-Raymi API Gateway / Proxy (api.unu-raymi.com -> Node.js Passenger)
+// Maneja peticiones de API y sirve directamente archivos estáticos de /uploads/
 // ==============================================================================
 
 @error_reporting(0);
@@ -18,7 +19,7 @@ if ($requestMethod === 'OPTIONS') {
     exit(0);
 }
 
-// ── 1. Puerto o gateway de conexión ──────────────────────────────────────────
+// ── 1. Puerto de conexión dinámica hacia Node.js ───────────────────────────────
 $portFile = __DIR__ . '/.port';
 $targetPort = 4000;
 if (@file_exists($portFile)) {
@@ -29,7 +30,7 @@ if (@file_exists($portFile)) {
 }
 
 // Objetivos de conexión:
-// Primero intentar conexión directa a través del motor Passenger en unu-raymi.com,
+// Primero conectar directamente con el proceso Passenger en unu-raymi.com,
 // y como respaldo intentar el puerto local 127.0.0.1
 $targets = [
     "https://unu-raymi.com",
@@ -64,6 +65,42 @@ if (isset($_GET['diag']) || isset($_GET['diagnostic'])) {
 // ── 3. Normalización de URI ──────────────────────────────────────────────────
 $requestUri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '/';
 $uriPath = parse_url($requestUri, PHP_URL_PATH) ?: '/';
+
+// ── 3.1 Entrega directa de /uploads/ desde el disco ──────────────────────────
+if (strpos($uriPath, '/uploads/') === 0) {
+    $filename = basename($uriPath);
+    $possibleDirs = [
+        __DIR__ . '/../uploads',
+        __DIR__ . '/uploads',
+        '/home/u209525223/domains/unu-raymi.com/public_html/uploads',
+        dirname(__DIR__) . '/backend/storage/uploads',
+        dirname(__DIR__) . '/storage/uploads',
+        dirname(dirname(__DIR__)) . '/backend/storage/uploads'
+    ];
+
+    foreach ($possibleDirs as $dir) {
+        $filePath = rtrim($dir, '/') . '/' . $filename;
+        if (@file_exists($filePath) && @is_file($filePath)) {
+            $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+            $mimes = [
+                'webp' => 'image/webp',
+                'jpg'  => 'image/jpeg',
+                'jpeg' => 'image/jpeg',
+                'png'  => 'image/png',
+                'gif'  => 'image/gif',
+                'svg'  => 'image/svg+xml',
+                'pdf'  => 'application/pdf',
+                'ico'  => 'image/x-icon'
+            ];
+            $cType = isset($mimes[$ext]) ? $mimes[$ext] : (@mime_content_type($filePath) ?: 'application/octet-stream');
+            header("Content-Type: $cType");
+            header("Content-Length: " . filesize($filePath));
+            header("Cache-Control: public, max-age=604800, immutable");
+            @readfile($filePath);
+            exit(0);
+        }
+    }
+}
 
 if (strpos($uriPath, '/api') !== 0 && strpos($uriPath, '/uploads') !== 0) {
     $requestUri = '/api' . (strpos($requestUri, '/') === 0 ? '' : '/') . $requestUri;
@@ -107,26 +144,24 @@ if ($isMultipart) {
             }
         }
     }
-} else if (in_array($requestMethod, ['POST', 'PUT', 'PATCH', 'DELETE'])) {
+} else {
     $body = file_get_contents('php://input');
 }
 
-// ── 5. Reenvío a Node.js ─────────────────────────────────────────────────────
-$response = false;
+// ── 5. Proxy hacia Node.js ────────────────────────────────────────────────────
 $httpCode = 0;
+$response = false;
 $contentType = '';
 $lastError = '';
 
 if (function_exists('curl_init')) {
     foreach ($targets as $baseTarget) {
-        $targetUrl = $baseTarget . $requestUri;
-        $ch = curl_init($targetUrl);
+        $url = rtrim($baseTarget, '/') . $requestUri;
+        
+        $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $requestMethod);
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-        curl_setopt($ch, CURLOPT_ENCODING, '');
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 3);
         curl_setopt($ch, CURLOPT_TIMEOUT, 30);
         
@@ -158,6 +193,10 @@ if (function_exists('curl_init')) {
         curl_close($ch);
 
         if ($httpCode >= 200 && $httpCode < 500 && $response !== false) {
+            // Si es petición a /api/ pero responde text/html, es un fallback erróneo de LiteSpeed, seguir con el siguiente target
+            if (strpos($uriPath, '/api') === 0 && strpos(strtolower($contentType), 'text/html') !== false) {
+                continue;
+            }
             break;
         }
     }
@@ -165,6 +204,14 @@ if (function_exists('curl_init')) {
 
 // ── 6. Despacho de respuesta ─────────────────────────────────────────────────
 if ($httpCode > 0 && $response !== false) {
+    // Si se pidió un archivo de /uploads/ y el backend respondió HTML, retornar 404
+    if (strpos($uriPath, '/uploads/') === 0 && (strpos(strtolower($contentType), 'text/html') !== false)) {
+        http_response_code(404);
+        header("Content-Type: text/plain; charset=UTF-8");
+        echo "Archivo no encontrado.";
+        exit(0);
+    }
+
     if ($contentType) {
         header("Content-Type: $contentType");
     }

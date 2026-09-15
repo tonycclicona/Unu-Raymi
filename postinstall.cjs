@@ -132,6 +132,43 @@ RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule . /index.html [L]
 </IfModule>
+
+# Compresión GZIP / Deflate para máximo rendimiento
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript
+  AddOutputFilterByType DEFLATE application/javascript application/x-javascript application/json
+  AddOutputFilterByType DEFLATE image/svg+xml
+</IfModule>
+
+# Políticas de Caché en Navegador y LiteSpeed
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresDefault "access plus 1 month"
+  ExpiresByType text/html "access plus 0 seconds"
+  ExpiresByType text/css "access plus 1 year"
+  ExpiresByType application/javascript "access plus 1 year"
+  ExpiresByType image/webp "access plus 1 month"
+  ExpiresByType image/png "access plus 1 month"
+  ExpiresByType image/jpeg "access plus 1 month"
+  ExpiresByType image/svg+xml "access plus 1 month"
+  ExpiresByType font/woff2 "access plus 1 year"
+</IfModule>
+
+<IfModule mod_headers.c>
+  # Bundles estáticos e inmutables de Next.js
+  <FilesMatch "\\.(js|css)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+  # Imágenes y uploads
+  <FilesMatch "\\.(webp|png|jpg|jpeg|gif|svg|ico)$">
+    Header set Cache-Control "public, max-age=2592000"
+  </FilesMatch>
+  # Páginas HTML siempre frescas para reflejar cambios inmediatamente
+  <FilesMatch "\\.html$">
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+  </FilesMatch>
+  Header set X-Content-Type-Options "nosniff"
+</IfModule>
 `;
 
     if (fs.existsSync(srcOut) && pubDir !== srcOut) {
@@ -200,6 +237,24 @@ RewriteCond %{REQUEST_FILENAME} -f
 RewriteRule ^ - [L]
 
 RewriteRule ^ index.html [L]
+</IfModule>
+
+# Compresión GZIP / Deflate para el panel de administración
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript
+  AddOutputFilterByType DEFLATE application/javascript application/x-javascript application/json
+  AddOutputFilterByType DEFLATE image/svg+xml
+</IfModule>
+
+# Políticas de Caché para bundles estáticos
+<IfModule mod_headers.c>
+  <FilesMatch "\\.(js|css)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+  <FilesMatch "\\.html$">
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+  </FilesMatch>
+  Header set X-Content-Type-Options "nosniff"
 </IfModule>
 `;
 

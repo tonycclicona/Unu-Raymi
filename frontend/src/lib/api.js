@@ -63,3 +63,25 @@ export async function mutateApi(url, { method = 'POST', body } = {}) {
     throw err;
   }
 }
+
+/**
+ * Normaliza y devuelve la URL absoluta para cualquier imagen
+ */
+export function getImageUrl(path) {
+  if (!path) return '';
+  if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('data:')) {
+    return path;
+  }
+  const clean = path.startsWith('/') ? path : `/${path}`;
+  return `${API_ASSETS_URL}${clean}`;
+}
+
+/**
+ * Manejador de evento onError para etiquetas img con conmutación automática de host
+ */
+export function handleImageFallback(e, path) {
+  if (!path || !e?.target || e.target.dataset.triedFallback) return;
+  e.target.dataset.triedFallback = '1';
+  const clean = path.startsWith('/') ? path : `/${path}`;
+  e.target.src = `https://unu-raymi.com${clean}`;
+}
