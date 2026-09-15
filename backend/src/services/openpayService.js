@@ -130,9 +130,15 @@ export async function createOpenpayChargeSession(reserva) {
 
     // Si OpenPay respondió con error
     console.error(`❌ [OpenPay Service Error HTTP ${res.status}]:`, data);
+    let errorMessage = data.description || data.message || `Error ${res.status} de pasarela OpenPay Perú`;
+
+    if (data.error_code === 1014 || /account is inactive/i.test(data.description || '')) {
+      errorMessage = `Tu comercio de OpenPay (${merchantId}) se encuentra en estado INACTIVO en OpenPay Perú (Error 1014). Revisa la notificación en la campana de tu panel OpenPay Sandbox o confirma el correo de registro enviado por soporte@openpay.pe para activarla.`;
+    }
+
     return {
       success: false,
-      error: data.description || data.message || `Error ${res.status} de pasarela OpenPay Perú`,
+      error: errorMessage,
       details: data,
     };
   } catch (error) {
@@ -182,9 +188,11 @@ export async function checkOpenpayAuth() {
       privateKeyLength: privateKey.length,
       privateKeyFormatValid: privateKey.startsWith('sk_'),
       diagnosticTip: !res.ok && res.status === 401
-        ? (privateKey.startsWith('pk_')
-            ? '¡ATENCIÓN! La variable OPENPAY_PRIVATE_KEY contiene una llave pública (comienza con pk_). Debe ser la LLAVE PRIVADA (comienza con sk_).'
-            : 'Error 401 Unauthorized: La llave privada (OPENPAY_PRIVATE_KEY) no es válida para este Merchant ID o tiene caracteres incorrectos.')
+        ? (data.error_code === 1014
+            ? '¡ATENCIÓN! Error 1014: La cuenta de OpenPay Sandbox está INACTIVA en los servidores de OpenPay Perú. Revisa la notificación en la campana de tu panel o el correo de activación de soporte@openpay.pe.'
+            : (privateKey.startsWith('pk_')
+                ? '¡ATENCIÓN! La variable OPENPAY_PRIVATE_KEY contiene una llave pública (comienza con pk_). Debe ser la LLAVE PRIVADA (comienza con sk_).'
+                : 'Error 401 Unauthorized: La llave privada (OPENPAY_PRIVATE_KEY) no es válida para este Merchant ID o tiene caracteres incorrectos.'))
         : (res.ok ? 'Credenciales de OpenPay válidas y autenticación exitosa.' : 'Error al consultar OpenPay'),
       details: data,
     };
