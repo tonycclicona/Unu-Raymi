@@ -14,6 +14,8 @@
 // ============================================================
 
 import { createHmac, timingSafeEqual } from "crypto";
+import fs from "fs";
+import path from "path";
 import prisma from "../lib/prismaClient.js";
 import { dispararNotificaciones } from "../services/notificacionService.js";
 
@@ -194,3 +196,196 @@ export const procesarWebhookStripe = async (req, res) => {
   // Stripe reintentará el webhook si recibe cualquier otro código.
   return res.status(200).json({ received: true });
 };
+
+// ============================================================
+// OPENPAY PERÚ WEBHOOK ENGINE
+// ============================================================
+
+// Almacén temporal en memoria y archivo del último código de verificación OpenPay
+let ultimoCodigoOpenpay = null;
+const openpayVerificationFilePath = path.resolve(process.cwd(), "storage/openpay_verification.json");
+
+// Cargar código persistido si existe
+try {
+  if (fs.existsSync(openpayVerificationFilePath)) {
+    ultimoCodigoOpenpay = JSON.parse(fs.readFileSync(openpayVerificationFilePath, "utf8"));
+  }
+} catch (e) {}
+
+/**
+ * GET /api/webhooks/openpay
+ * Permite verificar que el endpoint esté activo y devuelve el último código recibido si OpenPay lo envió.
+ */
+export const verificarEstadoOpenpay = async (req, res) => {
+  return res.status(200).json({
+    success: true,
+    status: "active",
+    gateway: "OpenPay Perú (BBVA)",
+    message: "Endpoint de Webhook OpenPay Perú activo y listo para recibir notificaciones.",
+    endpoint_url: "https://unu-raymi.com/api/webhooks/openpay",
+    instrucciones: "Para verificar este webhook en OpenPay, ve a Dashboard > Desarrolladores > Webhooks, pulsa en los tres puntos (...) junto al webhook y selecciona 'Verificar' o 'Reenviar código de verificación'.",
+    ultimo_evento_verificacion: ultimoCodigoOpenpay || "Aún no se ha recibido ningún evento de verificación desde OpenPay.",
+    timestamp: new Date().toISOString()
+  });
+};
+
+/**
+ * POST /api/webhooks/openpay
+ * Procesa notificaciones de OpenPay Perú:
+ * 1. Evento de verificación: Openpay envía verification_code para validar el endpoint.
+ * 2. Eventos de cobro completado: charge.succeeded / charge.completed para actualizar reservas a PAID.
+ */
+export const procesarWebhookOpenpay = async (req, res) => {
+  try {
+    const payload = req.body || {};
+    const eventType = payload.type || payload.event_type;
+
+    console.log(`[OpenPay Webhook] 🔔 Evento recibido: "${eventType || 'desconocido'}"`);
+
+    // ── 1. Evento de verificación de OpenPay ───────────────────────
+    if (eventType === "verification" || payload.verification_code) {
+      const verificationCode = payload.verification_code;
+      const webhookId = payload.id || payload.webhook_id || "wxl9rz5bnsber14ipion";
+
+      console.log("==========================================================");
+      console.log("🔑 [OpenPay Webhook] CÓDIGO DE VERIFICACIÓN RECIBIDO:");
+      console.log(`   Código:     ${verificationCode}`);
+      console.log(`   Webhook ID: ${webhookId}`);
+      console.log("==========================================================");
+
+      ultimoCodigoOpenpay = {
+        verification_code: verificationCode,
+        webhook_id: webhookId,
+        fecha: new Date().toISOString()
+      };
+
+      try {
+        const storageDir = path.dirname(openpayVerificationFilePath);
+        if (!fs.existsSync(storageDir)) {
+          fs.mkdirSync(storageDir, { recursive: true });
+        }
+        fs.writeFileSync(openpayVerificationFilePath, JSON.stringify(ultimoCodigoOpenpay, null, 2));
+      } catch (err) {
+        console.warn("[OpenPay Webhook] No se pudo persistir el código en disco:", err.message);
+      }
+
+      // Intentar auto-verificación mediante API de OpenPay si las credenciales están presentes
+      const merchantId = process.env.OPENPAY_MERCHANT_ID;
+      const privateKey = process.env.OPENPAY_PRIVATE_KEY;
+      const baseUrl = process.env.OPENPAY_BASE_URL || "https://sandbox-api.openpay.pe/v1";
+
+      if (merchantId && privateKey && webhookId && verificationCode) {
+        try {
+          const auth = Buffer.from(`${privateKey}:`).toString("base64");
+          const verifyUrl = `${baseUrl}/${merchantId}/webhooks/${webhookId}/verify/${verificationCode}`;
+          const verifyRes = await fetch(verifyUrl, {
+            method: "POST",
+            headers: {
+              Authorization: `Basic ${auth}`,
+              "Content-Type": "application/json"
+            }
+          });
+          if (verifyRes.ok) {
+            console.log("✅ [OpenPay Webhook] Webhook verificado automáticamente vía API de OpenPay.");
+          } else {
+            console.log(`ℹ️ [OpenPay Webhook] Respuesta de auto-verificación API: ${verifyRes.status}`);
+          }
+        } catch (apiErr) {
+          console.warn("[OpenPay Webhook] Error en intento de auto-verificación:", apiErr.message);
+        }
+      }
+
+      // OpenPay requiere SIEMPRE responder HTTP 200
+      return res.status(200).json({
+        success: true,
+        message: "Código de verificación procesado exitosamente.",
+        verification_code: verificationCode,
+        webhook_id: webhookId
+      });
+    }
+
+    // ── 2. Evento de cargo completado (Pago exitoso) ───────────────
+    if (
+      eventType === "charge.succeeded" ||
+      eventType === "charge.completed" ||
+      eventType === "pago.completado"
+    ) {
+      const transaction = payload.transaction || payload;
+      const orderId = transaction.order_id || payload.order_id || "";
+      const chargeId = transaction.id || payload.id;
+
+      console.log(`[OpenPay Webhook] 💳 Pago confirmado para order_id: "${orderId}", charge_id: "${chargeId}"`);
+
+      // Extraer el ID de la reserva (formato UNU-{id}-{timestamp})
+      let reservaId = null;
+      const match = String(orderId).match(/UNU-(\d+)/i);
+      if (match) {
+        reservaId = parseInt(match[1], 10);
+      }
+
+      if (!reservaId && transaction.id) {
+        // Intentar buscar por referencia previa si ya se guardó
+        const resPorRef = await prisma.reserva.findFirst({
+          where: { referenciaPago: transaction.id }
+        });
+        if (resPorRef) reservaId = resPorRef.id;
+      }
+
+      if (reservaId) {
+        const reserva = await prisma.reserva.findUnique({
+          where: { id: reservaId },
+          include: {
+            tour: { select: { nombre: true, slug: true, duracion_dias: true } },
+            pasajeros: true
+          }
+        });
+
+        if (reserva) {
+          if (reserva.estado === "PAID") {
+            console.log(`[OpenPay Webhook] ℹ️  Reserva #${reservaId} ya estaba en estado PAID.`);
+            return res.status(200).json({ received: true, alreadyPaid: true });
+          }
+
+          const reservaActualizada = await prisma.reserva.update({
+            where: { id: reservaId },
+            data: {
+              estado: "PAID",
+              referenciaPago: chargeId || `op_${Date.now()}`,
+              pagadoEn: new Date()
+            },
+            include: {
+              tour: { select: { nombre: true, slug: true, duracion_dias: true } },
+              pasajeros: true
+            }
+          });
+
+          console.log(`[OpenPay Webhook] ✅ Reserva #${reservaId} actualizada a PAID.`);
+          try {
+            dispararNotificaciones(reservaActualizada);
+          } catch (notifErr) {
+            console.error(`[OpenPay Webhook] Error disparando notificaciones:`, notifErr.message);
+          }
+
+          return res.status(200).json({
+            success: true,
+            message: "Reserva actualizada a PAID",
+            reservaId
+          });
+        }
+      }
+
+      console.warn(`[OpenPay Webhook] No se encontró reserva para order_id: ${orderId}`);
+      return res.status(200).json({ received: true, note: "Reserva no encontrada pero evento registrado" });
+    }
+
+    // ── 3. Otros eventos (creación, cancelación, etc.) ─────────────
+    console.log(`[OpenPay Webhook] Evento "${eventType}" registrado correctamente.`);
+    return res.status(200).json({ received: true, type: eventType });
+
+  } catch (error) {
+    console.error("[OpenPay Webhook] ❌ Error procesando webhook:", error.message);
+    // Responder 200 para evitar que OpenPay desactive el webhook por reintentos fallidos
+    return res.status(200).json({ success: false, error: error.message });
+  }
+};
+

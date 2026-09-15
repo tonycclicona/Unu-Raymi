@@ -1,14 +1,15 @@
 // ============================================================
-// webhookRoutes.js — Ruta del Webhook de Stripe
-//
-// IMPORTANTE: Esta ruta usa rawBodyParser (express.raw) en lugar
-// del express.json() global. El body llega como Buffer para
-// permitir la verificación de la firma HMAC-SHA256 de Stripe.
+// webhookRoutes.js — Rutas para Webhooks de Pasarelas (Stripe & OpenPay)
 // ============================================================
 
 import { Router } from "express";
 import rawBodyParser from "../middlewares/rawBodyParser.js";
-import { procesarWebhookStripe } from "../controllers/webhookController.js";
+import {
+  procesarWebhookStripe,
+  procesarWebhookOpenpay,
+  verificarEstadoOpenpay,
+} from "../controllers/webhookController.js";
+import express from "express";
 
 const router = Router();
 
@@ -16,4 +17,11 @@ const router = Router();
 // rawBodyParser preserva el body crudo como Buffer (obligatorio para Stripe)
 router.post("/pago", rawBodyParser, procesarWebhookStripe);
 
+// Webhook de OpenPay Perú
+// GET: Diagnóstico y consulta del último código de verificación
+// POST: Recepción de eventos (verificación y confirmación de pago)
+router.get("/openpay", verificarEstadoOpenpay);
+router.post("/openpay", express.json(), procesarWebhookOpenpay);
+
 export default router;
+
