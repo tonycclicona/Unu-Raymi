@@ -21,6 +21,25 @@ export async function fetcher(url) {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
+  // Intento 1: Servidor configurado (api.unu-raymi.com)
+  try {
+    const res = await fetch(`${API_BASE_URL}${url}`, { headers });
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch (err) {}
+
+  // Intento 2: Fallback redundante a unu-raymi.com/api si api.unu-raymi.com tiene intermitencias
+  if (typeof window !== 'undefined' && window.location.hostname.includes('unu-raymi.com') && API_BASE_URL.includes('api.unu-raymi.com')) {
+    try {
+      const fallbackRes = await fetch(`https://unu-raymi.com/api${url}`, { headers });
+      if (fallbackRes.ok) {
+        return await fallbackRes.json();
+      }
+    } catch (e) {}
+  }
+
+  // Si falló, realizar petición final para capturar el mensaje de error original
   const res = await fetch(`${API_BASE_URL}${url}`, { headers });
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({}));
@@ -48,9 +67,9 @@ export async function mutateApi(url, { method = 'POST', body } = {}) {
     options.body = JSON.stringify(body);
   }
   
-  // Petición a la API
-  try {
-    const res = await fetch(`${API_BASE_URL}${url}`, options);
+  // Función auxiliar de petición
+  const executeFetch = async (baseUrl) => {
+    const res = await fetch(`${baseUrl}${url}`, options);
     const text = await res.text();
     let data;
     try {
@@ -73,7 +92,17 @@ export async function mutateApi(url, { method = 'POST', body } = {}) {
     }
     
     throw new Error(data.error || `Error en la petición: ${res.status}`);
+  };
+
+  try {
+    return await executeFetch(API_BASE_URL);
   } catch (err) {
+    // Fallback redundante a unu-raymi.com/api si falló api.unu-raymi.com
+    if (typeof window !== 'undefined' && window.location.hostname.includes('unu-raymi.com') && API_BASE_URL.includes('api.unu-raymi.com')) {
+      try {
+        return await executeFetch('https://unu-raymi.com/api');
+      } catch (fallbackErr) {}
+    }
     throw err;
   }
 }
@@ -85,14 +114,28 @@ export async function uploadApi(url, formData) {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const res = await fetch(`${API_BASE_URL}${url}`, {
-    method: 'POST',
-    headers,
-    body: formData,
-  });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    throw new Error(data.error || `Error en la subida: ${res.status}`);
+  const executeUpload = async (baseUrl) => {
+    const res = await fetch(`${baseUrl}${url}`, {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(data.error || `Error en la subida: ${res.status}`);
+    }
+    return data;
+  };
+
+  try {
+    return await executeUpload(API_BASE_URL);
+  } catch (err) {
+    // Fallback redundante a unu-raymi.com/api si falló api.unu-raymi.com
+    if (typeof window !== 'undefined' && window.location.hostname.includes('unu-raymi.com') && API_BASE_URL.includes('api.unu-raymi.com')) {
+      try {
+        return await executeUpload('https://unu-raymi.com/api');
+      } catch (fallbackErr) {}
+    }
+    throw err;
   }
-  return data;
 }

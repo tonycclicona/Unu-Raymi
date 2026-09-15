@@ -7,6 +7,25 @@ export const API_ASSETS_URL = process.env.NEXT_PUBLIC_API_ASSETS_URL ||
   API_BASE_URL.replace(/\/api$/, '');
 
 export async function fetcher(url) {
+  // Intento 1: Servidor configurado (api.unu-raymi.com)
+  try {
+    const res = await fetch(`${API_BASE_URL}${url}`);
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch (err) {}
+
+  // Intento 2: Fallback redundante a unu-raymi.com/api si api.unu-raymi.com tiene intermitencias
+  if (typeof window !== 'undefined' && window.location.hostname.includes('unu-raymi.com') && API_BASE_URL.includes('api.unu-raymi.com')) {
+    try {
+      const fallbackRes = await fetch(`https://unu-raymi.com/api${url}`);
+      if (fallbackRes.ok) {
+        return await fallbackRes.json();
+      }
+    } catch (e) {}
+  }
+
+  // Petición de reporte de error
   const res = await fetch(`${API_BASE_URL}${url}`);
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({}));
@@ -28,10 +47,19 @@ export async function mutateApi(url, { method = 'POST', body } = {}) {
     options.body = JSON.stringify(body);
   }
   
-  const res = await fetch(`${API_BASE_URL}${url}`, options);
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) {
+  try {
+    const res = await fetch(`${API_BASE_URL}${url}`, options);
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) return data;
     throw new Error(data.error || `Error en la petición: ${res.status}`);
+  } catch (err) {
+    if (typeof window !== 'undefined' && window.location.hostname.includes('unu-raymi.com') && API_BASE_URL.includes('api.unu-raymi.com')) {
+      try {
+        const fallbackRes = await fetch(`https://unu-raymi.com/api${url}`, options);
+        const fallbackData = await fallbackRes.json().catch(() => ({}));
+        if (fallbackRes.ok) return fallbackData;
+      } catch (e) {}
+    }
+    throw err;
   }
-  return data;
 }

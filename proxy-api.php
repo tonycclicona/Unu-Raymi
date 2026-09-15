@@ -29,8 +29,11 @@ if (@file_exists($portFile)) {
     }
 }
 
-// Objetivos de conexión interna directa hacia el proceso Node.js
+// Objetivos de conexión:
+// Primero conectar directamente con el proceso Passenger en unu-raymi.com,
+// y como respaldo intentar el puerto local 127.0.0.1
 $targets = [
+    "https://unu-raymi.com",
     "http://127.0.0.1:$targetPort",
     "http://localhost:$targetPort"
 ];
@@ -163,7 +166,11 @@ if (function_exists('curl_init')) {
         curl_setopt($ch, CURLOPT_TIMEOUT, 30);
         
         $reqHeaders = $headers;
-        $reqHeaders[] = "Host: api.unu-raymi.com";
+        if (strpos($baseTarget, 'unu-raymi.com') !== false) {
+            $reqHeaders[] = "Host: unu-raymi.com";
+        } else {
+            $reqHeaders[] = "Host: api.unu-raymi.com";
+        }
 
         if ($isMultipart) {
             $filteredHeaders = array_filter($reqHeaders, function($h) {
@@ -186,6 +193,10 @@ if (function_exists('curl_init')) {
         curl_close($ch);
 
         if ($httpCode >= 200 && $httpCode < 500 && $response !== false) {
+            // Si es petición a /api/ pero responde text/html, es un fallback erróneo de LiteSpeed, seguir con el siguiente target
+            if (strpos($uriPath, '/api') === 0 && strpos(strtolower($contentType), 'text/html') !== false) {
+                continue;
+            }
             break;
         }
     }
