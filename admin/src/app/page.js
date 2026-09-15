@@ -75,9 +75,9 @@ export default function Dashboard() {
             <Calendar className="w-5 h-5 text-[#4a5759]" />
             Últimas Reservas
           </h2>
-          <Link href="/reservas/" className="text-xs text-[#4a5759] hover:text-[#384244] font-semibold transition-colors">
+          <a href="/reservas/" className="text-xs text-[#4a5759] hover:text-[#384244] font-semibold transition-colors">
             Ver todas las reservas →
-          </Link>
+          </a>
         </div>
 
         {ultimasReservas.length === 0 ? (

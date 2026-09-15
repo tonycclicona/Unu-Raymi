@@ -88,8 +88,7 @@ export default function GarantiaForm({ initialData, id }) {
       const url = isEdit ? `/garantias/${id}` : '/garantias';
       const method = isEdit ? 'PUT' : 'POST';
       await mutateApi(url, { method, body: formData });
-      router.push('/garantias');
-      router.refresh();
+      window.location.href = '/garantias/';
     } catch (err) {
       setError(err.message || 'Ocurrió un error al guardar la garantía.');
     } finally {
@@ -100,13 +99,13 @@ export default function GarantiaForm({ initialData, id }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-w-3xl">
       <div className="flex items-center justify-between border-b border-[#b0c4b1]/40 pb-4">
-        <Link
-          href="/garantias"
+        <a
+          href="/garantias/"
           className="flex items-center gap-1.5 text-xs font-bold text-[#6c7a7c] hover:text-[#4a5759] transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           Volver a la Lista
-        </Link>
+        </a>
         <button
           type="submit"
           disabled={loading || uploading}

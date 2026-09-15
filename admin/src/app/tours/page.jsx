@@ -34,13 +34,13 @@ export default function ToursList() {
           <h1 className="text-3xl font-extrabold text-[#4a5759] tracking-tight">Tours</h1>
           <p className="text-[#6c7a7c] mt-1 text-sm">Gestiona el catálogo de aventuras y precios de Unu-Raymi.</p>
         </div>
-        <Link
+        <a
           href="/tours/nuevo/"
           className="flex items-center gap-2 bg-[#4a5759] hover:bg-[#384244] text-white px-5 py-2.5 rounded-xl font-bold shadow-lg shadow-[#4a5759]/20 hover:shadow-[#4a5759]/30 transition-all text-sm"
         >
           <Plus className="w-4 h-4" />
           Nuevo Tour
-        </Link>
+        </a>
       </div>
 
       {/* Lista de Tours */}
@@ -121,12 +121,12 @@ export default function ToursList() {
 
                   {/* Acciones */}
                   <div className="flex gap-2">
-                    <Link
+                    <a
                       href={`/tours/${tour.id}/editar/`}
                       className="flex-1 bg-[#b0c4b1]/45 hover:bg-[#4a5759]/10 hover:text-[#4a5759] border border-[#b0c4b1] hover:border-[#4a5759]/20 text-[#4a5759] text-center py-2.5 rounded-xl text-xs font-semibold transition-all duration-200"
                     >
                       Editar Tour
-                    </Link>
+                    </a>
                     <button
                       onClick={() => handleDelete(tour.id)}
                       disabled={loadingId === tour.id}

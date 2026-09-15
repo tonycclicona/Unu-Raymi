@@ -21,11 +21,11 @@ export default function LayoutContent({ children }) {
 
     const hasCookie = typeof document !== 'undefined' && document.cookie.includes('session_token=');
     if (!hasCookie) {
-      router.push('/login');
+      window.location.href = '/login';
     } else {
       setAuthorized(true);
     }
-  }, [pathname, isLoginPage, router]);
+  }, [pathname, isLoginPage]);
 
   if (isLoginPage) {
     return <>{children}</>;

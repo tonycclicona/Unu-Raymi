@@ -35,13 +35,13 @@ export default function GarantiasList() {
           <h1 className="text-3xl font-extrabold text-[#4a5759] tracking-tight">Garantías y Seguridad</h1>
           <p className="text-[#6c7a7c] mt-1 text-sm">Gestiona los sellos, licencias e imágenes de certificados que se muestran en la landing page.</p>
         </div>
-        <Link
+        <a
           href="/garantias/nuevo/"
           className="flex items-center gap-2 bg-[#4a5759] hover:bg-[#384244] text-white px-5 py-2.5 rounded-xl font-bold shadow-lg shadow-[#4a5759]/20 hover:shadow-[#4a5759]/30 transition-all text-sm"
         >
           <Plus className="w-4 h-4" />
           Nueva Garantía
-        </Link>
+        </a>
       </div>
 
       {/* Lista de Garantías */}
@@ -112,12 +112,12 @@ export default function GarantiasList() {
                     </td>
                     <td className="py-4 pr-4 text-right">
                       <div className="flex justify-end gap-2">
-                        <Link
+                        <a
                           href={`/garantias/${g.id}/editar/`}
                           className="p-2 bg-[#b0c4b1]/30 hover:bg-[#4a5759]/10 rounded-xl text-[#4a5759] transition-all"
                         >
                           <Edit className="w-4 h-4" />
-                        </Link>
+                        </a>
                         <button
                           onClick={() => handleDelete(g.id)}
                           disabled={loadingId === g.id}

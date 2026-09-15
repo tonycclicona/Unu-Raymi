@@ -20,8 +20,7 @@ export default function Sidebar({ isOpen = false, onClose = () => {} }) {
 
   const handleLogout = () => {
     document.cookie = 'session_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-    router.push('/login');
-    router.refresh();
+    window.location.href = '/login';
   };
 
   const handleNavClick = () => {
@@ -74,7 +73,7 @@ export default function Sidebar({ isOpen = false, onClose = () => {} }) {
             const isActive = cleanCurrent === cleanItem || (cleanItem !== '/' && cleanCurrent.startsWith(cleanItem));
 
             return (
-              <Link
+              <a
                 key={item.path}
                 href={item.path}
                 onClick={handleNavClick}
@@ -88,7 +87,7 @@ export default function Sidebar({ isOpen = false, onClose = () => {} }) {
                   isActive ? 'text-[#0f372d]' : 'text-[#666666] group-hover:text-[#333333]'
                 }`} />
                 {item.name}
-              </Link>
+              </a>
             );
           })}
         </nav>

@@ -26,8 +26,7 @@ export default function LoginPage() {
       if (res.success && res.token) {
         // Guardar en cookie para que middleware.js lo verifique en el servidor
         document.cookie = `session_token=${res.token}; path=/; max-age=${8 * 60 * 60}; SameSite=Strict`;
-        router.push('/');
-        router.refresh();
+        window.location.href = '/';
       } else {
         throw new Error('No se recibió un token válido');
       }

@@ -396,8 +396,7 @@ export default function TourForm({ initialData }) {
       } else {
         await mutateApi('/tours', { method: 'POST', body: payload });
       }
-      router.push('/tours');
-      router.refresh();
+      window.location.href = '/tours/';
     } catch (err) {
       setError(err.message || 'Error al guardar el tour');
     } finally {
@@ -806,7 +805,7 @@ export default function TourForm({ initialData }) {
       <div className="flex justify-between items-center pt-4">
         <button
           type="button"
-          onClick={() => router.push('/tours')}
+          onClick={() => { window.location.href = '/tours/'; }}
           className="flex items-center gap-2 border border-[#b0c4b1] hover:bg-[#dedbd2] text-[#4a5759] px-6 py-3 rounded-xl transition-all text-sm font-semibold"
         >
           <ArrowLeft className="w-4 h-4" />
