@@ -214,9 +214,18 @@ try {
 
 /**
  * GET /api/webhooks/openpay
- * Permite verificar que el endpoint esté activo y devuelve el último código recibido si OpenPay lo envió.
+ * Permite verificar que el endpoint esté activo, devuelve el último código recibido
+ * y realiza un chequeo de autenticación en vivo contra OpenPay para verificar que la Private Key sea válida.
  */
 export const verificarEstadoOpenpay = async (req, res) => {
+  let authCheck = null;
+  try {
+    const { checkOpenpayAuth } = await import("../services/openpayService.js");
+    authCheck = await checkOpenpayAuth();
+  } catch (err) {
+    authCheck = { error: err.message };
+  }
+
   return res.status(200).json({
     success: true,
     status: "active",
@@ -225,6 +234,7 @@ export const verificarEstadoOpenpay = async (req, res) => {
     endpoint_url: "https://unu-raymi.com/api/webhooks/openpay",
     instrucciones: "Para verificar este webhook en OpenPay, ve a Dashboard > Desarrolladores > Webhooks, pulsa en los tres puntos (...) junto al webhook y selecciona 'Verificar' o 'Reenviar código de verificación'.",
     ultimo_evento_verificacion: ultimoCodigoOpenpay || "Aún no se ha recibido ningún evento de verificación desde OpenPay.",
+    openpay_api_auth_test: authCheck,
     timestamp: new Date().toISOString()
   });
 };

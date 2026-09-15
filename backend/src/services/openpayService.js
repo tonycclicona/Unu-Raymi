@@ -11,12 +11,15 @@
  * @returns {Object} { success, chargeId, paymentUrl, data, error }
  */
 export async function createOpenpayChargeSession(reserva) {
-  // Lectura dinámica de variables de entorno en cada invocación
-  const merchantId = (process.env.OPENPAY_MERCHANT_ID || '').trim();
-  const privateKey = (process.env.OPENPAY_PRIVATE_KEY || '').trim();
-  const baseUrl = (process.env.OPENPAY_BASE_URL || 'https://sandbox-api.openpay.pe/v1').trim().replace(/\/+$/, '');
-  const frontendUrl = (process.env.FRONTEND_URL || 'https://unu-raymi.com').trim().replace(/\/+$/, '');
-  const defaultCurrency = (process.env.OPENPAY_CURRENCY || 'USD').trim().toUpperCase();
+  // Lectura dinámica y sanitización profunda de variables de entorno
+  const rawMerchantId = process.env.OPENPAY_MERCHANT_ID || process.env.OPENPAY_ID || 'mjmjvnrwnlmzalhkq5a3';
+  const rawPrivateKey = process.env.OPENPAY_PRIVATE_KEY || process.env.OPENPAY_SECRET_KEY || '';
+
+  const merchantId = String(rawMerchantId).trim().replace(/^["']|["']$/g, '').trim();
+  const privateKey = String(rawPrivateKey).trim().replace(/^["']|["']$/g, '').trim();
+  const baseUrl = (process.env.OPENPAY_BASE_URL || 'https://sandbox-api.openpay.pe/v1').trim().replace(/^["']|["']$/g, '').replace(/\/+$/, '');
+  const frontendUrl = (process.env.FRONTEND_URL || 'https://unu-raymi.com').trim().replace(/^["']|["']$/g, '').replace(/\/+$/, '');
+  const defaultCurrency = (process.env.OPENPAY_CURRENCY || 'USD').trim().replace(/^["']|["']$/g, '').toUpperCase();
 
   if (!merchantId || !privateKey) {
     console.error('❌ [OpenPay Service] Credenciales no configuradas: OPENPAY_MERCHANT_ID o OPENPAY_PRIVATE_KEY están vacías.');
@@ -140,4 +143,57 @@ export async function createOpenpayChargeSession(reserva) {
     };
   }
 }
+
+/**
+ * Diagnóstico rápido para verificar la autenticación de OpenPay Perú
+ */
+export async function checkOpenpayAuth() {
+  const rawMerchantId = process.env.OPENPAY_MERCHANT_ID || process.env.OPENPAY_ID || 'mjmjvnrwnlmzalhkq5a3';
+  const rawPrivateKey = process.env.OPENPAY_PRIVATE_KEY || process.env.OPENPAY_SECRET_KEY || '';
+  const merchantId = String(rawMerchantId).trim().replace(/^["']|["']$/g, '').trim();
+  const privateKey = String(rawPrivateKey).trim().replace(/^["']|["']$/g, '').trim();
+  const baseUrl = (process.env.OPENPAY_BASE_URL || 'https://sandbox-api.openpay.pe/v1').trim().replace(/^["']|["']$/g, '').replace(/\/+$/, '');
+
+  if (!merchantId || !privateKey) {
+    return {
+      authenticated: false,
+      error: 'Credenciales incompletas',
+      hasMerchantId: !!merchantId,
+      hasPrivateKey: !!privateKey,
+    };
+  }
+
+  const authHeader = Buffer.from(`${privateKey}:`).toString('base64');
+  try {
+    const res = await fetch(`${baseUrl}/${merchantId}/charges?limit=1`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Basic ${authHeader}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const data = await res.json().catch(() => ({}));
+    return {
+      authenticated: res.ok,
+      httpStatus: res.status,
+      merchantId: merchantId ? `${merchantId.slice(0, 4)}...${merchantId.slice(-4)}` : 'missing',
+      privateKeyPrefix: privateKey ? `${privateKey.slice(0, 8)}...` : 'missing',
+      privateKeyLength: privateKey.length,
+      privateKeyFormatValid: privateKey.startsWith('sk_'),
+      diagnosticTip: !res.ok && res.status === 401
+        ? (privateKey.startsWith('pk_')
+            ? '¡ATENCIÓN! La variable OPENPAY_PRIVATE_KEY contiene una llave pública (comienza con pk_). Debe ser la LLAVE PRIVADA (comienza con sk_).'
+            : 'Error 401 Unauthorized: La llave privada (OPENPAY_PRIVATE_KEY) no es válida para este Merchant ID o tiene caracteres incorrectos.')
+        : (res.ok ? 'Credenciales de OpenPay válidas y autenticación exitosa.' : 'Error al consultar OpenPay'),
+      details: data,
+    };
+  } catch (err) {
+    return {
+      authenticated: false,
+      error: err.message,
+    };
+  }
+}
+
 
