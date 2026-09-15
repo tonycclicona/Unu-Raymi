@@ -123,9 +123,10 @@ if (appType === 'all' || appType === 'frontend') {
 RewriteEngine On
 RewriteBase /
 
-# No interceptar las rutas de API ni Admin con el SPA del frontend
+# No interceptar las rutas de API, Admin ni Uploads con el SPA del frontend
 RewriteRule ^api(/.*)?$ - [L]
 RewriteRule ^admin(/.*)?$ - [L]
+RewriteRule ^uploads(/.*)?$ - [L]
 
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
@@ -139,6 +140,36 @@ RewriteRule . /index.html [L]
       fs.writeFileSync(path.join(pubDir, '.htaccess'), frontendHtaccess);
       console.log(`[postinstall] ✅ Copied frontend static export and secured .htaccess in: ${pubDir}`);
     }
+
+    // Sincronizar uploads existentes hacia public_html/uploads
+    const uploadSources = [
+      path.resolve(process.cwd(), 'backend/storage/uploads'),
+      path.resolve(process.cwd(), 'storage/uploads')
+    ];
+    const pubUploads = path.join(pubDir, 'uploads');
+    const apiUploads = path.join(pubDir, 'api/uploads');
+    fs.mkdirSync(pubUploads, { recursive: true });
+    fs.mkdirSync(apiUploads, { recursive: true });
+
+    uploadSources.forEach(function(srcDir) {
+      if (fs.existsSync(srcDir)) {
+        try {
+          const files = fs.readdirSync(srcDir);
+          files.forEach(function(f) {
+            const s = path.join(srcDir, f);
+            const d1 = path.join(pubUploads, f);
+            const d2 = path.join(apiUploads, f);
+            if (!fs.existsSync(d1)) {
+              try { fs.copyFileSync(s, d1); } catch (e) {}
+            }
+            if (!fs.existsSync(d2)) {
+              try { fs.copyFileSync(s, d2); } catch (e) {}
+            }
+          });
+          console.log(`[postinstall] ✅ Sincronizados uploads desde ${srcDir} hacia ${pubUploads}`);
+        } catch (e) {}
+      }
+    });
   } catch (e) {
     console.error('Warning: Failed to copy frontend build:', e.message);
   }

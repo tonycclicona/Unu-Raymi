@@ -537,7 +537,18 @@ export default function TourForm({ initialData }) {
               {uploadedImages.map((img, index) => (
                 <div key={index} className="flex gap-4 bg-[#ffffff] border border-[#b0c4b1]/60 p-3 rounded-xl relative">
                   <div className="w-16 h-16 bg-black/40 rounded-lg overflow-hidden border border-[#b0c4b1] flex-shrink-0">
-                    <img src={`${API_ASSETS_URL}${img.url}`} alt="Preview" className="w-full h-full object-cover" onError={(e) => { e.target.src = img.url; }} />
+                    <img 
+                      src={img.url.startsWith('http') ? img.url : `${API_ASSETS_URL}${img.url.startsWith('/') ? '' : '/'}${img.url}`} 
+                      alt="Preview" 
+                      className="w-full h-full object-cover" 
+                      onError={(e) => {
+                        if (!e.target.dataset.triedFallback) {
+                          e.target.dataset.triedFallback = '1';
+                          const cleanPath = img.url.startsWith('/') ? img.url : `/${img.url}`;
+                          e.target.src = `https://unu-raymi.com${cleanPath}`;
+                        }
+                      }} 
+                    />
                   </div>
                   <div className="flex-1 flex flex-col justify-between">
                     <input

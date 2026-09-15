@@ -103,6 +103,36 @@ try {
     }
     console.log('> [Server] Synchronized API proxy to:', apiDest);
   }
+
+  // 4. Sincronizar carpeta de Uploads bidireccionalmente
+  const uploadSources = [
+    path.resolve(__dirname, 'backend/storage/uploads'),
+    path.resolve(__dirname, 'storage/uploads'),
+    path.resolve(__dirname, 'public_html/uploads')
+  ];
+  const publicUploadsDest = path.join(pubDir, 'uploads');
+  const apiUploadsDest = path.join(apiDest, 'uploads');
+  fs.mkdirSync(publicUploadsDest, { recursive: true });
+  fs.mkdirSync(apiUploadsDest, { recursive: true });
+
+  uploadSources.forEach(function(srcDir) {
+    if (fs.existsSync(srcDir)) {
+      try {
+        const files = fs.readdirSync(srcDir);
+        files.forEach(function(f) {
+          const s = path.join(srcDir, f);
+          const d1 = path.join(publicUploadsDest, f);
+          const d2 = path.join(apiUploadsDest, f);
+          if (!fs.existsSync(d1)) {
+            try { fs.copyFileSync(s, d1); } catch (e) {}
+          }
+          if (!fs.existsSync(d2)) {
+            try { fs.copyFileSync(s, d2); } catch (e) {}
+          }
+        });
+      } catch (e) {}
+    }
+  });
 } catch (e) {
   console.error('> [Server] Warning syncing web targets:', e.message);
 }

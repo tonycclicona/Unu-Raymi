@@ -234,9 +234,16 @@ export default function GuiaForm({ initialData, id }) {
                 <Loader className="w-6 h-6 animate-spin text-[#6c7a7c]" />
               ) : formData.foto ? (
                 <img
-                  src={formData.foto.startsWith('http') ? formData.foto : `${API_ASSETS_URL}${formData.foto}`}
+                  src={formData.foto.startsWith('http') ? formData.foto : `${API_ASSETS_URL}${formData.foto.startsWith('/') ? '' : '/'}${formData.foto}`}
                   alt="Previsualización"
                   className="w-full h-full object-cover"
+                  onError={(e) => {
+                    if (!e.target.dataset.triedFallback) {
+                      e.target.dataset.triedFallback = '1';
+                      const cleanPath = formData.foto.startsWith('/') ? formData.foto : `/${formData.foto}`;
+                      e.target.src = `https://unu-raymi.com${cleanPath}`;
+                    }
+                  }}
                 />
               ) : (
                 <span className="text-[10px] text-[#6c7a7c]/65 text-center px-2">Sin Foto</span>

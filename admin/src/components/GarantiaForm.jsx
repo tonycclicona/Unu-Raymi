@@ -233,9 +233,16 @@ export default function GarantiaForm({ initialData, id }) {
                 <Loader className="w-6 h-6 animate-spin text-[#6c7a7c]" />
               ) : formData.imagenUrl ? (
                 <img
-                  src={formData.imagenUrl.startsWith('http') ? formData.imagenUrl : `${API_ASSETS_URL}${formData.imagenUrl}`}
+                  src={formData.imagenUrl.startsWith('http') ? formData.imagenUrl : `${API_ASSETS_URL}${formData.imagenUrl.startsWith('/') ? '' : '/'}${formData.imagenUrl}`}
                   alt="Previsualización"
                   className="w-full h-full object-contain p-1"
+                  onError={(e) => {
+                    if (!e.target.dataset.triedFallback) {
+                      e.target.dataset.triedFallback = '1';
+                      const cleanPath = formData.imagenUrl.startsWith('/') ? formData.imagenUrl : `/${formData.imagenUrl}`;
+                      e.target.src = `https://unu-raymi.com${cleanPath}`;
+                    }
+                  }}
                 />
               ) : (
                 <span className="text-[10px] text-[#6c7a7c]/65 text-center px-2">Sin Certificado</span>

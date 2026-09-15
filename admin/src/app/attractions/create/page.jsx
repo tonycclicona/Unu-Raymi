@@ -398,9 +398,16 @@ export default function CreateAttractionPage() {
                   {imageUrl ? (
                     <div className="relative w-full h-32 rounded-xl overflow-hidden border border-[#b0c4b1] group">
                       <img
-                        src={imageUrl.startsWith('http') ? imageUrl : `${API_ASSETS_URL}${imageUrl}`}
+                        src={imageUrl.startsWith('http') ? imageUrl : `${API_ASSETS_URL}${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`}
                         alt="Preview punto"
                         className="w-full h-full object-cover"
+                        onError={(e) => {
+                          if (!e.target.dataset.triedFallback) {
+                            e.target.dataset.triedFallback = '1';
+                            const cleanPath = imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
+                            e.target.src = `https://unu-raymi.com${cleanPath}`;
+                          }
+                        }}
                       />
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                         <button
