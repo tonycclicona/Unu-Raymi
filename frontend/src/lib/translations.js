@@ -185,6 +185,8 @@ export const translations = {
       chile_lagos: "Chile y Lagos Patagónicos",
       sudamerica: "Sudamérica",
       libro_reclamaciones: "Libro de Reclamaciones",
+      libro_reclamaciones_sub: "Conforme a la Ley N° 29571 / INDECOPI",
+      libro_reclamaciones_btn: "Presentar Reclamo o Queja",
     },
     tour_card: {
       sin_imagen: "Sin Imagen",
@@ -435,6 +437,8 @@ export const translations = {
       chile_lagos: "Chile & Patagonian Lakes",
       sudamerica: "South America",
       libro_reclamaciones: "Book of Claims",
+      libro_reclamaciones_sub: "In accordance with Law No. 29571 / INDECOPI",
+      libro_reclamaciones_btn: "File a Claim or Complaint",
     },
     tour_card: {
       sin_imagen: "No Image",

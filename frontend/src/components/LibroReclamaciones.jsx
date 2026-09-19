@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { X, ClipboardList, AlertTriangle, CheckCircle, ShieldCheck } from 'lucide-react';
+import { X, ClipboardList, AlertTriangle, CheckCircle, ShieldCheck, Send } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
+import { Book3D } from './illustrations/Neomorphic3DIcons';
 
 const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
 const API_BASE_URL = rawApiUrl.replace(/\/api\/?$/, '') + '/api';
@@ -61,12 +62,12 @@ export default function LibroReclamaciones({ onClose }) {
         {/* Header */}
         <div className="sticky top-0 z-10 bg-[var(--background)]/95 backdrop-blur-md px-6 py-4 border-b border-[var(--border)] flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
-              <ClipboardList className="w-5 h-5" />
+            <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center shrink-0 shadow-sm">
+              <Book3D className="w-7 h-7" />
             </div>
             <div>
-              <h2 className="text-sm font-extrabold text-[var(--foreground)]">{t('reclamaciones.titulo')}</h2>
-              <p className="text-[10px] text-[var(--muted-foreground)] leading-tight">{t('reclamaciones.subtitulo')}</p>
+              <h2 className="text-base font-extrabold text-[var(--foreground)]">{t('reclamaciones.titulo')}</h2>
+              <p className="text-xs text-[var(--muted-foreground)] leading-tight">{t('reclamaciones.subtitulo')}</p>
             </div>
           </div>
           <button onClick={onClose} className="p-2 rounded-xl text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--card)] transition-all" aria-label={t('reclamaciones.cerrar')}>
@@ -77,7 +78,7 @@ export default function LibroReclamaciones({ onClose }) {
         <div className="p-6 space-y-5">
           {/* Aviso INDECOPI */}
           <div className="flex items-start gap-3 p-4 bg-amber-500/5 border border-amber-500/20 rounded-2xl">
-            <ShieldCheck className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+            <ShieldCheck className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
             <p className="text-xs text-[var(--muted-foreground)] leading-relaxed">{t('reclamaciones.indecopi_aviso')}</p>
           </div>
 
@@ -105,27 +106,27 @@ export default function LibroReclamaciones({ onClose }) {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-wider">{t('reclamaciones.nombre')}</label>
-                  <input type="text" name="nombre" value={form.nombre} onChange={handleChange} className="w-full bg-[var(--card)] border border-[var(--border)] rounded-xl px-3 py-2.5 text-sm text-[var(--foreground)] focus:outline-none focus:border-[var(--accent)] transition-colors" />
+                  <input type="text" name="nombre" value={form.nombre} onChange={handleChange} className="w-full bg-[var(--card)] border border-[var(--border)] rounded-xl px-3 py-2.5 text-sm text-[var(--foreground)] focus:outline-none focus:border-amber-500 transition-colors" />
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-wider">{t('reclamaciones.apellido')}</label>
-                  <input type="text" name="apellido" value={form.apellido} onChange={handleChange} className="w-full bg-[var(--card)] border border-[var(--border)] rounded-xl px-3 py-2.5 text-sm text-[var(--foreground)] focus:outline-none focus:border-[var(--accent)] transition-colors" />
+                  <input type="text" name="apellido" value={form.apellido} onChange={handleChange} className="w-full bg-[var(--card)] border border-[var(--border)] rounded-xl px-3 py-2.5 text-sm text-[var(--foreground)] focus:outline-none focus:border-amber-500 transition-colors" />
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-wider">{t('reclamaciones.email')}</label>
-                  <input type="email" name="email" value={form.email} onChange={handleChange} className="w-full bg-[var(--card)] border border-[var(--border)] rounded-xl px-3 py-2.5 text-sm text-[var(--foreground)] focus:outline-none focus:border-[var(--accent)] transition-colors" />
+                  <input type="email" name="email" value={form.email} onChange={handleChange} className="w-full bg-[var(--card)] border border-[var(--border)] rounded-xl px-3 py-2.5 text-sm text-[var(--foreground)] focus:outline-none focus:border-amber-500 transition-colors" />
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-wider">{t('reclamaciones.telefono')}</label>
-                  <input type="tel" name="telefono" value={form.telefono} onChange={handleChange} className="w-full bg-[var(--card)] border border-[var(--border)] rounded-xl px-3 py-2.5 text-sm text-[var(--foreground)] focus:outline-none focus:border-[var(--accent)] transition-colors" />
+                  <input type="tel" name="telefono" value={form.telefono} onChange={handleChange} className="w-full bg-[var(--card)] border border-[var(--border)] rounded-xl px-3 py-2.5 text-sm text-[var(--foreground)] focus:outline-none focus:border-amber-500 transition-colors" />
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-wider">{t('reclamaciones.tipo')}</label>
-                  <select name="tipo_reclamo" value={form.tipo_reclamo} onChange={handleChange} className="w-full bg-[var(--card)] border border-[var(--border)] rounded-xl px-3 py-2.5 text-sm text-[var(--foreground)] focus:outline-none focus:border-[var(--accent)] transition-colors">
+                  <select name="tipo_reclamo" value={form.tipo_reclamo} onChange={handleChange} className="w-full bg-[var(--card)] border border-[var(--border)] rounded-xl px-3 py-2.5 text-sm text-[var(--foreground)] focus:outline-none focus:border-amber-500 transition-colors">
                     <option value="">{t('reclamaciones.tipo_placeholder')}</option>
                     <option value="QUEJA">{t('reclamaciones.tipo_queja')}</option>
                     <option value="RECLAMO">{t('reclamaciones.tipo_reclamo')}</option>
@@ -134,16 +135,16 @@ export default function LibroReclamaciones({ onClose }) {
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-wider">{t('reclamaciones.fecha_ocurrencia')}</label>
-                  <input type="date" name="fecha_ocurrencia" value={form.fecha_ocurrencia} onChange={handleChange} max={new Date().toISOString().split('T')[0]} className="w-full bg-[var(--card)] border border-[var(--border)] rounded-xl px-3 py-2.5 text-sm text-[var(--foreground)] focus:outline-none focus:border-[var(--accent)] transition-colors" />
+                  <input type="date" name="fecha_ocurrencia" value={form.fecha_ocurrencia} onChange={handleChange} max={new Date().toISOString().split('T')[0]} className="w-full bg-[var(--card)] border border-[var(--border)] rounded-xl px-3 py-2.5 text-sm text-[var(--foreground)] focus:outline-none focus:border-amber-500 transition-colors" />
                 </div>
               </div>
               <div className="space-y-1.5">
                 <label className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-wider">{t('reclamaciones.descripcion')}</label>
-                <textarea name="descripcion" value={form.descripcion} onChange={handleChange} rows={4} placeholder={t('reclamaciones.descripcion_placeholder')} className="w-full bg-[var(--card)] border border-[var(--border)] rounded-xl px-3 py-2.5 text-sm text-[var(--foreground)] focus:outline-none focus:border-[var(--accent)] transition-colors resize-none placeholder-[var(--muted-foreground)]/50" />
+                <textarea name="descripcion" value={form.descripcion} onChange={handleChange} rows={4} placeholder={t('reclamaciones.descripcion_placeholder')} className="w-full bg-[var(--card)] border border-[var(--border)] rounded-xl px-3 py-2.5 text-sm text-[var(--foreground)] focus:outline-none focus:border-amber-500 transition-colors resize-none placeholder-[var(--muted-foreground)]/50" />
               </div>
               <div className="space-y-1.5">
                 <label className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-wider">{t('reclamaciones.pedido')}</label>
-                <textarea name="pedido" value={form.pedido} onChange={handleChange} rows={3} placeholder={t('reclamaciones.pedido_placeholder')} className="w-full bg-[var(--card)] border border-[var(--border)] rounded-xl px-3 py-2.5 text-sm text-[var(--foreground)] focus:outline-none focus:border-[var(--accent)] transition-colors resize-none placeholder-[var(--muted-foreground)]/50" />
+                <textarea name="pedido" value={form.pedido} onChange={handleChange} rows={3} placeholder={t('reclamaciones.pedido_placeholder')} className="w-full bg-[var(--card)] border border-[var(--border)] rounded-xl px-3 py-2.5 text-sm text-[var(--foreground)] focus:outline-none focus:border-amber-500 transition-colors resize-none placeholder-[var(--muted-foreground)]/50" />
               </div>
               {error && (
                 <div className="flex items-center gap-2 p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-400 text-xs font-bold">
@@ -151,8 +152,8 @@ export default function LibroReclamaciones({ onClose }) {
                   <span>{error}</span>
                 </div>
               )}
-              <button type="submit" disabled={submitting} className="w-full py-3.5 bg-amber-500 hover:bg-amber-400 disabled:opacity-60 text-slate-950 font-black rounded-xl text-sm transition-all shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2">
-                <ClipboardList className="w-4 h-4" />
+              <button type="submit" disabled={submitting} className="w-full py-3.5 bg-amber-500 hover:bg-amber-400 disabled:opacity-60 text-slate-950 font-bold rounded-xl text-sm transition-all shadow-md shadow-amber-500/20 hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]">
+                <Send className="w-4 h-4" />
                 {submitting ? t('reclamaciones.boton_enviando') : t('reclamaciones.boton_enviar')}
               </button>
             </form>

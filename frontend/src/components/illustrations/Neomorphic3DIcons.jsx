@@ -346,9 +346,60 @@ export function ShieldCheck3D({ className = "w-10 h-10" }) {
         d="M50 14 L80 26 V48 C80 66 50 82 50 82 C50 82 20 66 20 48 V26 L50 14 Z"
         fill="url(#blue-stripe)"
         filter="url(#chk-sh)"
-      />
+        />
       <polyline points="36,48 46,58 64,40" fill="none" stroke="#FFFFFF" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
+
+/**
+ * 11. LIBRO DE RECLAMACIONES 3D (Libro Oficial Indecopi / Atención al Consumidor)
+ */
+export function Book3D({ className = "w-10 h-10" }) {
+  return (
+    <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+      <defs>
+        <filter id="book-shadow" x="-10" y="-10" width="120" height="120">
+          <feDropShadow dx="3" dy="6" stdDeviation="5" floodColor="#000000" floodOpacity="0.35" />
+        </filter>
+        <linearGradient id="book-cover" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#1E293B" />
+          <stop offset="100%" stopColor="#0F172A" />
+        </linearGradient>
+        <linearGradient id="book-gold" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#FDE047" />
+          <stop offset="50%" stopColor="#EAB308" />
+          <stop offset="100%" stopColor="#CA8A04" />
+        </linearGradient>
+        <linearGradient id="book-pages" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#F8FAFC" />
+          <stop offset="100%" stopColor="#CBD5E1" />
+        </linearGradient>
+      </defs>
+
+      {/* Sombra y lomo posterior */}
+      <rect x="18" y="16" width="64" height="68" rx="8" fill="url(#book-cover)" filter="url(#book-shadow)" />
+      
+      {/* Páginas interiores visibles al borde derecho e inferior */}
+      <path d="M26 20 H78 C80 20 82 22 82 24 V78 C82 80 80 82 78 82 H26 V20 Z" fill="url(#book-pages)" />
+      
+      {/* Tapa frontal con perspectiva */}
+      <path d="M20 18 H76 C79 18 80 20 80 23 V77 C80 80 79 82 76 82 H20 V18 Z" fill="url(#book-cover)" stroke="#334155" strokeWidth="1" />
+      
+      {/* Lomo dorado / acento lateral */}
+      <path d="M20 18 H26 V82 H20 C18 82 17 80 17 78 V22 C17 20 18 18 20 18 Z" fill="url(#book-gold)" />
+
+      {/* Escudo / Emblema institucional dorado central */}
+      <circle cx="53" cy="44" r="14" fill="#0F172A" stroke="url(#book-gold)" strokeWidth="2" />
+      
+      {/* Balanza / Pluma en el sello */}
+      <path d="M53 36 V52 M47 40 L53 38 L59 40 M45 45 H51 M55 45 H61" stroke="url(#book-gold)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+
+      {/* Líneas de texto representativas en relieve */}
+      <rect x="36" y="64" width="34" height="3" rx="1.5" fill="url(#book-gold)" />
+      <rect x="42" y="70" width="22" height="2.5" rx="1.2" fill="#64748B" />
+    </svg>
+  );
+}
+
 

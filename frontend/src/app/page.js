@@ -11,9 +11,10 @@ import CheckoutOverlay from '@/components/CheckoutOverlay';
 import TourDetailsOverlay from '@/components/TourDetailsOverlay';
 import Confianza from '@/components/Confianza';
 import Guias from '@/components/Guias';
-import { Compass, HelpCircle, Phone, Mail, MapPin, Search, X } from 'lucide-react';
+import { Compass, HelpCircle, Phone, Mail, MapPin, Search, X, ShieldCheck, ChevronRight } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import LibroReclamaciones from '@/components/LibroReclamaciones';
+import { Book3D } from '@/components/illustrations/Neomorphic3DIcons';
 
 export default function Home() {
   const [filtroPais, setFiltroPais] = useState('Todos');
@@ -337,9 +338,9 @@ export default function Home() {
 
       {/* 4. Sección de Contacto / Footer */}
       <section id="contacto" className="bg-[var(--sidebar)] border-t border-[var(--border)]/50 py-16 px-6 relative z-10">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12">
-          {/* Logo y lema */}
-          <div className="space-y-4">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 lg:gap-8 items-start">
+          {/* Logo y lema (Columna 1: 4 columnas en desktop) */}
+          <div className="lg:col-span-4 space-y-4">
             <div className="flex items-center gap-2.5">
               <img
                 src="/uploads/logo.webp"
@@ -353,43 +354,81 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Destinos */}
-          <div className="space-y-4">
+          {/* Destinos (Columna 2: 2 columnas en desktop) */}
+          <div className="lg:col-span-2 space-y-4">
             <h4 className="font-extrabold text-[var(--foreground)] uppercase text-xs tracking-widest">{t('footer.destinos')}</h4>
-            <ul className="space-y-2 text-sm text-[var(--muted-foreground)]">
+            <ul className="space-y-2.5 text-sm text-[var(--muted-foreground)]">
               <li><button onClick={() => setFiltroPais('Perú')} className="hover:text-[var(--foreground)] transition-colors">{t('footer.peru_machu')}</button></li>
               <li><button onClick={() => setFiltroPais('Colombia')} className="hover:text-[var(--foreground)] transition-colors">{t('footer.colombia_cafetera')}</button></li>
               <li><button onClick={() => setFiltroPais('Chile')} className="hover:text-[var(--foreground)] transition-colors">{t('footer.chile_lagos')}</button></li>
             </ul>
           </div>
 
-          {/* Información de Contacto */}
-          <div className="space-y-4">
+          {/* Información de Contacto (Columna 3: 3 columnas en desktop) */}
+          <div className="lg:col-span-3 space-y-4">
             <h4 className="font-extrabold text-[var(--foreground)] uppercase text-xs tracking-widest">{t('footer.contacto')}</h4>
-            <div className="space-y-2 text-sm text-[var(--muted-foreground)]">
-              <div className="flex items-center gap-2">
-                <Mail className="w-4 h-4 text-[var(--foreground)]" />
-                <span>contacto@unu-raymi.com</span>
+            <div className="space-y-2.5 text-sm text-[var(--muted-foreground)]">
+              <div className="flex items-center gap-2.5">
+                <Mail className="w-4 h-4 text-[var(--accent-hover)] shrink-0" />
+                <span className="truncate">reservas@unu-raymi.com</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Phone className="w-4 h-4 text-[var(--foreground)]" />
+              <div className="flex items-center gap-2.5">
+                <Phone className="w-4 h-4 text-[var(--accent-hover)] shrink-0" />
                 <span>+51 915 082 539</span>
               </div>
-              <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-[var(--foreground)]" />
+              <div className="flex items-center gap-2.5">
+                <MapPin className="w-4 h-4 text-[var(--accent-hover)] shrink-0" />
                 <span>Cusco, Perú</span>
               </div>
             </div>
           </div>
+
+          {/* Libro de Reclamaciones Oficial (Columna 4: 3 columnas en desktop) */}
+          <div className="lg:col-span-3 space-y-3">
+            <h4 className="font-extrabold text-[var(--foreground)] uppercase text-xs tracking-widest flex items-center gap-1.5">
+              <ShieldCheck className="w-4 h-4 text-amber-500" />
+              {t('footer.libro_reclamaciones')}
+            </h4>
+
+            {/* Tarjeta Profesional del Libro de Reclamaciones */}
+            <div className="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-4 shadow-sm hover:shadow-md transition-all group flex flex-col justify-between gap-3">
+              <div className="flex items-start gap-3">
+                <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 shrink-0 group-hover:scale-105 transition-transform">
+                  <Book3D className="w-9 h-9" />
+                </div>
+                <div className="space-y-1">
+                  <span className="text-xs font-bold text-[var(--foreground)] block leading-tight">
+                    {t('footer.libro_reclamaciones')}
+                  </span>
+                  <p className="text-[10px] text-[var(--muted-foreground)] leading-tight">
+                    {t('footer.libro_reclamaciones_sub')}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowReclamaciones(true)}
+                className="w-full flex items-center justify-between px-3.5 py-2.5 bg-amber-500/10 hover:bg-amber-500 hover:text-slate-950 text-amber-500 dark:text-amber-400 dark:hover:text-slate-950 border border-amber-500/30 hover:border-amber-500 rounded-xl text-xs font-bold transition-all group/btn active:scale-[0.98]"
+              >
+                <span>{t('footer.libro_reclamaciones_btn')}</span>
+                <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-0.5 transition-transform" />
+              </button>
+            </div>
+          </div>
         </div>
+
+        {/* Barra Inferior de Copyright */}
         <div className="max-w-7xl mx-auto border-t border-[var(--border)]/30 mt-12 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[var(--muted-foreground)]/80">
           <span>© {new Date().getFullYear()} {t('footer.derechos')}</span>
-          <button
-            onClick={() => setShowReclamaciones(true)}
-            className="flex items-center gap-1.5 hover:text-[var(--foreground)] transition-colors font-semibold underline underline-offset-2"
-          >
-            📋 {t('footer.libro_reclamaciones')}
-          </button>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setShowReclamaciones(true)}
+              className="text-xs hover:text-[var(--foreground)] text-[var(--muted-foreground)] transition-colors flex items-center gap-1 font-medium"
+            >
+              <span>{t('footer.libro_reclamaciones')}</span>
+            </button>
+          </div>
         </div>
       </section>
 
