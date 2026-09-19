@@ -56,7 +56,7 @@
 
 html {
   scroll-behavior: smooth;
-  scroll-padding-top: 5rem; /* Asegura un encuadre perfecto para navegación con anclas */
+  scroll-padding-top: 3.5rem; /* 56px exactos: encuadre milimétrico con el navbar */
 }
 
 body {

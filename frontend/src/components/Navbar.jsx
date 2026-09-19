@@ -51,11 +51,12 @@ export default function Navbar() {
 
     const el = document.getElementById(targetId);
     if (el) {
-      // Obtener la altura real del header o un fallback preciso
-      const currentNavHeight = navRef.current ? navRef.current.offsetHeight : (isScrolled ? 56 : 72);
+      // El navbar en estado scrolleado mide ~56px (h-14). Al iniciar desde el tope (isScrolled=false)
+      // media ~76px y se achica a ~56px al hacer scroll. Usamos siempre la altura final scrolleada (56px)
+      // para que el destino coincida exactamente con la posición final donde se detiene el navbar.
+      const TARGET_NAV_HEIGHT = 56;
       const elementPosition = el.getBoundingClientRect().top;
-      // Posición exacta con el navbar inmediatamente arriba sin espacio excesivo
-      const offsetPosition = elementPosition + window.pageYOffset - (currentNavHeight + 2);
+      const offsetPosition = elementPosition + window.pageYOffset - TARGET_NAV_HEIGHT;
 
       window.scrollTo({
         top: Math.max(0, offsetPosition),
@@ -67,7 +68,7 @@ export default function Navbar() {
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
+      setIsScrolled(window.scrollY > 20);
     };
 
     window.addEventListener('scroll', handleScroll);
@@ -77,9 +78,9 @@ export default function Navbar() {
   return (
     <header
       ref={navRef}
-      className={`fixed top-0 left-0 right-0 z-50 transition-[background-color,backdrop-filter,padding,border-color,box-shadow] duration-500 ease-in-out  ${isScrolled
-        ? 'bg-[var(--background)]/40 border-b border-[var(--border)]/30 shadow-sm py-1.5 md:py-2'
-        : 'bg-[var(--background)]/80 py-2 md:py-5'
+      className={`fixed top-0 left-0 right-0 z-50 transition-[background-color,backdrop-filter,padding,border-color,box-shadow] duration-300 ease-in-out ${isScrolled
+        ? 'bg-[var(--background)]/90 backdrop-blur-md border-b border-[var(--border)]/30 shadow-sm py-1.5 md:py-2'
+        : 'bg-[var(--background)]/80 backdrop-blur-sm py-2 md:py-2.5'
         }`}
     >
       <div className="max-w-7xl mx-auto px-3 sm:px-2 md:px-1 flex items-center justify-between gap-5">
@@ -93,8 +94,7 @@ export default function Navbar() {
             <img
               src="/uploads/logo.webp"
               alt="Unuraymi Expeditions"
-              className={`w-auto object-contain transition-[height] duration-500 ease-in-out group-hover:scale-105 ${isScrolled ? 'h-9 sm:h-10 md:h-12' : 'h-12 sm:h-14 md:h-16'
-                }`}
+              className="w-auto object-contain h-9 sm:h-10 md:h-11 transition-all duration-300 group-hover:scale-105"
             />
           </a>
 
