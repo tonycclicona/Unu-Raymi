@@ -92,7 +92,7 @@ export default function Guias() {
   return (
     <section
       id="guias"
-      className="min-h-screen py-10 md:py-14 lg:py-8 px-4 sm:px-6 flex flex-col justify-center border-t border-white/10 relative overflow-hidden scroll-mt-[76px] md:scroll-mt-[84px] bg-[#090a10]"
+      className="min-h-screen py-10 md:py-14 lg:py-8 px-4 sm:px-6 flex flex-col justify-center border-t border-white/10 relative overflow-hidden scroll-mt-[52px] md:scroll-mt-[58px] bg-[#090a10]"
     >
       {/* ── 1. CARRUSEL DE FOTOS DE TOURS EN FULL SCREEN (FONDO) ── */}
       <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none z-0">

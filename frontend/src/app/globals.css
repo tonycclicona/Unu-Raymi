@@ -56,6 +56,7 @@
 
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: 5rem; /* Asegura un encuadre perfecto para navegación con anclas */
 }
 
 body {

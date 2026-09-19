@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Menu, X, Sun, Moon } from 'lucide-react';
 import Link from 'next/link';
 import { useLanguage } from '@/context/LanguageContext';
@@ -10,6 +10,7 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [theme, setTheme] = useState('light');
   const { language, setLanguage, t } = useLanguage();
+  const navRef = useRef(null);
 
   useEffect(() => {
     const isDark = document.documentElement.classList.contains('dark');
@@ -39,11 +40,23 @@ export default function Navbar() {
     e.preventDefault();
     setIsOpen(false);
     const targetId = href.replace('#', '');
+    if (targetId === 'inicio') {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth',
+      });
+      window.history.pushState(null, '', '#inicio');
+      return;
+    }
+
     const el = document.getElementById(targetId);
     if (el) {
-      const navHeight = isScrolled ? 68 : 80;
+      // Obtener la altura real del header o un fallback preciso
+      const currentNavHeight = navRef.current ? navRef.current.offsetHeight : (isScrolled ? 56 : 72);
       const elementPosition = el.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - navHeight;
+      // Posición exacta con el navbar inmediatamente arriba sin espacio excesivo
+      const offsetPosition = elementPosition + window.pageYOffset - (currentNavHeight + 2);
+
       window.scrollTo({
         top: Math.max(0, offsetPosition),
         behavior: 'smooth',
@@ -63,6 +76,7 @@ export default function Navbar() {
 
   return (
     <header
+      ref={navRef}
       className={`fixed top-0 left-0 right-0 z-50 transition-[background-color,backdrop-filter,padding,border-color,box-shadow] duration-500 ease-in-out  ${isScrolled
         ? 'bg-[var(--background)]/40 border-b border-[var(--border)]/30 shadow-sm py-1.5 md:py-2'
         : 'bg-[var(--background)]/80 py-2 md:py-5'

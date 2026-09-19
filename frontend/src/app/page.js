@@ -85,7 +85,7 @@ export default function Home() {
       <Hero />
 
       {/* 2. Sección Tours — Layout Responsivo */}
-      <section id="tours" className="w-full border-t border-[var(--border)]/20 bg-[var(--sidebar)]/60 relative z-10 scroll-mt-[76px] md:scroll-mt-[84px]">
+      <section id="tours" className="w-full border-t border-[var(--border)]/20 bg-[var(--sidebar)]/60 relative z-10 scroll-mt-[52px] md:scroll-mt-[58px]">
 
         {/* ── MOBILE/TABLET LAYOUT ── */}
         <div className="flex flex-col lg:hidden">
@@ -337,7 +337,7 @@ export default function Home() {
       <Guias />
 
       {/* 4. Sección de Contacto / Footer */}
-      <section id="contacto" className="bg-[var(--sidebar)] border-t border-[var(--border)]/50 py-16 px-6 relative z-10">
+      <section id="contacto" className="bg-[var(--sidebar)] border-t border-[var(--border)]/50 py-16 px-6 relative z-10 scroll-mt-[52px] md:scroll-mt-[58px]">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 lg:gap-8 items-start">
           {/* Logo y lema (Columna 1: 4 columnas en desktop) */}
           <div className="lg:col-span-4 space-y-4">
