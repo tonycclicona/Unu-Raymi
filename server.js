@@ -208,18 +208,29 @@ app.use(async function(req, res, next) {
   }
 
   const host = (req.headers.host || '').toLowerCase();
-  if (host.startsWith('api.') || req.url.startsWith('/api') || req.url.startsWith('/uploads')) {
+  const isApi = host.startsWith('api.') || req.url.startsWith('/api') || req.url.startsWith('/uploads');
+
+  if (isApi) {
     if (!backendApp && backendPromise) {
       try {
         await backendPromise;
       } catch (e) {}
     }
     if (typeof backendApp === 'function') {
-      // Si la petición viene a api.unu-raymi.com/auth/login (sin prefijo /api y no es uploads), prefijarla para que Express la reconozca
+      // Si la petición viene a api.unu-raymi.com/ (o cualquier subruta sin prefijo /api y no es uploads), prefijarla para que Express backend la reconozca
       if (host.startsWith('api.') && !req.url.startsWith('/api') && !req.url.startsWith('/uploads')) {
-        req.url = '/api' + req.url;
+        req.url = '/api' + (req.url.startsWith('/') ? '' : '/') + req.url;
       }
-      return backendApp(req, res, next);
+      return backendApp(req, res, function(err) {
+        if (err) return next(err);
+        // Si el backend no encontró la ruta para una petición de API, responder 404 JSON (no dejar caer a frontend)
+        if (!res.headersSent) {
+          res.status(404).json({
+            success: false,
+            error: 'Endpoint de API no encontrado: ' + req.originalUrl
+          });
+        }
+      });
     }
     if (backendError) {
       return res.status(503).json({
@@ -342,14 +353,19 @@ app.use(function(req, res) {
 });
 
 function savePortFile(p) {
-  const hostingerPort = '/home/u209525223/domains/unu-raymi.com/public_html/api/.port';
-  const target = fs.existsSync(path.dirname(hostingerPort))
-    ? hostingerPort
-    : path.resolve(__dirname, 'api/.port');
-  try {
-    fs.mkdirSync(path.dirname(target), { recursive: true });
-    fs.writeFileSync(target, String(p));
-  } catch (e) {}
+  const possiblePortFiles = [
+    '/home/u209525223/domains/unu-raymi.com/public_html/api/.port',
+    '/home/u209525223/domains/unu-raymi.com/public_html/.port',
+    path.resolve(__dirname, 'api/.port'),
+    path.resolve(__dirname, 'public_html/api/.port')
+  ];
+
+  possiblePortFiles.forEach(function(target) {
+    try {
+      fs.mkdirSync(path.dirname(target), { recursive: true });
+      fs.writeFileSync(target, String(p));
+    } catch (e) {}
+  });
 }
 
 // En entornos Hostinger LiteSpeed / Node.js
