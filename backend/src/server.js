@@ -107,9 +107,10 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 // Servir carpeta de subidas estáticamente (tanto en /uploads como en /api/uploads)
-const uploadsPath = process.env.UPLOADS_PATH
-  ? resolve(process.env.UPLOADS_PATH)
-  : resolve(__dirname, "../storage/uploads");
+const hostingerApiUploads = "/home/u209525223/domains/unu-raymi.com/public_html/api/uploads";
+const uploadsPath = fs.existsSync(hostingerApiUploads)
+  ? hostingerApiUploads
+  : (process.env.UPLOADS_PATH ? resolve(process.env.UPLOADS_PATH) : resolve(__dirname, "../storage/uploads"));
 
 app.use(["/uploads", "/api/uploads"], express.static(uploadsPath, {
   maxAge: isProduction ? "7d" : 0,

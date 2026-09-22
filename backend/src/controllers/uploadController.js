@@ -14,30 +14,30 @@ import { randomUUID } from "crypto";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
+const CANONICAL_HOSTINGER_API_UPLOADS = "/home/u209525223/domains/unu-raymi.com/public_html/api/uploads";
+const CANONICAL_HOSTINGER_PUB_UPLOADS = "/home/u209525223/domains/unu-raymi.com/public_html/uploads";
+
 // Obtiene todos los directorios canónicos donde debe guardarse el archivo
 function getUploadDirectories() {
   const dirs = new Set();
 
-  // 1. Variable de entorno personalizada si existe
+  // 1. Destino Maestro Canónico de Hostinger (api/uploads)
+  if (fsSync.existsSync("/home/u209525223/domains/unu-raymi.com/public_html/api")) {
+    dirs.add(CANONICAL_HOSTINGER_API_UPLOADS);
+  }
+
+  // 2. Destino de acceso directo para frontend (public_html/uploads)
+  if (fsSync.existsSync("/home/u209525223/domains/unu-raymi.com/public_html")) {
+    dirs.add(CANONICAL_HOSTINGER_PUB_UPLOADS);
+  }
+
+  // 3. Variable de entorno personalizada si existe
   if (process.env.UPLOADS_PATH) {
     dirs.add(resolve(process.env.UPLOADS_PATH));
   }
 
-  // 2. Carpeta canónica de Hostinger public_html
-  const hostingerPublicUploads = "/home/u209525223/domains/unu-raymi.com/public_html/uploads";
-  if (fsSync.existsSync("/home/u209525223/domains/unu-raymi.com/public_html")) {
-    dirs.add(hostingerPublicUploads);
-  }
-
-  // 3. Carpeta de subdominio api de Hostinger si existe
-  const hostingerApiUploads = "/home/u209525223/domains/unu-raymi.com/public_html/api/uploads";
-  if (fsSync.existsSync("/home/u209525223/domains/unu-raymi.com/public_html/api")) {
-    dirs.add(hostingerApiUploads);
-  }
-
-  // 4. Carpeta de uploads local / repositorio
+  // 4. Fallback local / entorno de desarrollo
   dirs.add(resolve(__dirname, "../../storage/uploads"));
-  dirs.add(resolve(__dirname, "../../../public_html/uploads"));
   dirs.add(resolve(__dirname, "../../../storage/uploads"));
 
   return Array.from(dirs);

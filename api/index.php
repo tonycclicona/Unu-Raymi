@@ -70,11 +70,12 @@ $uriPath = parse_url($requestUri, PHP_URL_PATH) ?: '/';
 if (strpos($uriPath, '/uploads/') === 0) {
     $filename = basename($uriPath);
     $possibleDirs = [
-        __DIR__ . '/../uploads',
         __DIR__ . '/uploads',
+        '/home/u209525223/domains/unu-raymi.com/public_html/api/uploads',
         '/home/u209525223/domains/unu-raymi.com/public_html/uploads',
-        dirname(__DIR__) . '/backend/storage/uploads',
+        __DIR__ . '/../uploads',
         dirname(__DIR__) . '/storage/uploads',
+        dirname(__DIR__) . '/backend/storage/uploads',
         dirname(dirname(__DIR__)) . '/backend/storage/uploads'
     ];
 

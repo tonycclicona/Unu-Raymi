@@ -104,35 +104,63 @@ try {
     console.log('> [Server] Synchronized API proxy to:', apiDest);
   }
 
-  // 4. Sincronizar carpeta de Uploads bidireccionalmente
-  const uploadSources = [
+  // 4. Centralizar y asegurar carpeta de Uploads en public_html/api/uploads
+  const canonicalHostingerApiUploads = '/home/u209525223/domains/unu-raymi.com/public_html/api/uploads';
+  const apiUploadsDest = fs.existsSync('/home/u209525223/domains/unu-raymi.com/public_html/api')
+    ? canonicalHostingerApiUploads
+    : path.join(apiDest, 'uploads');
+  const publicUploadsDest = path.join(pubDir, 'uploads');
+
+  fs.mkdirSync(apiUploadsDest, { recursive: true });
+  fs.mkdirSync(publicUploadsDest, { recursive: true });
+
+  // Sincronizar uploads existentes de las fuentes locales al destino canónico
+  const seedUploadSources = [
     path.resolve(__dirname, 'backend/storage/uploads'),
     path.resolve(__dirname, 'storage/uploads'),
-    path.resolve(__dirname, 'public_html/uploads')
+    path.resolve(__dirname, 'frontend/public/uploads')
   ];
-  const publicUploadsDest = path.join(pubDir, 'uploads');
-  const apiUploadsDest = path.join(apiDest, 'uploads');
-  fs.mkdirSync(publicUploadsDest, { recursive: true });
-  fs.mkdirSync(apiUploadsDest, { recursive: true });
 
-  uploadSources.forEach(function(srcDir) {
+  seedUploadSources.forEach(function(srcDir) {
     if (fs.existsSync(srcDir)) {
       try {
         const files = fs.readdirSync(srcDir);
         files.forEach(function(f) {
           const s = path.join(srcDir, f);
-          const d1 = path.join(publicUploadsDest, f);
-          const d2 = path.join(apiUploadsDest, f);
-          if (!fs.existsSync(d1)) {
-            try { fs.copyFileSync(s, d1); } catch (e) {}
+          const dApi = path.join(apiUploadsDest, f);
+          const dPub = path.join(publicUploadsDest, f);
+          if (!fs.existsSync(dApi)) {
+            try { fs.copyFileSync(s, dApi); } catch (e) {}
           }
-          if (!fs.existsSync(d2)) {
-            try { fs.copyFileSync(s, d2); } catch (e) {}
+          if (!fs.existsSync(dPub)) {
+            try { fs.copyFileSync(s, dPub); } catch (e) {}
           }
         });
       } catch (e) {}
     }
   });
+
+  // Asegurar paridad bidireccional inmediata entre public_html/api/uploads y public_html/uploads
+  if (fs.existsSync(apiUploadsDest) && fs.existsSync(publicUploadsDest) && apiUploadsDest !== publicUploadsDest) {
+    try {
+      const apiFiles = fs.readdirSync(apiUploadsDest);
+      apiFiles.forEach(function(f) {
+        const s = path.join(apiUploadsDest, f);
+        const d = path.join(publicUploadsDest, f);
+        if (!fs.existsSync(d)) {
+          try { fs.copyFileSync(s, d); } catch (e) {}
+        }
+      });
+      const pubFiles = fs.readdirSync(publicUploadsDest);
+      pubFiles.forEach(function(f) {
+        const s = path.join(publicUploadsDest, f);
+        const d = path.join(apiUploadsDest, f);
+        if (!fs.existsSync(d)) {
+          try { fs.copyFileSync(s, d); } catch (e) {}
+        }
+      });
+    } catch (e) {}
+  }
 } catch (e) {
   console.error('> [Server] Warning syncing web targets:', e.message);
 }
@@ -235,7 +263,11 @@ app.use(function(req, res, next) {
   next();
 });
 
-// ── 4. RUTEO DE FRONTEND (DEFAULT) ───────────────────────────────────────────
+// ── 4. RUTEO DE FRONTEND (DEFAULT) Y SERVICIO ESTÁTICO DE UPLOADS ────────────
+app.use(['/uploads', '/api/uploads'], express.static(apiUploadsDest, {
+  maxAge: '7d'
+}));
+
 if (fs.existsSync(frontendDir)) {
   app.use(express.static(frontendDir, { extensions: ['html'] }));
 }
