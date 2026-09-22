@@ -7,9 +7,11 @@
 const fs = require('fs');
 const path = require('path');
 const express = require('express');
+const compression = require('compression');
 
 const app = express();
 app.disable('x-powered-by');
+app.use(compression({ threshold: 1024 }));
 
 // Cargar variables de entorno
 function loadEnv(file) {
@@ -69,18 +71,33 @@ function copyStaticFiles(srcDir, destDir) {
   }
 }
 
+// Rutas de uploads canónicas y de compatibilidad pública
+const hostingerBase = '/home/u209525223/domains/unu-raymi.com/public_html';
+const pubDir = fs.existsSync(hostingerBase) ? hostingerBase : path.resolve(__dirname, 'public_html');
+const adminDest = path.join(pubDir, 'admin');
+const apiDest = path.join(pubDir, 'api');
+const canonicalHostingerApiUploads = '/home/u209525223/domains/unu-raymi.com/public_html/api/uploads';
+const apiUploadsDest = fs.existsSync('/home/u209525223/domains/unu-raymi.com/public_html/api')
+  ? canonicalHostingerApiUploads
+  : path.join(apiDest, 'uploads');
+const publicUploadsDest = path.join(pubDir, 'uploads');
+
 // ── Sincronizar frontend, admin y api en tiempo de ejecución ───────────────
 try {
-  const hostingerBase = '/home/u209525223/domains/unu-raymi.com/public_html';
-  const pubDir = fs.existsSync(hostingerBase) ? hostingerBase : path.resolve(__dirname, 'public_html');
-  const adminDest = path.join(pubDir, 'admin');
-  const apiDest = path.join(pubDir, 'api');
-
   // 1. Frontend
   if (fs.existsSync(frontendDir) && pubDir !== frontendDir) {
     fs.mkdirSync(pubDir, { recursive: true });
     copyStaticFiles(frontendDir, pubDir);
     console.log('> [Server] Synchronized frontend to:', pubDir);
+  }
+
+  // 1.1 Sincronizar .htaccess principal
+  const rootHtaccess = path.resolve(__dirname, '.htaccess');
+  if (fs.existsSync(rootHtaccess) && pubDir !== __dirname) {
+    try {
+      fs.copyFileSync(rootHtaccess, path.join(pubDir, '.htaccess'));
+      console.log('> [Server] Synchronized root .htaccess to:', pubDir);
+    } catch (e) {}
   }
 
   // 2. Admin
@@ -105,12 +122,6 @@ try {
   }
 
   // 4. Centralizar y asegurar carpeta de Uploads en public_html/api/uploads
-  const canonicalHostingerApiUploads = '/home/u209525223/domains/unu-raymi.com/public_html/api/uploads';
-  const apiUploadsDest = fs.existsSync('/home/u209525223/domains/unu-raymi.com/public_html/api')
-    ? canonicalHostingerApiUploads
-    : path.join(apiDest, 'uploads');
-  const publicUploadsDest = path.join(pubDir, 'uploads');
-
   fs.mkdirSync(apiUploadsDest, { recursive: true });
   fs.mkdirSync(publicUploadsDest, { recursive: true });
 
@@ -265,11 +276,36 @@ app.use(function(req, res, next) {
 
 // ── 4. RUTEO DE FRONTEND (DEFAULT) Y SERVICIO ESTÁTICO DE UPLOADS ────────────
 app.use(['/uploads', '/api/uploads'], express.static(apiUploadsDest, {
-  maxAge: '7d'
+  maxAge: '7d',
+  immutable: true
 }));
 
+// Ruteo instantáneo para la raíz / (Cero rebote de cliente, 0ms TTFB)
+app.get(['/', '/index.html'], function(req, res, next) {
+  const acceptLang = (req.headers['accept-language'] || '').toLowerCase();
+  const prefersEs = acceptLang.startsWith('es') || acceptLang.includes(',es') || acceptLang.includes('es-');
+  const targetDir = prefersEs ? 'es' : 'en';
+
+  const localizedIndex = path.join(frontendDir, targetDir, 'index.html');
+  if (fs.existsSync(localizedIndex)) {
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    return res.sendFile(localizedIndex);
+  }
+  next();
+});
+
 if (fs.existsSync(frontendDir)) {
-  app.use(express.static(frontendDir, { extensions: ['html'] }));
+  app.use(express.static(frontendDir, {
+    extensions: ['html'],
+    maxAge: '1d',
+    setHeaders: function(res, filePath) {
+      if (filePath.endsWith('.html')) {
+        res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+      } else if (filePath.match(/\.(js|css|webp|png|jpg|jpeg|svg|woff2)$/)) {
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+      }
+    }
+  }));
 }
 
 // Fallback SPA Frontend y Soporte de sub-rutas /[locale]
@@ -280,6 +316,16 @@ app.use(function(req, res) {
   }
   if (p.startsWith('/en') && fs.existsSync(path.join(frontendDir, 'en/index.html'))) {
     return res.sendFile(path.join(frontendDir, 'en/index.html'));
+  }
+
+  const acceptLang = (req.headers['accept-language'] || '').toLowerCase();
+  const prefersEs = acceptLang.startsWith('es') || acceptLang.includes(',es') || acceptLang.includes('es-');
+  const preferredIndex = prefersEs
+    ? path.join(frontendDir, 'es/index.html')
+    : path.join(frontendDir, 'en/index.html');
+
+  if (fs.existsSync(preferredIndex)) {
+    return res.sendFile(preferredIndex);
   }
 
   const candidates = [
