@@ -44,6 +44,8 @@ export const crearTourSchema = z.object({
     .min(3, "El nombre debe tener al menos 3 caracteres.")
     .max(255, "El nombre no puede superar 255 caracteres."),
 
+  nombre_en: z.string().max(255).optional().nullable(),
+
   slug: z
     .string({ required_error: "El slug es obligatorio." })
     .min(3)
@@ -57,8 +59,11 @@ export const crearTourSchema = z.object({
     .string({ required_error: "La descripción es obligatoria." })
     .min(10, "La descripción debe tener al menos 10 caracteres."),
 
+  descripcion_en: z.string().optional().nullable(),
+
   // Itinerario global del tour (opcional — puede vivir en cada variante)
   itinerario: z.string().optional().nullable(),
+  itinerario_en: z.string().optional().nullable(),
 
   // Precio/duración/cupos a nivel tour (ahora opcionales — viven en variantes)
   precio_adulto: z.number().min(0).optional().nullable(),

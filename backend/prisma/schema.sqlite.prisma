@@ -18,9 +18,12 @@ generator client {
 model Tour {
   id                   Int       @id @default(autoincrement())
   nombre               String
+  nombre_en            String?
   slug                 String    @unique
   descripcion          String
+  descripcion_en       String?
   itinerario           String?
+  itinerario_en        String?
   precio_adulto        Decimal
   precio_nino          Decimal
   duracion_dias        Int

@@ -20,9 +20,12 @@ generator client {
 model Tour {
   id                   Int       @id @default(autoincrement())
   nombre               String    @db.VarChar(255)
+  nombre_en            String?   @db.VarChar(255)
   slug                 String    @unique @db.VarChar(255)
   descripcion          String    @db.LongText
+  descripcion_en       String?   @db.LongText
   itinerario           String?   @db.LongText
+  itinerario_en        String?   @db.LongText
   precio_adulto        Decimal   @db.Decimal(10, 2)
   precio_nino          Decimal   @db.Decimal(10, 2)
   duracion_dias        Int

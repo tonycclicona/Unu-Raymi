@@ -109,22 +109,30 @@ export default function TourCard({ tour, onReservar }) {
             </span>
             {tour.categoria && (
               <span className="bg-[var(--accent)]/10 text-[var(--foreground)] border border-[var(--accent)]/20 px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider">
-                {tour.categoria}
+                {language === 'en' && tour.categoria.toLowerCase() === 'trek & climb' ? 'Trek & Climb' : tour.categoria}
               </span>
             )}
             {tour.nivel_dificultad && (
               <span className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/25 px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider">
-                {tour.nivel_dificultad}
+                {(() => {
+                  const dif = tour.nivel_dificultad.toLowerCase();
+                  if (dif.includes('facil') || dif.includes('fácil') || dif.includes('easy')) return t('catalog.difficulties.facil');
+                  if (dif.includes('moder')) return t('catalog.difficulties.moderado');
+                  if (dif.includes('exig')) return t('catalog.difficulties.exigente');
+                  if (dif.includes('extr')) return t('catalog.difficulties.extremo');
+                  if (dif.includes('dif')) return t('catalog.difficulties.dificil');
+                  return tour.nivel_dificultad;
+                })()}
               </span>
             )}
           </div>
 
           <h3 className="font-extrabold text-[var(--foreground)] text-base md:text-lg leading-snug group-hover:text-[var(--foreground)] transition-colors line-clamp-2">
-            {tour.nombre}
+            {(language === 'en' && tour.nombre_en) ? tour.nombre_en : tour.nombre}
           </h3>
 
           <p className="text-[var(--muted-foreground)] text-xs md:text-sm line-clamp-2 leading-relaxed">
-            {tour.descripcion}
+            {(language === 'en' && tour.descripcion_en) ? tour.descripcion_en : tour.descripcion}
           </p>
         </div>
 

@@ -199,11 +199,13 @@ export default function Navbar() {
           {/* Selector de idioma Desktop */}
           <button
             onClick={() => setLanguage(language === 'es' ? 'en' : 'es')}
-            className="px-3 py-2 rounded-xl border border-[var(--border)] bg-[var(--card)] hover:bg-[var(--sidebar)] text-[var(--foreground)] hover:scale-105 active:scale-95 transition-all duration-300 shadow-sm flex items-center gap-1.5 font-bold text-xs cursor-pointer shrink-0"
+            className="px-3 py-1.5 rounded-xl border border-[var(--border)] bg-[var(--card)] hover:bg-[var(--sidebar)] text-[var(--foreground)] hover:scale-105 active:scale-95 transition-all duration-300 shadow-sm flex items-center gap-1.5 font-extrabold text-xs cursor-pointer shrink-0"
             aria-label="Cambiar idioma / Switch language"
+            title={language === 'es' ? 'Cambiar a English' : 'Switch to Español'}
           >
-            <span>🌐</span>
-            <span className="uppercase">{language}</span>
+            <span className="text-sm">{language === 'es' ? '🇪🇸' : '🇺🇸'}</span>
+            <span className="uppercase tracking-wider">{language === 'es' ? 'ES' : 'EN'}</span>
+            <span className="text-[10px] text-[var(--muted-foreground)] ml-0.5">⇄</span>
           </button>
 
           <button
@@ -224,11 +226,11 @@ export default function Navbar() {
           {/* Selector de idioma móvil */}
           <button
             onClick={() => setLanguage(language === 'es' ? 'en' : 'es')}
-            className="px-2.5 py-1.5 rounded-xl border border-[var(--border)] bg-[var(--card)] hover:bg-[var(--sidebar)] text-[var(--foreground)] hover:scale-105 active:scale-95 transition-all duration-300 shadow-sm flex items-center gap-1 font-bold text-[10px] cursor-pointer shrink-0"
-            aria-label="Cambiar idioma"
+            className="px-2.5 py-1.5 rounded-xl border border-[var(--border)] bg-[var(--card)] hover:bg-[var(--sidebar)] text-[var(--foreground)] hover:scale-105 active:scale-95 transition-all duration-300 shadow-sm flex items-center gap-1 font-extrabold text-[10px] cursor-pointer shrink-0"
+            aria-label="Cambiar idioma / Switch language"
           >
-            <span>🌐</span>
-            <span className="uppercase">{language}</span>
+            <span>{language === 'es' ? '🇪🇸' : '🇺🇸'}</span>
+            <span className="uppercase">{language === 'es' ? 'ES' : 'EN'}</span>
           </button>
 
           <button
