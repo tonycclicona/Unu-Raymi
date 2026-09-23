@@ -58,9 +58,32 @@ foreach ($portCandidates as $candidate) {
 $metaFile = $portFile ? (dirname($portFile) . '/.port_meta.json') : null;
 $meta = ($metaFile && @file_exists($metaFile)) ? @json_decode(@file_get_contents($metaFile), true) : [];
 
+// Si el valor de portValue es un socket pero no existe en disco, ignorarlo
+if (!empty($portValue) && !is_numeric($portValue) && !@file_exists($portValue)) {
+    $portValue = '';
+}
+
 $targetPort = is_numeric($portValue) ? intval($portValue) : 0;
 if ($targetPort === 0 && !empty($meta['tcp_port']) && is_numeric($meta['tcp_port'])) {
     $targetPort = intval($meta['tcp_port']);
+}
+if ($targetPort === 0 && !empty($meta['tcp_addr']['port']) && is_numeric($meta['tcp_addr']['port'])) {
+    $targetPort = intval($meta['tcp_addr']['port']);
+}
+
+// Búsqueda en candidatos alternativos si aún no hay puerto
+if ($targetPort === 0) {
+    foreach ($portCandidates as $candidate) {
+        $mf = dirname($candidate) . '/.port_meta.json';
+        if (@file_exists($mf)) {
+            $m = @json_decode(@file_get_contents($mf), true);
+            if (!empty($m['tcp_port']) && is_numeric($m['tcp_port']) && intval($m['tcp_port']) > 0) {
+                $targetPort = intval($m['tcp_port']);
+                if (empty($meta)) $meta = $m;
+                break;
+            }
+        }
+    }
 }
 
 // Detectar sockets de usuario accesibles (excluyendo sockets privados de LiteSpeed en /usr/local/lsws/)
@@ -87,11 +110,11 @@ $targets = [];
 if ($targetPort > 0) {
     $targets[] = "http://127.0.0.1:$targetPort";
 }
-// Prioridad 2: Socket Unix en espacio del usuario (permisos 0777 en carpeta de usuario)
-if ($userSocket) {
+// Prioridad 2: Socket Unix en espacio del usuario (si existe y es legible)
+if ($userSocket && @file_exists($userSocket)) {
     $targets[] = "unix://" . $userSocket;
 }
-// Prioridad 3: Socket especificado en .port si NO es privado de LiteSpeed
+// Prioridad 3: Socket especificado en .port si NO es privado de LiteSpeed y existe
 $isPrivateLswsSocket = (strpos($portValue, '/usr/local/lsws') === 0);
 if (!$isPrivateLswsSocket && (strpos($portValue, '/') === 0 || strpos($portValue, '.sock') !== false)) {
     if (@file_exists($portValue) && @is_readable($portValue)) {

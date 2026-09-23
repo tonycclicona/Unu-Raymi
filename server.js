@@ -362,14 +362,12 @@ app.use(function (req, res) {
 });
 
 function savePortFile(p, meta = {}) {
-  // Asegurar que si el puerto asignado es un socket privado de LiteSpeed (/usr/local/lsws/),
-  // registremos el puerto TCP local de bridge en .port para que PHP pueda conectarse sin problemas de permisos de CageFS
   let portToSave = String(p).trim();
-  if (portToSave.startsWith('/usr/local/lsws/')) {
+  // Si el valor a guardar es un socket privado de LiteSpeed, o un socket que no existe en disco,
+  // y tenemos un puerto TCP interno, usar el puerto TCP interno
+  if (portToSave.startsWith('/usr/local/lsws/') || (portToSave.includes('.sock') && !fs.existsSync(portToSave))) {
     if (internalTcpPort > 0) {
       portToSave = String(internalTcpPort);
-    } else if (userSocketPath) {
-      portToSave = userSocketPath;
     }
   }
 
@@ -389,7 +387,7 @@ function savePortFile(p, meta = {}) {
           published_port: portToSave,
           actual_port: p,
           tcp_port: internalTcpPort,
-          user_socket: userSocketPath,
+          user_socket: (userSocketPath && fs.existsSync(userSocketPath)) ? userSocketPath : null,
           env_port: process.env.PORT || null,
           passenger: typeof PhusionPassenger !== 'undefined',
           date: new Date().toISOString(),
@@ -401,20 +399,42 @@ function savePortFile(p, meta = {}) {
 }
 
 function updatePortRegistry(extraMeta = {}) {
-  const published = internalTcpPort > 0 ? internalTcpPort : (userSocketPath || actualBoundPort);
-  savePortFile(published, extraMeta);
+  let published = null;
+  if (internalTcpPort > 0) {
+    published = internalTcpPort;
+  } else if (userSocketPath && fs.existsSync(userSocketPath)) {
+    published = userSocketPath;
+  } else if (actualBoundPort && !String(actualBoundPort).startsWith('/usr/local/lsws/')) {
+    published = actualBoundPort;
+  }
+
+  if (published) {
+    savePortFile(published, extraMeta);
+  }
 }
 
 // ── 1. Iniciar Bridge TCP loopback interno en 127.0.0.1:0 (puerto dinámico del SO) ──
+const http = require('http');
+tcpBridgeServer = http.createServer(app);
+
 try {
-  tcpBridgeServer = app.listen(0, '127.0.0.1', function () {
-    const tcpAddr = tcpBridgeServer.address();
-    internalTcpPort = (tcpAddr && typeof tcpAddr === 'object') ? tcpAddr.port : 0;
+  tcpBridgeServer.listen(0, '127.0.0.1', function () {
+    const addr = this.address();
+    internalTcpPort = (addr && typeof addr === 'object' && addr.port) ? addr.port : 0;
     console.log('> [Server] Bridge TCP local activo en puerto dinámico:', internalTcpPort);
-    updatePortRegistry({ tcp_active: true });
+    updatePortRegistry({ tcp_active: true, tcp_addr: addr });
   });
   tcpBridgeServer.on('error', function (err) {
-    console.warn('> [Server Warning] Bridge TCP:', err.message);
+    console.warn('> [Server Warning] Bridge TCP 127.0.0.1:', err.message);
+    try {
+      const fallbackBridge = http.createServer(app);
+      fallbackBridge.listen(0, function () {
+        const addr = this.address();
+        internalTcpPort = (addr && typeof addr === 'object' && addr.port) ? addr.port : 0;
+        console.log('> [Server] Bridge TCP fallback activo en:', internalTcpPort);
+        updatePortRegistry({ tcp_active: true, tcp_fallback: true, tcp_addr: addr });
+      });
+    } catch (e) {}
   });
 } catch (e) {
   console.warn('> [Server Warning] Error iniciando bridge TCP:', e.message);
