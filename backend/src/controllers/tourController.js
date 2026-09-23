@@ -5,6 +5,7 @@
 // ============================================================
 
 import prisma from "../lib/prismaClient.js";
+import { generateBilingualTour } from "../services/translationService.js";
 
 // ── Helpers de serialización ─────────────────────────────────
 const serializarArray = (arr) => JSON.stringify(arr ?? []);
@@ -15,28 +16,63 @@ const deserializarArray = (str) => {
     return [];
   }
 };
+const deserializarObjeto = (str) => {
+  try {
+    return typeof str === "string" ? JSON.parse(str) : (str || null);
+  } catch {
+    return null;
+  }
+};
 
 /**
  * Formatea un objeto Tour crudo de la BD para la respuesta API:
- * deserializa los campos JSON de arrays de servicios.
+ * deserializa los campos JSON de arrays de servicios y traducciones.
  */
-const formatearTour = (tour) => ({
-  ...tour,
-  precio_adulto: parseFloat(tour.precio_adulto),
-  precio_nino: parseFloat(tour.precio_nino),
-  servicios_incluidos: deserializarArray(tour.servicios_incluidos),
-  servicios_excluidos: deserializarArray(tour.servicios_excluidos),
-  que_llevar: deserializarArray(tour.que_llevar),
-  fechas_disponibles: deserializarArray(tour.fechas_disponibles),
-  variantes: tour.variantes?.map(v => ({
-    ...v,
-    precio_adulto: parseFloat(v.precio_adulto),
-    precio_nino: parseFloat(v.precio_nino),
-    servicios_incluidos: deserializarArray(v.servicios_incluidos),
-    servicios_excluidos: deserializarArray(v.servicios_excluidos),
-    fechas_disponibles: deserializarArray(v.fechas_disponibles),
-  })) || [],
-});
+const formatearTour = (tour) => {
+  const serviciosIncluidos = deserializarArray(tour.servicios_incluidos);
+  const serviciosExcluidos = deserializarArray(tour.servicios_excluidos);
+  const queLlevar = deserializarArray(tour.que_llevar);
+  const traduccionesParseadas = deserializarObjeto(tour.traducciones);
+
+  // Fallback garantizado si un tour histórico no tiene traducciones generadas
+  const traduccionesFinal = traduccionesParseadas || {
+    es: {
+      nombre: tour.nombre,
+      descripcion: tour.descripcion,
+      itinerario: tour.itinerario,
+      servicios_incluidos: serviciosIncluidos,
+      servicios_excluidos: serviciosExcluidos,
+      que_llevar: queLlevar,
+    },
+    en: {
+      nombre: tour.nombre,
+      descripcion: tour.descripcion,
+      itinerario: tour.itinerario,
+      servicios_incluidos: serviciosIncluidos,
+      servicios_excluidos: serviciosExcluidos,
+      que_llevar: queLlevar,
+    }
+  };
+
+  return {
+    ...tour,
+    precio_adulto: parseFloat(tour.precio_adulto),
+    precio_nino: parseFloat(tour.precio_nino),
+    servicios_incluidos: serviciosIncluidos,
+    servicios_excluidos: serviciosExcluidos,
+    que_llevar: queLlevar,
+    fechas_disponibles: deserializarArray(tour.fechas_disponibles),
+    traducciones: traduccionesFinal,
+    variantes: tour.variantes?.map(v => ({
+      ...v,
+      precio_adulto: parseFloat(v.precio_adulto),
+      precio_nino: parseFloat(v.precio_nino),
+      servicios_incluidos: deserializarArray(v.servicios_incluidos),
+      servicios_excluidos: deserializarArray(v.servicios_excluidos),
+      fechas_disponibles: deserializarArray(v.fechas_disponibles),
+    })) || [],
+  };
+};
 
 // ── GET /api/tours ───────────────────────────────────────────
 export const obtenerTours = async (req, res, next) => {
@@ -173,6 +209,22 @@ export const crearTour = async (req, res, next) => {
       });
     }
 
+    // Generar traducciones automáticas con preservación de términos culturales
+    let traduccionesJson = null;
+    try {
+      const traduccionesObj = await generateBilingualTour({
+        nombre,
+        descripcion,
+        itinerario,
+        servicios_incluidos: finalServiciosIncluidos,
+        servicios_excluidos,
+        que_llevar,
+      });
+      traduccionesJson = JSON.stringify(traduccionesObj);
+    } catch (err) {
+      console.warn('[crearTour] Advertencia generando traducciones:', err.message);
+    }
+
     const nuevoTour = await prisma.tour.create({
       data: {
         nombre,
@@ -187,6 +239,7 @@ export const crearTour = async (req, res, next) => {
         categoria,
         ciudad,
         nivel_dificultad: nivel_dificultad || 'Moderado',
+        traducciones: traduccionesJson,
         // Serializar arrays → JSON string para MySQL
         servicios_incluidos: serializarArray(finalServiciosIncluidos),
         servicios_excluidos: serializarArray(servicios_excluidos),
@@ -273,6 +326,23 @@ export const actualizarTour = async (req, res, next) => {
     }
     if (data.fechas_disponibles !== undefined) {
       dataActualizar.fechas_disponibles = serializarArray(data.fechas_disponibles);
+    }
+
+    // Regenerar traducciones automáticas si se actualizaron textos descriptivos
+    if (data.nombre !== undefined || data.descripcion !== undefined || data.itinerario !== undefined || data.servicios_incluidos !== undefined) {
+      try {
+        const trans = await generateBilingualTour({
+          nombre: data.nombre ?? tourExistente.nombre,
+          descripcion: data.descripcion ?? tourExistente.descripcion,
+          itinerario: data.itinerario ?? tourExistente.itinerario,
+          servicios_incluidos: data.servicios_incluidos ? (Array.isArray(data.servicios_incluidos) ? data.servicios_incluidos : deserializarArray(data.servicios_incluidos)) : deserializarArray(tourExistente.servicios_incluidos),
+          servicios_excluidos: data.servicios_excluidos ? (Array.isArray(data.servicios_excluidos) ? data.servicios_excluidos : deserializarArray(tourExistente.servicios_excluidos)) : deserializarArray(tourExistente.servicios_excluidos),
+          que_llevar: data.que_llevar ? (Array.isArray(data.que_llevar) ? data.que_llevar : deserializarArray(data.que_llevar)) : deserializarArray(tourExistente.que_llevar),
+        });
+        dataActualizar.traducciones = JSON.stringify(trans);
+      } catch (err) {
+        console.warn('[actualizarTour] Advertencia generando traducciones:', err.message);
+      }
     }
 
     // Sincronizar imágenes si están presentes en la petición

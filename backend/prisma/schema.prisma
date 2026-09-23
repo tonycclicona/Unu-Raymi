@@ -41,6 +41,7 @@ model Tour {
   categoria            String    @default("Trekking") @db.VarChar(50)
   ciudad               String    @default("Cusco") @db.VarChar(50)
   nivel_dificultad     String    @default("Moderado") @db.VarChar(50)
+  traducciones         String?   @db.LongText
 
   imagenes             Imagen[]
   reservas             Reserva[]
@@ -68,6 +69,7 @@ model Attraction {
   orden       Int      @default(0)
   tourId      Int?
   tour        Tour?    @relation(fields: [tourId], references: [id], onDelete: SetNull)
+  traducciones String? @db.LongText
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

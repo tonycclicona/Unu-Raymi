@@ -1,4 +1,33 @@
 import prisma from '../lib/prismaClient.js';
+import { generateBilingualAttraction } from '../services/translationService.js';
+
+const deserializarObjeto = (str) => {
+  try {
+    return typeof str === "string" ? JSON.parse(str) : (str || null);
+  } catch {
+    return null;
+  }
+};
+
+const formatearAttraction = (attr) => {
+  if (!attr) return attr;
+  const traduccionesParseadas = deserializarObjeto(attr.traducciones);
+  const traduccionesFinal = traduccionesParseadas || {
+    es: {
+      name: attr.name,
+      description: attr.description,
+    },
+    en: {
+      name: attr.name,
+      description: attr.description,
+    },
+  };
+
+  return {
+    ...attr,
+    traducciones: traduccionesFinal,
+  };
+};
 
 /**
  * Endpoint Admin: Crear una nueva Attraction
@@ -12,6 +41,14 @@ export async function createAttractionAdmin(req, res) {
       return res.status(400).json({ error: 'Nombre, latitud y longitud son campos obligatorios.' });
     }
 
+    let traducciones = null;
+    try {
+      const bilingual = await generateBilingualAttraction({ name, description });
+      traducciones = JSON.stringify(bilingual);
+    } catch (transErr) {
+      console.warn('[Attractions] No se pudo autotraducir:', transErr.message);
+    }
+
     const attraction = await prisma.attraction.create({
       data: {
         name,
@@ -23,6 +60,7 @@ export async function createAttractionAdmin(req, res) {
         imageUrl: imageUrl || null,
         orden: orden !== undefined && orden !== '' ? parseInt(orden, 10) : 0,
         tourId: tourId ? parseInt(tourId, 10) : null,
+        traducciones,
       },
       include: {
         tour: {
@@ -31,7 +69,7 @@ export async function createAttractionAdmin(req, res) {
       },
     });
 
-    return res.status(201).json({ success: true, data: attraction });
+    return res.status(201).json({ success: true, data: formatearAttraction(attraction) });
   } catch (error) {
     console.error('Error al crear atracción admin:', error);
     return res.status(500).json({ error: 'Error al registrar el punto en el servidor.' });
@@ -51,6 +89,14 @@ export async function updateAttractionAdmin(req, res) {
       return res.status(400).json({ error: 'Nombre, latitud y longitud son obligatorios.' });
     }
 
+    let traducciones = undefined;
+    try {
+      const bilingual = await generateBilingualAttraction({ name, description });
+      traducciones = JSON.stringify(bilingual);
+    } catch (transErr) {
+      console.warn('[Attractions] No se pudo autotraducir en update:', transErr.message);
+    }
+
     const attraction = await prisma.attraction.update({
       where: { id },
       data: {
@@ -63,6 +109,7 @@ export async function updateAttractionAdmin(req, res) {
         imageUrl: imageUrl !== undefined ? (imageUrl || null) : undefined,
         orden: orden !== undefined && orden !== '' ? parseInt(orden, 10) : 0,
         tourId: tourId ? parseInt(tourId, 10) : null,
+        ...(traducciones !== undefined ? { traducciones } : {}),
       },
       include: {
         tour: {
@@ -71,7 +118,7 @@ export async function updateAttractionAdmin(req, res) {
       },
     });
 
-    return res.json({ success: true, data: attraction });
+    return res.json({ success: true, data: formatearAttraction(attraction) });
   } catch (error) {
     console.error('Error al actualizar atracción admin:', error);
     return res.status(500).json({ error: 'Error al actualizar el punto en el servidor.' });
@@ -98,7 +145,7 @@ export async function getAttractionByIdAdmin(req, res) {
       return res.status(404).json({ error: 'Punto no encontrado.' });
     }
 
-    return res.json({ success: true, data: attraction });
+    return res.json({ success: true, data: formatearAttraction(attraction) });
   } catch (error) {
     console.error('Error al obtener atracción por id:', error);
     return res.status(500).json({ error: 'Error al consultar el punto.' });
@@ -120,7 +167,7 @@ export async function getAttractionsAdmin(req, res) {
       orderBy: { createdAt: 'desc' },
     });
 
-    return res.json({ success: true, data: attractions });
+    return res.json({ success: true, data: attractions.map(formatearAttraction) });
   } catch (error) {
     console.error('Error al listar atracciones admin:', error);
     return res.status(500).json({ error: 'Error al consultar puntos geográficos.' });
@@ -176,7 +223,7 @@ export async function getAttractionsPublic(req, res) {
       ],
     });
 
-    return res.json({ success: true, data: attractions });
+    return res.json({ success: true, data: attractions.map(formatearAttraction) });
   } catch (error) {
     console.error('Error al listar atracciones públicas v1:', error);
     return res.status(500).json({ error: 'Error al consultar la capa de atracciones públicas.' });

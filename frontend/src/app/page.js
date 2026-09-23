@@ -65,14 +65,20 @@ export default function Home() {
       list = list.filter(tour => tour.categoria.toLowerCase() === filtroCategoria.toLowerCase());
     }
     if (busqueda.trim() !== '') {
-      const term = busqueda.toLowerCase().trim();
-      list = list.filter(tour =>
-        tour.nombre.toLowerCase().includes(term) ||
-        tour.descripcion.toLowerCase().includes(term) ||
-        tour.pais.toLowerCase().includes(term) ||
-        tour.ciudad.toLowerCase().includes(term) ||
-        tour.categoria.toLowerCase().includes(term)
-      );
+      list = list.filter(tour => {
+        const trans = tour.traducciones?.[language] || {};
+        const nombre = trans.nombre || tour.nombre;
+        const descripcion = trans.descripcion || tour.descripcion;
+        return (
+          nombre.toLowerCase().includes(term) ||
+          descripcion.toLowerCase().includes(term) ||
+          tour.nombre.toLowerCase().includes(term) ||
+          tour.descripcion.toLowerCase().includes(term) ||
+          tour.pais.toLowerCase().includes(term) ||
+          tour.ciudad.toLowerCase().includes(term) ||
+          tour.categoria.toLowerCase().includes(term)
+        );
+      });
     }
     return list;
   }

@@ -39,6 +39,14 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
     return tour.duracion_dias;
   });
 
+  const localized = tour.traducciones?.[language] || {};
+  const tourNombre = localized.nombre || tour.nombre;
+  const tourDescripcion = localized.descripcion || tour.descripcion;
+  const tourItinerario = localized.itinerario || tour.itinerario;
+  const tourIncluidos = localized.servicios_incluidos || tour.servicios_incluidos;
+  const tourExcluidos = localized.servicios_excluidos || tour.servicios_excluidos;
+  const tourQueLlevar = localized.que_llevar || tour.que_llevar;
+
   const activeVariant = hasVariants
     ? tour.variantes.find(v => v.duracion_dias === selectedDuration) || tour.variantes[0]
     : null;
@@ -46,7 +54,7 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
   const displayDuration = activeVariant ? activeVariant.duracion_dias : tour.duracion_dias;
   const displayPrecioAdulto = activeVariant ? activeVariant.precio_adulto : tour.precio_adulto;
   const displayCupos = activeVariant ? activeVariant.cupos_disponibles : tour.cupos_disponibles;
-  const displayItinerario = (activeVariant && activeVariant.itinerario) ? activeVariant.itinerario : tour.itinerario;
+  const displayItinerario = (activeVariant && activeVariant.itinerario) ? activeVariant.itinerario : tourItinerario;
 
   useEffect(() => {
     if (imagenes.length <= 1) return;
@@ -147,7 +155,7 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
   };
 
   const getRawInclusiones = () => {
-    let inc = activeVariant?.servicios_incluidos !== undefined ? activeVariant.servicios_incluidos : tour.servicios_incluidos;
+    let inc = activeVariant?.servicios_incluidos !== undefined ? activeVariant.servicios_incluidos : tourIncluidos;
     if (typeof inc === 'string') {
       try { inc = JSON.parse(inc); } catch { inc = []; }
     }
@@ -169,7 +177,7 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
       };
     }
 
-    return categorizarServicios(Array.isArray(activeInclusiones) ? activeInclusiones : [], tour.que_llevar || []);
+    return categorizarServicios(Array.isArray(activeInclusiones) ? activeInclusiones : [], tourQueLlevar || []);
   };
 
   const categorias = getCategorias();
@@ -185,7 +193,7 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
 
   const displayExclusiones = (activeVariant && activeVariant.servicios_excluidos && activeVariant.servicios_excluidos.length > 0)
     ? activeVariant.servicios_excluidos
-    : (tour.servicios_excluidos || []);
+    : (tourExcluidos || []);
 
   return (
     <div
@@ -271,8 +279,8 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
                   {displayDuration} {displayDuration === 1 ? t('tour_card.dia') : t('tour_card.dias')}
                 </span>
               </div>
-              <h2 className="text-xl md:text-3xl font-black text-[var(--foreground)] leading-tight">{tour.nombre}</h2>
-              <p className="text-[var(--muted-foreground)] text-sm leading-relaxed">{tour.descripcion}</p>
+              <h2 className="text-xl md:text-3xl font-black text-[var(--foreground)] leading-tight">{tourNombre}</h2>
+              <p className="text-[var(--muted-foreground)] text-sm leading-relaxed">{tourDescripcion}</p>
             </div>
 
             {/* Multi-duration Toggle Tabs */}

@@ -50,6 +50,7 @@ export async function ensureTablesExist() {
     await addColumnSafe('tours', 'activo', 'BOOLEAN NOT NULL DEFAULT TRUE');
     await addColumnSafe('tours', 'destacado', 'BOOLEAN NOT NULL DEFAULT FALSE');
     await addColumnSafe('tours', 'nivel_dificultad', 'VARCHAR(50) NOT NULL DEFAULT "Moderado"');
+    await addColumnSafe('tours', 'traducciones', 'LONGTEXT NULL');
 
     // 1b. Tabla: reclamaciones (Libro de Reclamaciones — Ley 29571)
     await prisma.$executeRawUnsafe(`
@@ -194,6 +195,7 @@ export async function ensureTablesExist() {
     `);
     await addColumnSafe('attractions', 'imageUrl', 'VARCHAR(500) NULL');
     await addColumnSafe('attractions', 'orden', 'INT NOT NULL DEFAULT 0');
+    await addColumnSafe('attractions', 'traducciones', 'LONGTEXT NULL');
 
     // 9. Tabla: dynamic_forms
     await prisma.$executeRawUnsafe(`

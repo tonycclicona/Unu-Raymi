@@ -114,9 +114,10 @@ export default function MapaSudamericaGIS({ attractions = [], selectedTourId, on
     attractions.forEach((att) => {
       if (att.tourId && att.latitude && att.longitude) {
         if (!groups[att.tourId]) {
+          const localizedTour = att.tour?.traducciones?.[language] || {};
           groups[att.tourId] = {
             tourId: att.tourId,
-            tourName: att.tour?.nombre || `Tour #${att.tourId}`,
+            tourName: localizedTour.nombre || att.tour?.nombre || `Tour #${att.tourId}`,
             points: [],
           };
         }
@@ -137,7 +138,7 @@ export default function MapaSudamericaGIS({ attractions = [], selectedTourId, on
         };
       })
       .filter((g) => g.hasRoute);
-  }, [attractions]);
+  }, [attractions, language]);
 
   return (
     <div className="w-full h-full min-h-[460px] rounded-3xl overflow-hidden border border-[var(--border)]/40 relative z-0 shadow-lg">
@@ -213,6 +214,11 @@ export default function MapaSudamericaGIS({ attractions = [], selectedTourId, on
             TIENDA: t('gis_map.tienda'),
           }[att.category] || att.category;
           
+          const localizedAttr = att.traducciones?.[language] || {};
+          const attrName = localizedAttr.name || att.name || att.nombre;
+          const attrDescription = localizedAttr.description || att.description;
+          const tourName = att.tour?.traducciones?.[language]?.nombre || att.tour?.nombre;
+
           return (
             <Marker
               key={att.id}
@@ -233,7 +239,7 @@ export default function MapaSudamericaGIS({ attractions = [], selectedTourId, on
                     <div className="relative w-full h-32 rounded-xl overflow-hidden bg-slate-100 mb-1.5 shadow-inner">
                       <img
                         src={fullImgUrl}
-                        alt={att.name || 'Punto GIS'}
+                        alt={attrName || 'Punto GIS'}
                         className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                         onError={(e) => {
                           e.currentTarget.style.display = 'none';
@@ -269,7 +275,7 @@ export default function MapaSudamericaGIS({ attractions = [], selectedTourId, on
                   {/* Nombre y Coordenadas OSM */}
                   <div>
                     <h4 className="font-extrabold text-sm text-slate-900 leading-tight">
-                      {att.name || att.nombre}
+                      {attrName}
                     </h4>
                     <span className="text-[9px] text-slate-500 font-mono block mt-0.5">
                       OSM: {att.latitude?.toFixed(4)}, {att.longitude?.toFixed(4)}
@@ -277,9 +283,9 @@ export default function MapaSudamericaGIS({ attractions = [], selectedTourId, on
                   </div>
 
                   {/* Descripción del lugar registrada */}
-                  {att.description && (
+                  {attrDescription && (
                     <p className="text-xs text-slate-600 leading-relaxed bg-slate-50 p-2 rounded-lg border border-slate-100">
-                      {att.description}
+                      {attrDescription}
                     </p>
                   )}
 
@@ -288,7 +294,7 @@ export default function MapaSudamericaGIS({ attractions = [], selectedTourId, on
                     <div className="pt-1.5 border-t border-slate-200 space-y-1.5">
                       <div className="text-[11px] text-slate-700 font-bold flex items-center gap-1">
                         <span>🧭 {t('gis_map.tour_label')}</span>
-                        <span className="text-indigo-600 font-black">{att.tour.nombre}</span>
+                        <span className="text-indigo-600 font-black">{tourName}</span>
                       </div>
                       
                       {/* Tag destacado con el nivel de caminata o trekking */}

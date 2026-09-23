@@ -37,7 +37,9 @@ export default function TourCard({ tour, onReservar }) {
     return () => clearInterval(interval);
   }, [imagenes.length]);
 
-  const currentImage = imagenes[currentImageIndex]?.url;
+  const localized = tour.traducciones?.[language] || {};
+  const displayName = localized.nombre || tour.nombre;
+  const displayDesc = localized.descripcion || tour.descripcion;
 
   return (
     <div className="bg-[var(--card)]/40 border border-[var(--border)]/50 rounded-2xl overflow-hidden flex flex-col sm:flex-row group hover:border-[var(--accent)]/30 transition-all duration-300 shadow-md">
@@ -46,7 +48,7 @@ export default function TourCard({ tour, onReservar }) {
         {currentImage ? (
           <Image
             src={getImageUrl(currentImage)}
-            alt={tour.nombre}
+            alt={displayName}
             fill
             sizes="(max-width: 640px) 100vw, 40vw"
             loading="lazy"
@@ -121,11 +123,11 @@ export default function TourCard({ tour, onReservar }) {
           </div>
 
           <h3 className="font-extrabold text-[var(--foreground)] text-base md:text-lg leading-snug group-hover:text-[var(--foreground)] transition-colors line-clamp-2">
-            {tour.nombre}
+            {displayName}
           </h3>
 
           <p className="text-[var(--muted-foreground)] text-xs md:text-sm line-clamp-2 leading-relaxed">
-            {tour.descripcion}
+            {displayDesc}
           </p>
         </div>
 

@@ -15,6 +15,7 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
   const { formatPrice } = useCurrency();
 
   const hasVariants = tour.variantes && tour.variantes.length > 0;
+  const tourNombre = tour.traducciones?.[language]?.nombre || tour.nombre;
   const activeVariant = hasVariants && selectedDuration
     ? tour.variantes.find(v => v.duracion_dias === selectedDuration) || tour.variantes[0]
     : null;
@@ -219,7 +220,7 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
           <div className="bg-[var(--card)] border border-[var(--border)] p-5 rounded-2xl space-y-3 text-left">
             <div className="flex justify-between text-sm text-[var(--muted-foreground)]">
               <span>{t('checkout_success.tour_label')}</span>
-              <span className="text-[var(--foreground)] font-bold">{tour.nombre} ({displayDuration} {displayDuration === 1 ? t('tour_card.dia') : t('tour_card.dias')})</span>
+              <span className="text-[var(--foreground)] font-bold">{tourNombre} ({displayDuration} {displayDuration === 1 ? t('tour_card.dia') : t('tour_card.dias')})</span>
             </div>
             <div className="flex justify-between text-sm text-[var(--muted-foreground)]">
               <span>{t('checkout_success.total_label')}</span>
@@ -307,7 +308,7 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
             <div className="border-b border-[var(--border)]/30 pb-3 flex justify-between items-center">
               <div>
                 <span className="text-[10px] text-[var(--muted-foreground)] block uppercase font-bold tracking-wider">{t('checkout_success.aventura')}</span>
-                <span className="text-xs font-bold text-[var(--foreground)]">{tour.nombre}</span>
+                <span className="text-xs font-bold text-[var(--foreground)]">{tourNombre}</span>
               </div>
               <div className="text-right">
                 <span className="text-[10px] text-[var(--muted-foreground)] block uppercase font-bold tracking-wider">{t('tour_details.duracion')}</span>
