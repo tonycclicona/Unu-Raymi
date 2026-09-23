@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { mutateApi, uploadApi, API_ASSETS_URL } from '@/lib/api';
-import { Save, ArrowLeft, Upload, Loader } from 'lucide-react';
+import { Save, ArrowLeft, Upload, Loader, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 
 export default function GuiaForm({ initialData, id }) {
@@ -25,6 +25,23 @@ export default function GuiaForm({ initialData, id }) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState(null);
 
+  // ── Pestañas Bilingües y Traducciones ──
+  const [langTab, setLangTab] = useState('es'); // 'es' | 'en'
+
+  const getInitialEn = (field) => {
+    if (!initialData?.traducciones) return '';
+    let tr = initialData.traducciones;
+    if (typeof tr === 'string') {
+      try { tr = JSON.parse(tr); } catch { return ''; }
+    }
+    return tr?.en?.[field] || '';
+  };
+
+  const [enRol, setEnRol] = useState(() => getInitialEn('rol'));
+  const [enExperiencia, setEnExperiencia] = useState(() => getInitialEn('experiencia'));
+  const [enDescripcion, setEnDescripcion] = useState(() => getInitialEn('descripcion'));
+  const [isTranslating, setIsTranslating] = useState(false);
+
   useEffect(() => {
     if (initialData) {
       setFormData({
@@ -37,8 +54,50 @@ export default function GuiaForm({ initialData, id }) {
         activo: initialData.activo !== undefined ? initialData.activo : true,
         orden: initialData.orden || 0,
       });
+
+      if (initialData.traducciones) {
+        setEnRol(getInitialEn('rol'));
+        setEnExperiencia(getInitialEn('experiencia'));
+        setEnDescripcion(getInitialEn('descripcion'));
+      }
     }
   }, [initialData]);
+
+  const handleAutoTranslate = async () => {
+    if (!formData.rol && !formData.descripcion && !formData.experiencia) {
+      setError('Por favor completa al menos el rol, experiencia o descripción en español antes de auto-traducir.');
+      return;
+    }
+
+    setIsTranslating(true);
+    setError(null);
+    try {
+      const textsToTranslate = [
+        formData.rol || '',
+        formData.experiencia || '',
+        formData.descripcion || '',
+      ];
+      const res = await mutateApi('/translate', {
+        method: 'POST',
+        body: {
+          texts: textsToTranslate,
+          targetLang: 'en'
+        }
+      });
+
+      if (res && res.data && Array.isArray(res.data)) {
+        if (res.data[0]) setEnRol(res.data[0]);
+        if (res.data[1]) setEnExperiencia(res.data[1]);
+        if (res.data[2]) setEnDescripcion(res.data[2]);
+        setLangTab('en');
+      }
+    } catch (err) {
+      console.error('Error auto-traduciendo guía:', err);
+      setError('No se pudo auto-traducir: ' + (err.message || 'Error'));
+    } finally {
+      setIsTranslating(false);
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -79,7 +138,24 @@ export default function GuiaForm({ initialData, id }) {
     try {
       const url = isEdit ? `/guias/${id}` : '/guias';
       const method = isEdit ? 'PUT' : 'POST';
-      await mutateApi(url, { method, body: formData });
+      const payload = {
+        ...formData,
+        traducciones: {
+          es: {
+            rol: formData.rol,
+            descripcion: formData.descripcion,
+            experiencia: formData.experiencia,
+            idiomas: formData.idiomas,
+          },
+          en: {
+            rol: enRol?.trim() || formData.rol,
+            descripcion: enDescripcion?.trim() || formData.descripcion,
+            experiencia: enExperiencia?.trim() || formData.experiencia,
+            idiomas: formData.idiomas,
+          },
+        },
+      };
+      await mutateApi(url, { method, body: payload });
       window.location.href = '/guias/';
     } catch (err) {
       setError(err.message || 'Ocurrió un error al guardar el guía.');
@@ -114,6 +190,52 @@ export default function GuiaForm({ initialData, id }) {
         </div>
       )}
 
+      {/* Pestañas de Idioma y Auto-traducción */}
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-[#ffffff]/60 border border-[#b0c4b1]/30 p-3 rounded-2xl">
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setLangTab('es')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+              langTab === 'es'
+                ? 'bg-[#4a5759] text-white shadow-sm'
+                : 'text-[#4a5759] hover:bg-[#b0c4b1]/20'
+            }`}
+          >
+            <span>🇪🇸</span>
+            <span>Español</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setLangTab('en')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+              langTab === 'en'
+                ? 'bg-[#4a5759] text-white shadow-sm'
+                : 'text-[#4a5759] hover:bg-[#b0c4b1]/20'
+            }`}
+          >
+            <span>🇬🇧</span>
+            <span>English</span>
+            {enRol || enDescripcion ? (
+              <span className="w-2 h-2 rounded-full bg-emerald-500" title="Traducción lista" />
+            ) : (
+              <span className="w-2 h-2 rounded-full bg-amber-400" title="Sin traducción aún" />
+            )}
+          </button>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleAutoTranslate}
+          disabled={isTranslating}
+          className="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition-all flex items-center gap-1.5 shadow-sm disabled:opacity-50"
+          title="Traduce automáticamente rol, experiencia y descripción al inglés respetando términos quechua y nombres propios"
+        >
+          <Sparkles className={`w-3.5 h-3.5 ${isTranslating ? 'animate-spin' : ''}`} />
+          <span>{isTranslating ? 'Traduciendo...' : '⚡ Auto-traducir a Inglés'}</span>
+        </button>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-[#ffffff]/60 border border-[#b0c4b1]/30 p-6 rounded-2xl">
         {/* Nombre */}
         <div className="space-y-1.5">
@@ -129,37 +251,9 @@ export default function GuiaForm({ initialData, id }) {
           />
         </div>
 
-        {/* Rol */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-extrabold text-[#4a5759] uppercase tracking-wider block">Rol o Cargo</label>
-          <input
-            type="text"
-            name="rol"
-            value={formData.rol}
-            onChange={handleChange}
-            required
-            className="w-full px-4 py-2.5 bg-white border border-[#b0c4b1] rounded-xl text-sm focus:outline-none focus:border-[#4a5759]"
-            placeholder="Guía de Alta Montaña"
-          />
-        </div>
-
-        {/* Experiencia */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-extrabold text-[#4a5759] uppercase tracking-wider block">Experiencia</label>
-          <input
-            type="text"
-            name="experiencia"
-            value={formData.experiencia}
-            onChange={handleChange}
-            required
-            className="w-full px-4 py-2.5 bg-white border border-[#b0c4b1] rounded-xl text-sm focus:outline-none focus:border-[#4a5759]"
-            placeholder="12 años de experiencia"
-          />
-        </div>
-
         {/* Idiomas */}
         <div className="space-y-1.5">
-          <label className="text-xs font-extrabold text-[#4a5759] uppercase tracking-wider block">Idiomas</label>
+          <label className="text-xs font-extrabold text-[#4a5759] uppercase tracking-wider block">Idiomas que Domina</label>
           <input
             type="text"
             name="idiomas"
@@ -170,6 +264,91 @@ export default function GuiaForm({ initialData, id }) {
             placeholder="Español, Inglés, Quechua"
           />
         </div>
+
+        {/* Campos condicionales según idioma */}
+        {langTab === 'es' ? (
+          <>
+            {/* Rol ES */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-extrabold text-[#4a5759] uppercase tracking-wider block">Rol o Cargo (Español)</label>
+              <input
+                type="text"
+                name="rol"
+                value={formData.rol}
+                onChange={handleChange}
+                required
+                className="w-full px-4 py-2.5 bg-white border border-[#b0c4b1] rounded-xl text-sm focus:outline-none focus:border-[#4a5759]"
+                placeholder="Guía de Alta Montaña"
+              />
+            </div>
+
+            {/* Experiencia ES */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-extrabold text-[#4a5759] uppercase tracking-wider block">Experiencia (Español)</label>
+              <input
+                type="text"
+                name="experiencia"
+                value={formData.experiencia}
+                onChange={handleChange}
+                required
+                className="w-full px-4 py-2.5 bg-white border border-[#b0c4b1] rounded-xl text-sm focus:outline-none focus:border-[#4a5759]"
+                placeholder="12 años de experiencia"
+              />
+            </div>
+
+            {/* Descripcion ES */}
+            <div className="md:col-span-2 space-y-1.5 border-t border-[#b0c4b1]/30 pt-4">
+              <label className="text-xs font-extrabold text-[#4a5759] uppercase tracking-wider block">Biografía / Descripción (Español)</label>
+              <textarea
+                name="descripcion"
+                value={formData.descripcion}
+                onChange={handleChange}
+                required
+                rows="4"
+                className="w-full px-4 py-2.5 bg-white border border-[#b0c4b1] rounded-xl text-sm focus:outline-none focus:border-[#4a5759]"
+                placeholder="Describe la experiencia y especialidad del guía..."
+              />
+            </div>
+          </>
+        ) : (
+          <>
+            {/* Rol EN */}
+            <div className="space-y-1.5 bg-emerald-500/[0.03] border border-emerald-500/20 p-3 rounded-xl">
+              <label className="text-xs font-extrabold text-emerald-800 uppercase tracking-wider block">Role / Title (English)</label>
+              <input
+                type="text"
+                value={enRol}
+                onChange={(e) => setEnRol(e.target.value)}
+                className="w-full px-4 py-2.5 bg-white border border-[#b0c4b1] rounded-xl text-sm focus:outline-none focus:border-[#4a5759]"
+                placeholder="e.g. High Mountain Trekking Guide"
+              />
+            </div>
+
+            {/* Experiencia EN */}
+            <div className="space-y-1.5 bg-emerald-500/[0.03] border border-emerald-500/20 p-3 rounded-xl">
+              <label className="text-xs font-extrabold text-emerald-800 uppercase tracking-wider block">Experience (English)</label>
+              <input
+                type="text"
+                value={enExperiencia}
+                onChange={(e) => setEnExperiencia(e.target.value)}
+                className="w-full px-4 py-2.5 bg-white border border-[#b0c4b1] rounded-xl text-sm focus:outline-none focus:border-[#4a5759]"
+                placeholder="e.g. 12 years of experience"
+              />
+            </div>
+
+            {/* Descripcion EN */}
+            <div className="md:col-span-2 space-y-1.5 bg-emerald-500/[0.03] border border-emerald-500/20 p-3 rounded-xl">
+              <label className="text-xs font-extrabold text-emerald-800 uppercase tracking-wider block">Biography / Description (English)</label>
+              <textarea
+                value={enDescripcion}
+                onChange={(e) => setEnDescripcion(e.target.value)}
+                rows="4"
+                className="w-full px-4 py-2.5 bg-white border border-[#b0c4b1] rounded-xl text-sm focus:outline-none focus:border-[#4a5759]"
+                placeholder="Describe the guide's background and expertise in English..."
+              />
+            </div>
+          </>
+        )}
 
         {/* Orden */}
         <div className="space-y-1.5">
@@ -185,7 +364,7 @@ export default function GuiaForm({ initialData, id }) {
         </div>
 
         {/* Activo checkbox */}
-        <div className="flex items-center gap-2 pt-8">
+        <div className="flex items-center gap-2 pt-6">
           <input
             type="checkbox"
             name="activo"
@@ -249,20 +428,6 @@ export default function GuiaForm({ initialData, id }) {
               )}
             </div>
           </div>
-        </div>
-
-        {/* Descripcion */}
-        <div className="md:col-span-2 space-y-1.5 border-t border-[#b0c4b1]/30 pt-6 mt-2">
-          <label className="text-xs font-extrabold text-[#4a5759] uppercase tracking-wider block">Biografía / Descripción</label>
-          <textarea
-            name="descripcion"
-            value={formData.descripcion}
-            onChange={handleChange}
-            required
-            rows="4"
-            className="w-full px-4 py-2.5 bg-white border border-[#b0c4b1] rounded-xl text-sm focus:outline-none focus:border-[#4a5759]"
-            placeholder="Describe la experiencia y especialidad del guía..."
-          />
         </div>
       </div>
     </form>

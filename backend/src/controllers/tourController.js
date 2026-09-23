@@ -209,20 +209,26 @@ export const crearTour = async (req, res, next) => {
       });
     }
 
-    // Generar traducciones automáticas con preservación de términos culturales
+    // Guardar traducciones explícitas del admin o generar traducciones automáticas
     let traduccionesJson = null;
-    try {
-      const traduccionesObj = await generateBilingualTour({
-        nombre,
-        descripcion,
-        itinerario,
-        servicios_incluidos: finalServiciosIncluidos,
-        servicios_excluidos,
-        que_llevar,
-      });
-      traduccionesJson = JSON.stringify(traduccionesObj);
-    } catch (err) {
-      console.warn('[crearTour] Advertencia generando traducciones:', err.message);
+    if (req.body.traducciones && typeof req.body.traducciones === 'object') {
+      traduccionesJson = JSON.stringify(req.body.traducciones);
+    } else if (typeof req.body.traducciones === 'string' && req.body.traducciones.trim().startsWith('{')) {
+      traduccionesJson = req.body.traducciones;
+    } else {
+      try {
+        const traduccionesObj = await generateBilingualTour({
+          nombre,
+          descripcion,
+          itinerario,
+          servicios_incluidos: finalServiciosIncluidos,
+          servicios_excluidos,
+          que_llevar,
+        });
+        traduccionesJson = JSON.stringify(traduccionesObj);
+      } catch (err) {
+        console.warn('[crearTour] Advertencia generando traducciones:', err.message);
+      }
     }
 
     const nuevoTour = await prisma.tour.create({
@@ -328,8 +334,12 @@ export const actualizarTour = async (req, res, next) => {
       dataActualizar.fechas_disponibles = serializarArray(data.fechas_disponibles);
     }
 
-    // Regenerar traducciones automáticas si se actualizaron textos descriptivos
-    if (data.nombre !== undefined || data.descripcion !== undefined || data.itinerario !== undefined || data.servicios_incluidos !== undefined) {
+    // Guardar traducciones explícitas o regenerar automáticamente si se actualizaron textos descriptivos
+    if (data.traducciones && typeof data.traducciones === 'object') {
+      dataActualizar.traducciones = JSON.stringify(data.traducciones);
+    } else if (typeof data.traducciones === 'string' && data.traducciones.trim().startsWith('{')) {
+      dataActualizar.traducciones = data.traducciones;
+    } else if (data.nombre !== undefined || data.descripcion !== undefined || data.itinerario !== undefined || data.servicios_incluidos !== undefined) {
       try {
         const trans = await generateBilingualTour({
           nombre: data.nombre ?? tourExistente.nombre,

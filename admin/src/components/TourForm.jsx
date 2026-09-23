@@ -2,7 +2,7 @@
 
 import { useForm } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { mutateApi, uploadApi, API_ASSETS_URL } from '@/lib/api';
 import ServiciosInput from './ServiciosInput';
 import {
@@ -95,6 +95,29 @@ export default function TourForm({ initialData }) {
 
   // Manejo de selectores de País / Ciudad a nivel global
   const [selectedPais, setSelectedPais] = useState(initialData?.pais || 'Perú');
+
+  // ── Pestañas Bilingües y Traducciones ──
+  const [langTab, setLangTab] = useState('es'); // 'es' | 'en'
+
+  const getInitialEn = (field) => {
+    if (!initialData?.traducciones) return '';
+    let tr = initialData.traducciones;
+    if (typeof tr === 'string') {
+      try { tr = JSON.parse(tr); } catch { return ''; }
+    }
+    return tr?.en?.[field] || '';
+  };
+
+  const [enNombre, setEnNombre] = useState(() => getInitialEn('nombre'));
+  const [enDescripcion, setEnDescripcion] = useState(() => getInitialEn('descripcion'));
+  const [isTranslating, setIsTranslating] = useState(false);
+
+  useEffect(() => {
+    if (initialData?.traducciones) {
+      setEnNombre(getInitialEn('nombre'));
+      setEnDescripcion(getInitialEn('descripcion'));
+    }
+  }, [initialData]);
 
   // ── Galería de Imágenes (Se queda en el bloque global superior) ──
   const [uploadedImages, setUploadedImages] = useState(() => {
@@ -307,6 +330,40 @@ export default function TourForm({ initialData }) {
     }
   };
 
+  const handleAutoTranslate = async () => {
+    const currentNombre = watch('nombre');
+    const currentDescripcion = watch('descripcion');
+
+    if (!currentNombre && !currentDescripcion) {
+      setError('Por favor, ingresa el Nombre o la Descripción en Español antes de auto-traducir.');
+      return;
+    }
+
+    setIsTranslating(true);
+    setError(null);
+    try {
+      const textsToTranslate = [currentNombre || '', currentDescripcion || ''];
+      const res = await mutateApi('/translate', {
+        method: 'POST',
+        body: {
+          texts: textsToTranslate,
+          targetLang: 'en'
+        }
+      });
+
+      if (res && res.data && Array.isArray(res.data)) {
+        if (res.data[0]) setEnNombre(res.data[0]);
+        if (res.data[1]) setEnDescripcion(res.data[1]);
+        setLangTab('en');
+      }
+    } catch (err) {
+      console.error('Error auto-traduciendo:', err);
+      setError('No se pudo completar la traducción automática: ' + (err.message || 'Error'));
+    } finally {
+      setIsTranslating(false);
+    }
+  };
+
   // Manejo de carga de imágenes (Mismo comportamiento Multer+Sharp optimizado)
   const handleFiles = async (files) => {
     if (!files || files.length === 0) return;
@@ -373,6 +430,16 @@ export default function TourForm({ initialData }) {
         categoria: data.categoria,
         ciudad: data.ciudad,
         nivel_dificultad: data.nivel_dificultad || 'Moderado',
+        traducciones: {
+          es: {
+            nombre: data.nombre,
+            descripcion: data.descripcion,
+          },
+          en: {
+            nombre: enNombre?.trim() || data.nombre,
+            descripcion: enDescripcion?.trim() || data.descripcion,
+          },
+        },
         imagenes: uploadedImages.map((img, index) => ({
           url: img.url,
           altText: img.altText || data.nombre,
@@ -414,35 +481,136 @@ export default function TourForm({ initialData }) {
 
       {/* BLOQUE 1: INFORMACIÓN BÁSICA DEL TOUR (ESTÁTICA) */}
       <div className="glass-card p-6 rounded-2xl space-y-6">
-        <h2 className="text-lg font-bold text-[#4a5759] flex items-center gap-2 border-b border-[#b0c4b1] pb-3">
-          <Compass className="w-5 h-5 text-[#4a5759]" />
-          Información Básica del Tour
-        </h2>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#b0c4b1] pb-3">
+          <h2 className="text-lg font-bold text-[#4a5759] flex items-center gap-2">
+            <Compass className="w-5 h-5 text-[#4a5759]" />
+            Información Básica del Tour
+          </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-[#4a5759]">Nombre del Tour *</label>
-            <input
-              type="text"
-              {...register('nombre', { required: 'El nombre es obligatorio' })}
-              onChange={handleNombreChange}
-              className="w-full bg-[#ffffff] border border-[#b0c4b1] rounded-xl px-4 py-2.5 text-[#4a5759] focus:outline-none focus:border-[#4a5759] text-sm"
-              placeholder="Ej. Ascenso al Volcán Villarrica Activo"
-            />
-            {errors.nombre && <p className="text-xs text-red-400">{errors.nombre.message}</p>}
+          {/* Barra de Pestañas de Idioma y Auto-traducción */}
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center bg-[#f4f6f5] p-1 rounded-xl border border-[#b0c4b1]/60">
+              <button
+                type="button"
+                onClick={() => setLangTab('es')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  langTab === 'es'
+                    ? 'bg-[#4a5759] text-white shadow-sm'
+                    : 'text-[#4a5759] hover:bg-[#b0c4b1]/20'
+                }`}
+              >
+                <span>🇪🇸</span>
+                <span>Español</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setLangTab('en')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  langTab === 'en'
+                    ? 'bg-[#4a5759] text-white shadow-sm'
+                    : 'text-[#4a5759] hover:bg-[#b0c4b1]/20'
+                }`}
+              >
+                <span>🇬🇧</span>
+                <span>English</span>
+                {enNombre ? (
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" title="Traducción lista" />
+                ) : (
+                  <span className="w-2 h-2 rounded-full bg-amber-400" title="Sin traducción aún" />
+                )}
+              </button>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleAutoTranslate}
+              disabled={isTranslating}
+              className="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition-all flex items-center gap-1.5 shadow-sm disabled:opacity-50"
+              title="Traduce automáticamente nombre y descripción al inglés respetando términos quechua y nombres propios"
+            >
+              <Sparkles className={`w-3.5 h-3.5 ${isTranslating ? 'animate-spin' : ''}`} />
+              <span>{isTranslating ? 'Traduciendo...' : '⚡ Auto-traducir a Inglés'}</span>
+            </button>
           </div>
+        </div>
 
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-[#4a5759]">Slug (URL) *</label>
-            <input
-              type="text"
-              {...register('slug', { required: 'El slug es obligatorio' })}
-              disabled={isEdit}
-              className="w-full bg-[#ffffff] border border-[#b0c4b1] rounded-xl px-4 py-2.5 text-[#4a5759] focus:outline-none focus:border-[#4a5759] text-sm disabled:opacity-50"
-              placeholder="ej-ascenso-al-volcan-villarrica"
-            />
+        {/* Campos de texto según idioma seleccionado */}
+        {langTab === 'es' ? (
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="md:col-span-2 space-y-2">
+                <label className="block text-sm font-medium text-[#4a5759]">Nombre del Tour (Español) *</label>
+                <input
+                  type="text"
+                  {...register('nombre', { required: 'El nombre es obligatorio' })}
+                  onChange={handleNombreChange}
+                  className="w-full bg-[#ffffff] border border-[#b0c4b1] rounded-xl px-4 py-2.5 text-[#4a5759] focus:outline-none focus:border-[#4a5759] text-sm"
+                  placeholder="Ej. Ascenso al Volcán Villarrica Activo"
+                />
+                {errors.nombre && <p className="text-xs text-red-400">{errors.nombre.message}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-[#4a5759]">Slug (URL) *</label>
+                <input
+                  type="text"
+                  {...register('slug', { required: 'El slug es obligatorio' })}
+                  disabled={isEdit}
+                  className="w-full bg-[#ffffff] border border-[#b0c4b1] rounded-xl px-4 py-2.5 text-[#4a5759] focus:outline-none focus:border-[#4a5759] text-sm disabled:opacity-50"
+                  placeholder="ej-ascenso-al-volcan-villarrica"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-[#4a5759]">Descripción del Tour (Español) *</label>
+              <textarea
+                rows="4"
+                {...register('descripcion', { required: 'La descripción es obligatoria' })}
+                className="w-full bg-[#ffffff] border border-[#b0c4b1] rounded-xl px-4 py-2.5 text-[#4a5759] focus:outline-none focus:border-[#4a5759] text-sm"
+                placeholder="Vive la experiencia inigualable de subir a pie hasta el cráter de un volcán activo..."
+              ></textarea>
+              {errors.descripcion && <p className="text-xs text-red-400">{errors.descripcion.message}</p>}
+            </div>
           </div>
+        ) : (
+          <div className="space-y-4 bg-emerald-500/[0.03] border border-emerald-500/20 p-4 rounded-xl">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-emerald-800 flex items-center gap-1.5">
+                <span>🇬🇧</span>
+                <span>Contenido en Inglés (Editable y personalizable)</span>
+              </span>
+              <span className="text-[11px] text-[#6c7a7c]">
+                Se mostrará cuando los visitantes naveguen en inglés
+              </span>
+            </div>
 
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-[#4a5759]">Tour Name (English)</label>
+              <input
+                type="text"
+                value={enNombre}
+                onChange={(e) => setEnNombre(e.target.value)}
+                className="w-full bg-[#ffffff] border border-[#b0c4b1] rounded-xl px-4 py-2.5 text-[#4a5759] focus:outline-none focus:border-[#4a5759] text-sm"
+                placeholder="e.g. Active Villarrica Volcano Summit Trek"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-[#4a5759]">Tour Description (English)</label>
+              <textarea
+                rows="4"
+                value={enDescripcion}
+                onChange={(e) => setEnDescripcion(e.target.value)}
+                className="w-full bg-[#ffffff] border border-[#b0c4b1] rounded-xl px-4 py-2.5 text-[#4a5759] focus:outline-none focus:border-[#4a5759] text-sm"
+                placeholder="Experience the unique thrill of hiking to the active crater of a volcano..."
+              ></textarea>
+            </div>
+          </div>
+        )}
+
+        {/* Clasificación y Geografía (Universal) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-2 border-t border-[#b0c4b1]/30">
           <div className="space-y-2">
             <label className="block text-sm font-medium text-[#4a5759]">País Destino *</label>
             <select
@@ -458,9 +626,7 @@ export default function TourForm({ initialData }) {
               ))}
             </select>
           </div>
-        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="space-y-2">
             <label className="block text-sm font-medium text-[#4a5759]">Ciudad Destino *</label>
             <select
@@ -486,27 +652,17 @@ export default function TourForm({ initialData }) {
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-[#4a5759]">Nivel de Caminata / Trekking *</label>
+            <label className="block text-sm font-medium text-[#4a5759]">Nivel de Dificultad *</label>
             <select
               {...register('nivel_dificultad', { required: 'El nivel de caminata es obligatorio' })}
               className="w-full bg-[#ffffff] border border-[#b0c4b1] rounded-xl px-4 py-2.5 text-[#4a5759] focus:outline-none focus:border-[#4a5759] text-sm font-semibold"
             >
-              <option value="Fácil / Principiante">🟢 Fácil / Principiante (Caminatas cortas, terreno plano)</option>
-              <option value="Moderado">🟡 Moderado (Senderos irregulares con desniveles)</option>
-              <option value="Exigente / Avanzado">🟠 Exigente / Avanzado (Varios días, altura &gt; 3,500m)</option>
-              <option value="Experto / Alta Montaña">🔴 Experto / Alta Montaña (Nevados, equipo técnico)</option>
+              <option value="Fácil / Principiante">🟢 Fácil / Principiante</option>
+              <option value="Moderado">🟡 Moderado</option>
+              <option value="Exigente / Avanzado">🟠 Exigente / Avanzado</option>
+              <option value="Experto / Alta Montaña">🔴 Experto / Alta Montaña</option>
             </select>
           </div>
-        </div>
-
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-[#4a5759]">Descripción del Tour *</label>
-          <textarea
-            rows="4"
-            {...register('descripcion', { required: 'La descripción es obligatoria' })}
-            className="w-full bg-[#ffffff] border border-[#b0c4b1] rounded-xl px-4 py-2.5 text-[#4a5759] focus:outline-none focus:border-[#4a5759] text-sm"
-            placeholder="Vive la experiencia inigualable de subir a pie hasta el cráter de un volcán activo..."
-          ></textarea>
         </div>
 
         {/* DRAG & DROP GALERÍA (Reubicado en Bloque 1 según requerimiento) */}
