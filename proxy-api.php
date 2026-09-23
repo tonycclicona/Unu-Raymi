@@ -22,20 +22,31 @@ if ($requestMethod === 'OPTIONS') {
 // ── 1. Puerto de conexión dinámica hacia Node.js ───────────────────────────────
 $portFile = __DIR__ . '/.port';
 $targetPort = 4000;
-if (@file_exists($portFile)) {
-    $p = intval(trim(@file_get_contents($portFile)));
-    if ($p > 0) {
-        $targetPort = $p;
+$portCandidates = [
+    $portFile,
+    '/home/u209525223/domains/api.unu-raymi.com/public_html/.port',
+    '/home/u209525223/domains/unu-raymi.com/public_html/api/.port',
+    dirname(__DIR__) . '/.port',
+    dirname(__DIR__) . '/api/.port'
+];
+
+foreach ($portCandidates as $candidate) {
+    if (@file_exists($candidate)) {
+        $p = intval(trim(@file_get_contents($candidate)));
+        if ($p > 0) {
+            $targetPort = $p;
+            $portFile = $candidate;
+            break;
+        }
     }
 }
 
 // Objetivos de conexión:
-// Primero conectar directamente con el proceso Passenger en unu-raymi.com,
-// y como respaldo intentar el puerto local 127.0.0.1
+// LOCAL PRIMERO: Conecta en < 1ms con Node.js en 127.0.0.1 sin pasar por NAT loopback
 $targets = [
-    "https://unu-raymi.com",
     "http://127.0.0.1:$targetPort",
-    "http://localhost:$targetPort"
+    "http://localhost:$targetPort",
+    "https://unu-raymi.com"
 ];
 
 // ── 2. Diagnóstico simple (?diag=1) ──────────────────────────────────────────
@@ -173,6 +184,7 @@ if (function_exists('curl_init')) {
         curl_setopt($ch, CURLOPT_TIMEOUT, 30);
         
         $reqHeaders = $headers;
+        $reqHeaders[] = "X-Forwarded-Host: api.unu-raymi.com";
         if (strpos($baseTarget, 'unu-raymi.com') !== false) {
             $reqHeaders[] = "Host: unu-raymi.com";
         } else {

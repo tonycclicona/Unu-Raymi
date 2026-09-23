@@ -70,6 +70,7 @@ if (appType === 'all' || appType === 'backend') {
 
   // ── Rutas canónicas ────────────────────────────────────────────────────────
   const hostingerBase = '/home/u209525223/domains/unu-raymi.com/public_html';
+  const apiDomainBase = '/home/u209525223/domains/api.unu-raymi.com/public_html';
   const pubDir = fs.existsSync(hostingerBase) ? hostingerBase : path.resolve(process.cwd(), 'public_html');
   const apiDest = path.join(pubDir, 'api');
 
@@ -92,17 +93,24 @@ RewriteRule ^(.*)$ index.php [QSA,L]
 </IfModule>
 `;
 
-  try {
-    fs.mkdirSync(apiDest, { recursive: true });
-    if (fs.existsSync(path.join(apiDest, 'default.php'))) {
-      fs.unlinkSync(path.join(apiDest, 'default.php'));
+  const deployProxy = (targetDir) => {
+    try {
+      if (fs.existsSync(path.dirname(targetDir))) {
+        fs.mkdirSync(targetDir, { recursive: true });
+        if (fs.existsSync(path.join(targetDir, 'default.php'))) {
+          fs.unlinkSync(path.join(targetDir, 'default.php'));
+        }
+        fs.writeFileSync(path.join(targetDir, 'index.php'), apiIndexContent);
+        fs.writeFileSync(path.join(targetDir, '.htaccess'), apiHtaccessContent);
+        console.log(`[postinstall] ✅ Created API reverse proxy in: ${targetDir}`);
+      }
+    } catch (err) {
+      console.error(`[postinstall] Warning creating API proxy in ${targetDir}:`, err.message);
     }
-    fs.writeFileSync(path.join(apiDest, 'index.php'), apiIndexContent);
-    fs.writeFileSync(path.join(apiDest, '.htaccess'), apiHtaccessContent);
-    console.log(`[postinstall] ✅ Created API reverse proxy in: ${apiDest}`);
-  } catch (err) {
-    console.error(`[postinstall] Warning creating API proxy:`, err.message);
-  }
+  };
+
+  deployProxy(apiDest);
+  deployProxy(apiDomainBase);
 }
 
 // ── 2. BUILD FRONTEND ─────────────────────────────────────────────────────────
@@ -297,6 +305,14 @@ RewriteRule ^ index.html [L]
       copyStaticFiles(srcOut, adminDest);
       fs.writeFileSync(path.join(adminDest, '.htaccess'), adminHtaccess);
       console.log(`[postinstall] ✅ Copied admin static export and created .htaccess in: ${adminDest}`);
+
+      const adminDomainBase = '/home/u209525223/domains/admin.unu-raymi.com/public_html';
+      if (fs.existsSync(path.dirname(adminDomainBase))) {
+        fs.mkdirSync(adminDomainBase, { recursive: true });
+        copyStaticFiles(srcOut, adminDomainBase);
+        fs.writeFileSync(path.join(adminDomainBase, '.htaccess'), adminHtaccess);
+        console.log(`[postinstall] ✅ Copied admin static export to domain root: ${adminDomainBase}`);
+      }
     }
   } catch (e) {
     console.error('Warning: Failed to copy admin build:', e.message);

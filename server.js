@@ -76,6 +76,8 @@ function copyStaticFiles(srcDir, destDir) {
 // ── Sincronizar frontend, admin y api en tiempo de ejecución ───────────────
 try {
   const hostingerBase = '/home/u209525223/domains/unu-raymi.com/public_html';
+  const apiDomainBase = '/home/u209525223/domains/api.unu-raymi.com/public_html';
+  const adminDomainBase = '/home/u209525223/domains/admin.unu-raymi.com/public_html';
   const pubDir = fs.existsSync(hostingerBase) ? hostingerBase : path.resolve(__dirname, 'public_html');
   const adminDest = path.join(pubDir, 'admin');
   const apiDest = path.join(pubDir, 'api');
@@ -87,37 +89,67 @@ try {
     console.log('> [Server] Synchronized frontend to:', pubDir);
   }
 
-  // 2. Admin
+  // 2. Admin (en public_html/admin y en admin.unu-raymi.com si existe)
   if (fs.existsSync(adminDir)) {
     fs.mkdirSync(adminDest, { recursive: true });
     copyStaticFiles(adminDir, adminDest);
     console.log('> [Server] Synchronized admin to:', adminDest);
+
+    if (fs.existsSync(path.dirname(adminDomainBase))) {
+      fs.mkdirSync(adminDomainBase, { recursive: true });
+      copyStaticFiles(adminDir, adminDomainBase);
+      console.log('> [Server] Synchronized admin to domain root:', adminDomainBase);
+    }
   }
 
-  // 3. API Reverse Proxy
+  // 3. API Reverse Proxy (en public_html/api y en api.unu-raymi.com)
   const proxySource = fs.existsSync(path.resolve(__dirname, 'proxy-api.php'))
     ? path.resolve(__dirname, 'proxy-api.php')
     : path.resolve(__dirname, 'api/index.php');
-  if (fs.existsSync(proxySource)) {
-    fs.mkdirSync(apiDest, { recursive: true });
-    fs.copyFileSync(proxySource, path.join(apiDest, 'index.php'));
-    const htaccessSource = path.resolve(__dirname, 'api/.htaccess');
-    if (fs.existsSync(htaccessSource)) {
-      fs.copyFileSync(htaccessSource, path.join(apiDest, '.htaccess'));
-    }
-    console.log('> [Server] Synchronized API proxy to:', apiDest);
-  }
+  const htaccessSource = fs.existsSync(path.resolve(__dirname, 'api/.htaccess'))
+    ? path.resolve(__dirname, 'api/.htaccess')
+    : path.resolve(__dirname, '.htaccess');
+
+  const syncProxyToDir = function(targetDir) {
+    try {
+      if (fs.existsSync(path.dirname(targetDir))) {
+        fs.mkdirSync(targetDir, { recursive: true });
+        if (fs.existsSync(proxySource)) {
+          fs.copyFileSync(proxySource, path.join(targetDir, 'index.php'));
+        }
+        if (fs.existsSync(htaccessSource)) {
+          fs.copyFileSync(htaccessSource, path.join(targetDir, '.htaccess'));
+        }
+        console.log('> [Server] Synchronized API proxy to:', targetDir);
+      }
+    } catch (e) {}
+  };
+
+  syncProxyToDir(apiDest);
+  syncProxyToDir(apiDomainBase);
 
   // 4. Sincronizar carpeta de Uploads bidireccionalmente
   const uploadSources = [
+    process.env.UPLOADS_PATH,
+    '/home/u209525223/domains/api.unu-raymi.com/storage/uploads',
     path.resolve(__dirname, 'backend/storage/uploads'),
     path.resolve(__dirname, 'storage/uploads'),
     path.resolve(__dirname, 'public_html/uploads')
+  ].filter(Boolean);
+
+  const uploadDestinations = [
+    path.join(pubDir, 'uploads'),
+    path.join(apiDest, 'uploads'),
+    '/home/u209525223/domains/api.unu-raymi.com/storage/uploads'
   ];
-  const publicUploadsDest = path.join(pubDir, 'uploads');
-  const apiUploadsDest = path.join(apiDest, 'uploads');
-  fs.mkdirSync(publicUploadsDest, { recursive: true });
-  fs.mkdirSync(apiUploadsDest, { recursive: true });
+
+  uploadDestinations.forEach(function(dest) {
+    try {
+      if (fs.existsSync(path.dirname(dest))) {
+        fs.mkdirSync(dest, { recursive: true });
+      }
+    } catch (e) {}
+  });
 
   uploadSources.forEach(function(srcDir) {
     if (fs.existsSync(srcDir)) {
@@ -125,14 +157,14 @@ try {
         const files = fs.readdirSync(srcDir);
         files.forEach(function(f) {
           const s = path.join(srcDir, f);
-          const d1 = path.join(publicUploadsDest, f);
-          const d2 = path.join(apiUploadsDest, f);
-          if (!fs.existsSync(d1)) {
-            try { fs.copyFileSync(s, d1); } catch (e) {}
-          }
-          if (!fs.existsSync(d2)) {
-            try { fs.copyFileSync(s, d2); } catch (e) {}
-          }
+          uploadDestinations.forEach(function(d) {
+            if (fs.existsSync(d)) {
+              const targetFile = path.join(d, f);
+              if (!fs.existsSync(targetFile)) {
+                try { fs.copyFileSync(s, targetFile); } catch (e) {}
+              }
+            }
+          });
         });
       } catch (e) {}
     }
@@ -142,6 +174,7 @@ try {
 }
 
 // ── 1. CARGAR BACKEND API (ASÍNCRONO CON PATH TO FILE URL) ────────────────────
+process.env.__ROOT_SERVER_RUNNING = 'true';
 const { pathToFileURL } = require('url');
 let backendApp = null;
 let backendError = null;
@@ -162,8 +195,6 @@ const backendPromise = import(pathToFileURL(resolvedBackendPath).href)
   });
 
 // ── 0. SERVIR UPLOADS DIRECTAMENTE (SIN DEPENDER DEL BACKEND) ────────────────
-// Sirve /uploads/ y /api/uploads/ desde los dirs de Hostinger sin esperar que el backend inicialice.
-// Esto evita el 503 cuando Node.js tarda en levantar el backend.
 const uploadDirsToServe = [
   process.env.UPLOADS_PATH,
   '/home/u209525223/domains/api.unu-raymi.com/storage/uploads',
@@ -180,6 +211,10 @@ uploadDirsToServe.forEach(function(dir) {
   }
 });
 
+// Detectar modo configurado en Hostinger (APP_TYPE=backend | admin | frontend | all)
+const configuredAppType = (process.env.APP_TYPE || '').toLowerCase().trim();
+console.log('> [Server] Modo APP_TYPE configurado:', configuredAppType || 'all (gateway)');
+
 // ── 2. RUTEO DE API Y CABECERAS CORS ─────────────────────────────────────────
 app.use(async function(req, res, next) {
   res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
@@ -191,18 +226,21 @@ app.use(async function(req, res, next) {
     return res.sendStatus(200);
   }
 
-  const host = (req.headers.host || '').toLowerCase();
-  if (host.startsWith('api.') || req.url.startsWith('/api') || req.url.startsWith('/uploads')) {
+  const host = (req.headers['x-forwarded-host'] || req.headers.host || '').toLowerCase();
+  const isApiRequest =
+    configuredAppType === 'backend' ||
+    host.startsWith('api.') ||
+    host.includes('api.unu-raymi.com') ||
+    req.url.startsWith('/api') ||
+    req.url.startsWith('/uploads');
+
+  if (isApiRequest) {
     if (!backendApp && backendPromise) {
       try {
         await backendPromise;
       } catch (e) {}
     }
     if (typeof backendApp === 'function') {
-      // Si la petición viene a api.unu-raymi.com/auth/login (sin prefijo /api y no es uploads), prefijarla para que Express la reconozca
-      if (host.startsWith('api.') && !req.url.startsWith('/api') && !req.url.startsWith('/uploads')) {
-        req.url = '/api' + req.url;
-      }
       return backendApp(req, res, next);
     }
     if (backendError) {
@@ -216,6 +254,16 @@ app.use(async function(req, res, next) {
       error: 'Backend API inicializándose. Por favor intente en unos segundos.'
     });
   }
+
+  // Si este proceso fue configurado exclusivamente como backend en Hostinger,
+  // nunca debe caer al SPA de frontend
+  if (configuredAppType === 'backend') {
+    return res.status(404).json({
+      success: false,
+      error: 'Ruta no encontrada en el servidor backend API.'
+    });
+  }
+
   next();
 });
 
@@ -279,14 +327,20 @@ app.use(function(req, res) {
 });
 
 function savePortFile(p) {
-  const hostingerPort = '/home/u209525223/domains/unu-raymi.com/public_html/api/.port';
-  const target = fs.existsSync(path.dirname(hostingerPort))
-    ? hostingerPort
-    : path.resolve(__dirname, 'api/.port');
-  try {
-    fs.mkdirSync(path.dirname(target), { recursive: true });
-    fs.writeFileSync(target, String(p));
-  } catch (e) {}
+  const targets = [
+    '/home/u209525223/domains/unu-raymi.com/public_html/api/.port',
+    '/home/u209525223/domains/api.unu-raymi.com/public_html/.port',
+    path.resolve(__dirname, 'api/.port'),
+    path.resolve(__dirname, '.port')
+  ];
+  targets.forEach(function(target) {
+    try {
+      if (fs.existsSync(path.dirname(target))) {
+        fs.mkdirSync(path.dirname(target), { recursive: true });
+        fs.writeFileSync(target, String(p));
+      }
+    } catch (e) {}
+  });
 }
 
 // En entornos Hostinger LiteSpeed / Node.js
