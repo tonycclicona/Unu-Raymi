@@ -1,13 +1,22 @@
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 
-  (typeof window !== 'undefined' && window.location.hostname.includes('unu-raymi.com') 
-    ? 'https://api.unu-raymi.com/api' 
+// ── URL base de la API ─────────────────────────────────────────────────────────
+// En producción: NEXT_PUBLIC_API_URL debe ser https://api.unu-raymi.com/api
+// En desarrollo: http://localhost:4000/api
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ||
+  (typeof window !== 'undefined' && window.location.hostname.includes('unu-raymi.com')
+    ? 'https://api.unu-raymi.com/api'
     : 'http://localhost:4000/api');
 
-export const API_ASSETS_URL = process.env.NEXT_PUBLIC_API_ASSETS_URL || 
+// ── URL base para servir assets estáticos (uploads de imágenes) ────────────────
+// Removemos el sufijo /api para obtener el origen raíz del servidor
+export const API_ASSETS_URL = process.env.NEXT_PUBLIC_API_ASSETS_URL ||
   API_BASE_URL.replace(/\/api$/, '');
 
+// URL canónica del dominio principal (para fallback de assets)
+const MAIN_DOMAIN_URL = 'https://unu-raymi.com';
+
+// ── Fetcher SWR con fallback automático ────────────────────────────────────────
 export async function fetcher(url) {
-  // Intento 1: Servidor configurado (api.unu-raymi.com)
+  // Intento 1: API configurada (api.unu-raymi.com o localhost)
   try {
     const res = await fetch(`${API_BASE_URL}${url}`);
     if (res.ok) {
@@ -15,17 +24,17 @@ export async function fetcher(url) {
     }
   } catch (err) {}
 
-  // Intento 2: Fallback redundante a unu-raymi.com/api si api.unu-raymi.com tiene intermitencias
+  // Intento 2: Fallback al dominio principal si hay intermitencias en api.unu-raymi.com
   if (typeof window !== 'undefined' && window.location.hostname.includes('unu-raymi.com') && API_BASE_URL.includes('api.unu-raymi.com')) {
     try {
-      const fallbackRes = await fetch(`https://unu-raymi.com/api${url}`);
+      const fallbackRes = await fetch(`${MAIN_DOMAIN_URL}/api${url}`);
       if (fallbackRes.ok) {
         return await fallbackRes.json();
       }
     } catch (e) {}
   }
 
-  // Petición de reporte de error
+  // Lanzar error con información de la última petición fallida
   const res = await fetch(`${API_BASE_URL}${url}`);
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({}));
@@ -36,26 +45,24 @@ export async function fetcher(url) {
   return res.json();
 }
 
-export async function mutateApi(url, { method = 'POST', body } = {}) {
-  const options = {
-    method,
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  };
-  if (body) {
-    options.body = JSON.stringify(body);
-  }
-  
+// ── Mutación de API (POST, PUT, DELETE, PATCH) con fallback ───────────────────
+export async function mutateApi(url, { method = 'POST', body, token } = {}) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
+  const options = { method, headers };
+  if (body) options.body = JSON.stringify(body);
+
   try {
     const res = await fetch(`${API_BASE_URL}${url}`, options);
     const data = await res.json().catch(() => ({}));
     if (res.ok) return data;
     throw new Error(data.error || `Error en la petición: ${res.status}`);
   } catch (err) {
+    // Fallback al dominio principal si la API subdominio falla
     if (typeof window !== 'undefined' && window.location.hostname.includes('unu-raymi.com') && API_BASE_URL.includes('api.unu-raymi.com')) {
       try {
-        const fallbackRes = await fetch(`https://unu-raymi.com/api${url}`, options);
+        const fallbackRes = await fetch(`${MAIN_DOMAIN_URL}/api${url}`, options);
         const fallbackData = await fallbackRes.json().catch(() => ({}));
         if (fallbackRes.ok) return fallbackData;
       } catch (e) {}
@@ -65,23 +72,71 @@ export async function mutateApi(url, { method = 'POST', body } = {}) {
 }
 
 /**
- * Normaliza y devuelve la URL absoluta para cualquier imagen
+ * Construye la URL absoluta canónica para un archivo de upload.
+ * Acepta:
+ *   - Nombre de archivo simple:  "foto.webp"                → "https://api.unu-raymi.com/uploads/foto.webp"
+ *   - Ruta relativa:             "/uploads/foto.webp"        → "https://api.unu-raymi.com/uploads/foto.webp"
+ *   - URL absoluta ya formada:   "https://...foto.webp"      → devuelve sin cambios
+ *   - data URI o vacío:          devuelve sin cambios o ''
  */
-export function getImageUrl(path) {
-  if (!path) return '';
-  if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('data:')) {
-    return path;
+export function getImageUrl(pathOrUrl) {
+  if (!pathOrUrl) return '';
+
+  // Ya es una URL absoluta o data URI → devolverla tal cual
+  if (pathOrUrl.startsWith('http://') || pathOrUrl.startsWith('https://') || pathOrUrl.startsWith('data:')) {
+    return pathOrUrl;
   }
-  const clean = path.startsWith('/') ? path : `/${path}`;
+
+  // Aseguramos que inicie con /
+  const clean = pathOrUrl.startsWith('/') ? pathOrUrl : `/${pathOrUrl}`;
+
+  // Si ya tiene /uploads/ simplemente lo prefijamos con el origen de assets
+  if (clean.startsWith('/uploads/')) {
+    return `${API_ASSETS_URL}${clean}`;
+  }
+
+  // Si es solo el nombre del archivo (sin directorio), asumimos que está en /uploads/
+  if (!clean.includes('/')) {
+    return `${API_ASSETS_URL}/uploads${clean}`;
+  }
+
+  // Cualquier otra ruta relativa: prefijamos con el origen de assets
   return `${API_ASSETS_URL}${clean}`;
 }
 
 /**
- * Manejador de evento onError para etiquetas img con conmutación automática de host
+ * Construye la URL absoluta para un filename de upload (sin ruta).
+ * Alias semántico de getImageUrl para mayor claridad en contextos de upload.
  */
-export function handleImageFallback(e, path) {
-  if (!path || !e?.target || e.target.dataset.triedFallback) return;
-  e.target.dataset.triedFallback = '1';
-  const clean = path.startsWith('/') ? path : `/${path}`;
-  e.target.src = `https://unu-raymi.com${clean}`;
+export function getUploadUrl(filename) {
+  if (!filename) return '';
+  const name = filename.startsWith('/') ? filename : `/${filename}`;
+  const base = name.startsWith('/uploads/') ? name : `/uploads${name}`;
+  return `${API_ASSETS_URL}${base}`;
 }
+
+/**
+ * Manejador onError para <img> con conmutación automática de hosts.
+ * Orden de fallback: api.unu-raymi.com → unu-raymi.com → ruta local relativa
+ */
+export function handleImageFallback(e, pathOrUrl) {
+  if (!pathOrUrl || !e?.target) return;
+  const img = e.target;
+
+  // Extraer el nombre del archivo para construir rutas de fallback
+  const clean = pathOrUrl.startsWith('/') ? pathOrUrl : `/${pathOrUrl}`;
+  const uploadsPath = clean.startsWith('/uploads/') ? clean : `/uploads${clean}`;
+
+  const tried = parseInt(img.dataset.triedFallback || '0', 10);
+  img.dataset.triedFallback = String(tried + 1);
+
+  if (tried === 0 && !img.src.includes('api.unu-raymi.com')) {
+    img.src = `https://api.unu-raymi.com${uploadsPath}`;
+  } else if (tried <= 1 && !img.src.includes('unu-raymi.com')) {
+    img.src = `${MAIN_DOMAIN_URL}${uploadsPath}`;
+  } else if (tried <= 2) {
+    img.src = uploadsPath; // Ruta relativa (sirve si el proxy local la tiene)
+  }
+  // Después de 3 intentos no seguimos para evitar bucles
+}
+

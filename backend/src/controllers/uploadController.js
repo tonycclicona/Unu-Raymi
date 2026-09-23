@@ -1,6 +1,6 @@
 // ============================================================
 // uploadController.js — Pipeline de Subida y Optimización de Imágenes
-// Procesa imágenes usando Multer (en memoria) y Sharp (.webp + 80% de calidad).
+// Procesa imágenes usando Multer (en memoria) y Sharp (.webp + 82% de calidad).
 // Persiste en storage/uploads y public_html/uploads para entrega inmediata vía LiteSpeed.
 // ============================================================
 
@@ -14,33 +14,48 @@ import { randomUUID } from "crypto";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-// Obtiene todos los directorios canónicos donde debe guardarse el archivo
-function getUploadDirectories() {
-  const dirs = new Set();
+// URL pública del API para construir URLs absolutas de uploads
+const API_PUBLIC_URL = process.env.API_BASE_URL ||
+  (process.env.NODE_ENV === 'production' ? 'https://api.unu-raymi.com' : 'http://localhost:4000');
 
-  // 1. Variable de entorno personalizada si existe
+// Obtiene todos los directorios canónicos donde debe guardarse el archivo.
+// ORDEN IMPORTANTE: el primero con UPLOADS_PATH tiene prioridad para servir assets.
+function getUploadDirectories() {
+  const dirs = [];
+
+  // 1. Variable de entorno personalizada (máxima prioridad en Hostinger)
   if (process.env.UPLOADS_PATH) {
-    dirs.add(resolve(process.env.UPLOADS_PATH));
+    const customPath = resolve(process.env.UPLOADS_PATH);
+    if (!dirs.includes(customPath)) dirs.push(customPath);
   }
 
-  // 2. Carpeta canónica de Hostinger public_html
+  // 2. Carpeta de uploads del dominio api.unu-raymi.com en Hostinger
+  const hostingerApiStorage = "/home/u209525223/domains/api.unu-raymi.com/storage/uploads";
+  if (fsSync.existsSync("/home/u209525223/domains/api.unu-raymi.com")) {
+    if (!dirs.includes(hostingerApiStorage)) dirs.push(hostingerApiStorage);
+  }
+
+  // 3. Carpeta canónica de Hostinger public_html (unu-raymi.com)
   const hostingerPublicUploads = "/home/u209525223/domains/unu-raymi.com/public_html/uploads";
   if (fsSync.existsSync("/home/u209525223/domains/unu-raymi.com/public_html")) {
-    dirs.add(hostingerPublicUploads);
+    if (!dirs.includes(hostingerPublicUploads)) dirs.push(hostingerPublicUploads);
   }
 
-  // 3. Carpeta de subdominio api de Hostinger si existe
+  // 4. Carpeta de subdominio api de Hostinger en public_html si existe
   const hostingerApiUploads = "/home/u209525223/domains/unu-raymi.com/public_html/api/uploads";
   if (fsSync.existsSync("/home/u209525223/domains/unu-raymi.com/public_html/api")) {
-    dirs.add(hostingerApiUploads);
+    if (!dirs.includes(hostingerApiUploads)) dirs.push(hostingerApiUploads);
   }
 
-  // 4. Carpeta de uploads local / repositorio
-  dirs.add(resolve(__dirname, "../../storage/uploads"));
-  dirs.add(resolve(__dirname, "../../../public_html/uploads"));
-  dirs.add(resolve(__dirname, "../../../storage/uploads"));
+  // 5. Carpeta de uploads local (repositorio) — siempre presente como fallback
+  const localStorage = resolve(__dirname, "../../storage/uploads");
+  if (!dirs.includes(localStorage)) dirs.push(localStorage);
 
-  return Array.from(dirs);
+  // 6. Carpeta de respaldo local public_html
+  const localPublicHtml = resolve(__dirname, "../../../public_html/uploads");
+  if (!dirs.includes(localPublicHtml)) dirs.push(localPublicHtml);
+
+  return dirs;
 }
 
 // Configurar multer en memoria para obtener el buffer del archivo
@@ -48,7 +63,7 @@ const storage = multer.memoryStorage();
 export const upload = multer({
   storage,
   limits: {
-    fileSize: 5 * 1024 * 1024, // Limite de 5MB
+    fileSize: 8 * 1024 * 1024, // Límite de 8MB
   },
   fileFilter: (req, file, cb) => {
     // Permitir imágenes y archivos PDF
@@ -61,8 +76,9 @@ export const upload = multer({
 });
 
 /**
- * Procesa la imagen del buffer (la convierte a .webp al 80% de calidad)
- * y la guarda en todos los directorios de persistencia (storage y public_html)
+ * Procesa la imagen del buffer (la convierte a .webp al 82% de calidad)
+ * y la guarda en todos los directorios de persistencia (storage y public_html).
+ * Responde con la ruta relativa Y la URL absoluta canónica del archivo subido.
  */
 export const subirImagen = async (req, res, next) => {
   try {
@@ -80,7 +96,8 @@ export const subirImagen = async (req, res, next) => {
     const originalNameClean = req.file.originalname
       .split(".")[0]
       .toLowerCase()
-      .replace(/[^a-z0-9]/g, "-");
+      .replace(/[^a-z0-9]/g, "-")
+      .substring(0, 40); // Limitar longitud del nombre
 
     let outputFilename;
     let fileBuffer;
@@ -91,32 +108,50 @@ export const subirImagen = async (req, res, next) => {
     } else {
       outputFilename = `${originalNameClean}-${uniqueId}.webp`;
       fileBuffer = await sharp(req.file.buffer)
-        .webp({ quality: 80 })
+        .webp({ quality: 82 })
         .toBuffer();
     }
 
     // Escribir el buffer procesado en todos los directorios de almacenamiento
+    let savedCount = 0;
+    const savedPaths = [];
+
     await Promise.all(
       uploadDirs.map(async (dir) => {
         try {
           await fs.mkdir(dir, { recursive: true });
           const dest = join(dir, outputFilename);
           await fs.writeFile(dest, fileBuffer);
+          savedCount++;
+          savedPaths.push(dest);
         } catch (err) {
           console.warn(`[upload] Advertencia guardando en ${dir}:`, err.message);
         }
       })
     );
 
-    // Ruta de acceso estática que se retornará al frontend
-    const fileUrl = `/uploads/${outputFilename}`;
+    if (savedCount === 0) {
+      console.error("[upload] Error: No se pudo guardar el archivo en ningún directorio.");
+      return res.status(500).json({
+        success: false,
+        error: "No se pudo persistir el archivo subido. Contacta al administrador.",
+      });
+    }
+
+    console.log(`[upload] ✅ Guardado en ${savedCount}/${uploadDirs.length} directorios: ${outputFilename}`);
+
+    // Ruta relativa (compatibilidad con frontend actual) y URL absoluta (preferida en admin)
+    const relativePath = `/uploads/${outputFilename}`;
+    const absoluteUrl = `${API_PUBLIC_URL}${relativePath}`;
 
     return res.status(200).json({
       success: true,
       message: "Archivo procesado y subido exitosamente.",
       data: {
-        url: fileUrl,
+        url: relativePath,         // Ruta relativa — compatible con el frontend actual
+        absoluteUrl: absoluteUrl,  // URL absoluta — usar preferiblemente en el admin
         filename: outputFilename,
+        savedInDirs: savedCount,
       },
     });
   } catch (error) {

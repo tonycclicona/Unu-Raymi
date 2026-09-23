@@ -70,9 +70,15 @@ $uriPath = parse_url($requestUri, PHP_URL_PATH) ?: '/';
 if (strpos($uriPath, '/uploads/') === 0) {
     $filename = basename($uriPath);
     $possibleDirs = [
+        // Prioridad: storage del subdominio api.unu-raymi.com (path canónico Hostinger)
+        '/home/u209525223/domains/api.unu-raymi.com/storage/uploads',
+        // Fallback: public_html del dominio principal
+        '/home/u209525223/domains/unu-raymi.com/public_html/uploads',
+        // Fallback: api subfolder dentro de public_html
+        '/home/u209525223/domains/unu-raymi.com/public_html/api/uploads',
+        // Rutas relativas del repositorio (para entornos de desarrollo/staging)
         __DIR__ . '/../uploads',
         __DIR__ . '/uploads',
-        '/home/u209525223/domains/unu-raymi.com/public_html/uploads',
         dirname(__DIR__) . '/backend/storage/uploads',
         dirname(__DIR__) . '/storage/uploads',
         dirname(dirname(__DIR__)) . '/backend/storage/uploads'
@@ -96,6 +102,7 @@ if (strpos($uriPath, '/uploads/') === 0) {
             header("Content-Type: $cType");
             header("Content-Length: " . filesize($filePath));
             header("Cache-Control: public, max-age=604800, immutable");
+            header("Access-Control-Allow-Origin: *");
             @readfile($filePath);
             exit(0);
         }

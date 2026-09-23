@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import useSWR from 'swr';
-import { fetcher, API_ASSETS_URL } from '@/lib/api';
+import { fetcher, API_ASSETS_URL, getImageUrl, handleImageFallback } from '@/lib/api';
 import { Sparkles, Languages, Award, Footprints, ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 
@@ -36,7 +36,7 @@ export default function Guias() {
       dbTours.forEach((tour) => {
         if (Array.isArray(tour.imagenes)) {
           tour.imagenes.forEach((img) => {
-            const url = img.url?.startsWith('http') ? img.url : `${API_ASSETS_URL}${img.url}`;
+            const url = getImageUrl(img.url);
             if (url && !extracted.includes(url)) extracted.push(url);
           });
         }
@@ -183,11 +183,7 @@ export default function Guias() {
                   className="w-full shrink-0 grid grid-cols-1 md:grid-cols-3 gap-5 lg:gap-6 py-2 items-stretch"
                 >
                   {group.map((guia) => {
-                    const guiaImg = guia.foto
-                      ? guia.foto.startsWith('http')
-                        ? guia.foto
-                        : `${API_ASSETS_URL}${guia.foto}`
-                      : '';
+                    const guiaImg = getImageUrl(guia.foto);
 
                     return (
                       <div
@@ -199,11 +195,18 @@ export default function Guias() {
                           {/* Avatar Circular */}
                           <div className="relative">
                             <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden border-2 border-[#d4af37]/60 shadow-[0_0_25px_rgba(212,175,55,0.25)] group-hover:scale-105 group-hover:border-[#d4af37] transition-all duration-500 bg-black/40">
-                              <img
-                                src={guiaImg}
-                                alt={guia.nombre}
-                                className="w-full h-full object-cover object-top"
-                              />
+                              {guiaImg ? (
+                                <img
+                                  src={guiaImg}
+                                  alt={guia.nombre}
+                                  className="w-full h-full object-cover object-top"
+                                  onError={(e) => handleImageFallback(e, guia.foto)}
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-[#d4af37] text-3xl font-bold">
+                                  {guia.nombre?.charAt(0)?.toUpperCase() || '?'}
+                                </div>
+                              )}
                             </div>
                           </div>
 

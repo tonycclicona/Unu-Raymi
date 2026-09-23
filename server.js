@@ -7,9 +7,13 @@
 const fs = require('fs');
 const path = require('path');
 const express = require('express');
+const compression = require('compression');
 
 const app = express();
 app.disable('x-powered-by');
+
+// Activar compresión gzip/brotli para todas las respuestas
+app.use(compression());
 
 // Cargar variables de entorno
 function loadEnv(file) {
@@ -156,6 +160,25 @@ const backendPromise = import(pathToFileURL(resolvedBackendPath).href)
     console.error('> [Server] Error cargando backend API:', err.message);
     return null;
   });
+
+// ── 0. SERVIR UPLOADS DIRECTAMENTE (SIN DEPENDER DEL BACKEND) ────────────────
+// Sirve /uploads/ y /api/uploads/ desde los dirs de Hostinger sin esperar que el backend inicialice.
+// Esto evita el 503 cuando Node.js tarda en levantar el backend.
+const uploadDirsToServe = [
+  process.env.UPLOADS_PATH,
+  '/home/u209525223/domains/api.unu-raymi.com/storage/uploads',
+  '/home/u209525223/domains/unu-raymi.com/public_html/uploads',
+  path.resolve(__dirname, 'backend/storage/uploads'),
+  path.resolve(__dirname, 'public_html/uploads'),
+  path.resolve(__dirname, 'storage/uploads'),
+].filter(Boolean);
+
+uploadDirsToServe.forEach(function(dir) {
+  if (fs.existsSync(dir)) {
+    app.use('/uploads', express.static(dir, { maxAge: '7d', immutable: true }));
+    app.use('/api/uploads', express.static(dir, { maxAge: '7d', immutable: true }));
+  }
+});
 
 // ── 2. RUTEO DE API Y CABECERAS CORS ─────────────────────────────────────────
 app.use(async function(req, res, next) {
