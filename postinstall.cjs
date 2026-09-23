@@ -8,8 +8,10 @@ const fs = require('fs');
 console.log('\n[postinstall] ==========================================');
 console.log('[postinstall] Starting Full Monorepo Build & Setup');
 console.log('[postinstall] CWD:', process.cwd());
-const appType = (process.argv[2] || process.env.APP_TYPE || 'all').toLowerCase();
-console.log('[postinstall] APP_TYPE:', appType);
+// appType solo se restringe si se pasa explícitamente por CLI (ej: node postinstall.cjs backend).
+// En Hostinger, debe compilar SIEMPRE todo (backend + frontend + admin) para tener public_html listo.
+const appType = (process.argv[2] || 'all').toLowerCase();
+console.log('[postinstall] Target build:', appType);
 console.log('[postinstall] ==========================================\n');
 
 function run(cmd, subdir) {
@@ -82,9 +84,6 @@ if (appType === 'all' || appType === 'backend') {
 
   const apiHtaccessContent = `<IfModule mod_rewrite.c>
 RewriteEngine On
-
-RewriteCond %{HTTP_HOST} ^(www\\.)?unu-raymi\\.com$ [NC]
-RewriteRule ^ - [L]
 
 RewriteRule ^index\\.php$ - [L]
 RewriteCond %{REQUEST_FILENAME} !-f

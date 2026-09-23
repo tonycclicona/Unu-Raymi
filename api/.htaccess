@@ -1,11 +1,5 @@
 <IfModule mod_rewrite.c>
 RewriteEngine On
-
-# Si la peticion es para el dominio principal unu-raymi.com,
-# no ejecutar el proxy PHP: dejar que LiteSpeed y Passenger se lo entreguen directamente a Node.js Express
-RewriteCond %{HTTP_HOST} ^(www\.)?unu-raymi\.com$ [NC]
-RewriteRule ^ - [L]
-
 RewriteRule ^index\.php$ - [L]
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d

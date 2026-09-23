@@ -20,7 +20,7 @@ function loadEnv(file) {
   if (fs.existsSync(file)) {
     try {
       const lines = fs.readFileSync(file, 'utf8').split('\n');
-      lines.forEach(function(l) {
+      lines.forEach(function (l) {
         const t = l.trim();
         if (t && !t.startsWith('#')) {
           const eq = t.indexOf('=');
@@ -35,7 +35,7 @@ function loadEnv(file) {
           }
         }
       });
-    } catch (e) {}
+    } catch (e) { }
   }
 }
 
@@ -69,15 +69,15 @@ function copyStaticFiles(srcDir, destDir) {
     const destItem = path.join(destDir, item);
     try {
       fs.cpSync(srcItem, destItem, { recursive: true, force: true });
-    } catch (e) {}
+    } catch (e) { }
   }
 }
 
 // ── Sincronizar frontend, admin y api en tiempo de ejecución ───────────────
 try {
   const hostingerBase = '/home/u209525223/domains/unu-raymi.com/public_html';
-  const apiDomainBase = '/home/u209525223/domains/api.unu-raymi.com/public_html';
-  const adminDomainBase = '/home/u209525223/domains/admin.unu-raymi.com/public_html';
+  const apiDomainBase = '/home/u209525223/domains/unu-raymi.com/public_html/api';
+  const adminDomainBase = '/home/u209525223/domains/unu-raymi.com/public_html/admin';
   const pubDir = fs.existsSync(hostingerBase) ? hostingerBase : path.resolve(__dirname, 'public_html');
   const adminDest = path.join(pubDir, 'admin');
   const apiDest = path.join(pubDir, 'api');
@@ -86,6 +86,30 @@ try {
   if (fs.existsSync(frontendDir) && pubDir !== frontendDir) {
     fs.mkdirSync(pubDir, { recursive: true });
     copyStaticFiles(frontendDir, pubDir);
+    const frontendHtaccessContent = `<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteBase /
+
+# No interceptar API, Admin ni Uploads
+RewriteRule ^api(/.*)?$ - [L]
+RewriteRule ^admin(/.*)?$ - [L]
+RewriteRule ^uploads(/.*)?$ - [L]
+
+# Peticiones de RSC / Prefetch Next.js
+RewriteCond %{HTTP:RSC} 1 [OR]
+RewriteCond %{QUERY_STRING} (^|&)_rsc=
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteCond %{REQUEST_FILENAME}/index.txt -f
+RewriteRule ^(.*)$ $1/index.txt [T=text/plain,L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.html [L]
+</IfModule>
+`;
+    try {
+      fs.writeFileSync(path.join(pubDir, '.htaccess'), frontendHtaccessContent);
+    } catch (e) {}
     console.log('> [Server] Synchronized frontend to:', pubDir);
   }
 
@@ -110,7 +134,7 @@ try {
     ? path.resolve(__dirname, 'api/.htaccess')
     : path.resolve(__dirname, '.htaccess');
 
-  const syncProxyToDir = function(targetDir) {
+  const syncProxyToDir = function (targetDir) {
     try {
       if (fs.existsSync(path.dirname(targetDir))) {
         fs.mkdirSync(targetDir, { recursive: true });
@@ -122,7 +146,7 @@ try {
         }
         console.log('> [Server] Synchronized API proxy to:', targetDir);
       }
-    } catch (e) {}
+    } catch (e) { }
   };
 
   syncProxyToDir(apiDest);
@@ -131,7 +155,7 @@ try {
   // 4. Sincronizar carpeta de Uploads bidireccionalmente
   const uploadSources = [
     process.env.UPLOADS_PATH,
-    '/home/u209525223/domains/api.unu-raymi.com/storage/uploads',
+    '/home/u209525223/domains/unu-raymi.com/storage/uploads',
     path.resolve(__dirname, 'backend/storage/uploads'),
     path.resolve(__dirname, 'storage/uploads'),
     path.resolve(__dirname, 'public_html/uploads')
@@ -140,33 +164,33 @@ try {
   const uploadDestinations = [
     path.join(pubDir, 'uploads'),
     path.join(apiDest, 'uploads'),
-    '/home/u209525223/domains/api.unu-raymi.com/storage/uploads'
+    '/home/u209525223/domains/unu-raymi.com/storage/uploads'
   ];
 
-  uploadDestinations.forEach(function(dest) {
+  uploadDestinations.forEach(function (dest) {
     try {
       if (fs.existsSync(path.dirname(dest))) {
         fs.mkdirSync(dest, { recursive: true });
       }
-    } catch (e) {}
+    } catch (e) { }
   });
 
-  uploadSources.forEach(function(srcDir) {
+  uploadSources.forEach(function (srcDir) {
     if (fs.existsSync(srcDir)) {
       try {
         const files = fs.readdirSync(srcDir);
-        files.forEach(function(f) {
+        files.forEach(function (f) {
           const s = path.join(srcDir, f);
-          uploadDestinations.forEach(function(d) {
+          uploadDestinations.forEach(function (d) {
             if (fs.existsSync(d)) {
               const targetFile = path.join(d, f);
               if (!fs.existsSync(targetFile)) {
-                try { fs.copyFileSync(s, targetFile); } catch (e) {}
+                try { fs.copyFileSync(s, targetFile); } catch (e) { }
               }
             }
           });
         });
-      } catch (e) {}
+      } catch (e) { }
     }
   });
 } catch (e) {
@@ -183,12 +207,12 @@ const resolvedBackendPath = fs.existsSync(path.resolve(__dirname, 'backend/src/s
   : path.resolve(__dirname, 'backend/dist/server.js');
 
 const backendPromise = import(pathToFileURL(resolvedBackendPath).href)
-  .then(function(m) {
+  .then(function (m) {
     backendApp = m.default || m.app || m;
     console.log('> [Server] Backend API montado exitosamente desde:', resolvedBackendPath);
     return backendApp;
   })
-  .catch(function(err) {
+  .catch(function (err) {
     backendError = err;
     console.error('> [Server] Error cargando backend API:', err.message);
     return null;
@@ -197,14 +221,13 @@ const backendPromise = import(pathToFileURL(resolvedBackendPath).href)
 // ── 0. SERVIR UPLOADS DIRECTAMENTE (SIN DEPENDER DEL BACKEND) ────────────────
 const uploadDirsToServe = [
   process.env.UPLOADS_PATH,
-  '/home/u209525223/domains/api.unu-raymi.com/storage/uploads',
   '/home/u209525223/domains/unu-raymi.com/public_html/uploads',
   path.resolve(__dirname, 'backend/storage/uploads'),
   path.resolve(__dirname, 'public_html/uploads'),
   path.resolve(__dirname, 'storage/uploads'),
 ].filter(Boolean);
 
-uploadDirsToServe.forEach(function(dir) {
+uploadDirsToServe.forEach(function (dir) {
   if (fs.existsSync(dir)) {
     app.use('/uploads', express.static(dir, { maxAge: '7d', immutable: true }));
     app.use('/api/uploads', express.static(dir, { maxAge: '7d', immutable: true }));
@@ -216,7 +239,7 @@ const configuredAppType = (process.env.APP_TYPE || '').toLowerCase().trim();
 console.log('> [Server] Modo APP_TYPE configurado:', configuredAppType || 'all (gateway)');
 
 // ── 2. RUTEO DE API Y CABECERAS CORS ─────────────────────────────────────────
-app.use(async function(req, res, next) {
+app.use(async function (req, res, next) {
   res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
   res.header('Access-Control-Allow-Credentials', 'true');
   res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS,PATCH');
@@ -228,7 +251,6 @@ app.use(async function(req, res, next) {
 
   const host = (req.headers['x-forwarded-host'] || req.headers.host || '').toLowerCase();
   const isApiRequest =
-    configuredAppType === 'backend' ||
     host.startsWith('api.') ||
     host.includes('api.unu-raymi.com') ||
     req.url.startsWith('/api') ||
@@ -238,7 +260,7 @@ app.use(async function(req, res, next) {
     if (!backendApp && backendPromise) {
       try {
         await backendPromise;
-      } catch (e) {}
+      } catch (e) { }
     }
     if (typeof backendApp === 'function') {
       return backendApp(req, res, next);
@@ -255,20 +277,11 @@ app.use(async function(req, res, next) {
     });
   }
 
-  // Si este proceso fue configurado exclusivamente como backend en Hostinger,
-  // nunca debe caer al SPA de frontend
-  if (configuredAppType === 'backend') {
-    return res.status(404).json({
-      success: false,
-      error: 'Ruta no encontrada en el servidor backend API.'
-    });
-  }
-
   next();
 });
 
 // ── 3. RUTEO DE ADMIN ────────────────────────────────────────────────────────
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
   const host = (req.headers.host || '').toLowerCase();
   if (host.startsWith('admin.') || req.url.startsWith('/admin')) {
     if (fs.existsSync(adminDir)) {
@@ -291,7 +304,7 @@ app.use(function(req, res, next) {
         }
       }
 
-      return express.static(adminDir, { extensions: ['html'] })(req, res, function() {
+      return express.static(adminDir, { extensions: ['html'] })(req, res, function () {
         const parsed = cleanPath.split('/');
         if (parsed.length >= 3 && parsed[2] === 'editar') {
           const editPage = path.join(adminDir, parsed[0], '1', 'editar', 'index.html');
@@ -312,7 +325,7 @@ if (fs.existsSync(frontendDir)) {
 }
 
 // Fallback SPA Frontend
-app.use(function(req, res) {
+app.use(function (req, res) {
   const candidates = [
     path.join(frontendDir, 'index.html'),
     path.resolve(__dirname, 'out/index.html'),
@@ -329,28 +342,27 @@ app.use(function(req, res) {
 function savePortFile(p) {
   const targets = [
     '/home/u209525223/domains/unu-raymi.com/public_html/api/.port',
+    '/home/u209525223/domains/unu-raymi.com/public_html/.port',
     '/home/u209525223/domains/api.unu-raymi.com/public_html/.port',
     path.resolve(__dirname, 'api/.port'),
     path.resolve(__dirname, '.port')
   ];
-  targets.forEach(function(target) {
+  targets.forEach(function (target) {
     try {
-      if (fs.existsSync(path.dirname(target))) {
-        fs.mkdirSync(path.dirname(target), { recursive: true });
-        fs.writeFileSync(target, String(p));
-      }
-    } catch (e) {}
+      fs.mkdirSync(path.dirname(target), { recursive: true });
+      fs.writeFileSync(target, String(p));
+    } catch (e) { }
   });
 }
 
 // En entornos Hostinger LiteSpeed / Node.js
 const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 4000;
-const server = app.listen(port, function() {
+const server = app.listen(port, function () {
   console.log('> [Server] Unu-Raymi escuchando en puerto principal:', port);
   savePortFile(port);
 });
 
-server.on('error', function(err) {
+server.on('error', function (err) {
   if (err.code !== 'EADDRINUSE') {
     console.error('> [Server Error]:', err.message);
   }
@@ -359,15 +371,15 @@ server.on('error', function(err) {
 // Si Hostinger asignó un puerto dinámico diferente a 4000, levantar gateway interno en 4000
 if (port !== 4000) {
   try {
-    const internalServer = app.listen(4000, '127.0.0.1', function() {
+    const internalServer = app.listen(4000, '127.0.0.1', function () {
       console.log('> [Server] Gateway interno de compatibilidad escuchando en http://127.0.0.1:4000');
     });
-    internalServer.on('error', function(err) {
+    internalServer.on('error', function (err) {
       if (err.code !== 'EADDRINUSE') {
         console.warn('> [Server Warning] Gateway interno 4000:', err.message);
       }
     });
-  } catch (e) {}
+  } catch (e) { }
 }
 
 module.exports = app;
