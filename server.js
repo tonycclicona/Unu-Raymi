@@ -68,17 +68,21 @@ function copyStaticFiles(srcDir, destDir) {
     const srcItem = path.join(srcDir, item);
     const destItem = path.join(destDir, item);
     try {
-      fs.cpSync(srcItem, destItem, { recursive: true, force: true });
+      // Solo copiar si no existe en destino para arranque instantáneo (menos de 50ms)
+      if (!fs.existsSync(destItem)) {
+        fs.cpSync(srcItem, destItem, { recursive: true, force: false });
+      }
     } catch (e) { }
   }
 }
 
-// ── Sincronizar frontend, admin y api en tiempo de ejecución ───────────────
+// ── Sincronizar frontend, admin y api en tiempo de ejecución (Hostinger Linux) ──
 try {
+  const isHostingerLinux = process.platform !== 'win32' && fs.existsSync('/home/u209525223');
   const hostingerBase = '/home/u209525223/domains/unu-raymi.com/public_html';
   const apiDomainBase = '/home/u209525223/domains/unu-raymi.com/public_html/api';
   const adminDomainBase = '/home/u209525223/domains/unu-raymi.com/public_html/admin';
-  const pubDir = fs.existsSync(hostingerBase) ? hostingerBase : path.resolve(__dirname, 'public_html');
+  const pubDir = isHostingerLinux && fs.existsSync(hostingerBase) ? hostingerBase : path.resolve(__dirname, 'public_html');
   const adminDest = path.join(pubDir, 'admin');
   const apiDest = path.join(pubDir, 'api');
 
@@ -119,7 +123,7 @@ RewriteRule . /index.html [L]
     copyStaticFiles(adminDir, adminDest);
     console.log('> [Server] Synchronized admin to:', adminDest);
 
-    if (fs.existsSync(path.dirname(adminDomainBase))) {
+    if (isHostingerLinux && fs.existsSync(path.dirname(adminDomainBase))) {
       fs.mkdirSync(adminDomainBase, { recursive: true });
       copyStaticFiles(adminDir, adminDomainBase);
       console.log('> [Server] Synchronized admin to domain root:', adminDomainBase);
@@ -241,6 +245,14 @@ uploadDirsToServe.forEach(function (dir) {
 const configuredAppType = (process.env.APP_TYPE || '').toLowerCase().trim();
 console.log('> [Server] Modo APP_TYPE configurado:', configuredAppType || 'all (gateway)');
 
+// ── Variables de servidores y bridges internos ───────────────────────────────
+let internalTcpPort = 0;
+let tcpBridgeServer = null;
+let userSocketPath = null;
+let userSocketServer = null;
+let server = null;
+let actualBoundPort = 0;
+
 // ── 2. RUTEO DE API Y CABECERAS CORS ─────────────────────────────────────────
 app.use(async function (req, res, next) {
   res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
@@ -253,7 +265,10 @@ app.use(async function (req, res, next) {
   }
 
   const host = (req.headers['x-forwarded-host'] || req.headers.host || '').toLowerCase();
+  const isFromBridge = (internalTcpPort > 0 && req.socket && req.socket.localPort === internalTcpPort);
   const isApiRequest =
+    isFromBridge ||
+    configuredAppType === 'backend' ||
     host.startsWith('api.') ||
     host.includes('api.unu-raymi.com') ||
     req.url.startsWith('/api') ||
@@ -266,6 +281,10 @@ app.use(async function (req, res, next) {
       } catch (e) { }
     }
     if (typeof backendApp === 'function') {
+      // Normalizar rutas directas que lleguen al subdominio o bridge (ej: /health, /tours, /)
+      if (!req.url.startsWith('/api') && !req.url.startsWith('/uploads')) {
+        req.url = '/api' + (req.url.startsWith('/') ? req.url : '/' + req.url);
+      }
       return backendApp(req, res, next);
     }
     if (backendError) {
@@ -343,6 +362,17 @@ app.use(function (req, res) {
 });
 
 function savePortFile(p, meta = {}) {
+  // Asegurar que si el puerto asignado es un socket privado de LiteSpeed (/usr/local/lsws/),
+  // registremos el puerto TCP local de bridge en .port para que PHP pueda conectarse sin problemas de permisos de CageFS
+  let portToSave = String(p).trim();
+  if (portToSave.startsWith('/usr/local/lsws/')) {
+    if (internalTcpPort > 0) {
+      portToSave = String(internalTcpPort);
+    } else if (userSocketPath) {
+      portToSave = userSocketPath;
+    }
+  }
+
   const targets = [
     '/home/u209525223/domains/unu-raymi.com/public_html/api/.port',
     '/home/u209525223/domains/unu-raymi.com/public_html/.port',
@@ -353,10 +383,13 @@ function savePortFile(p, meta = {}) {
   targets.forEach(function (target) {
     try {
       if (fs.existsSync(path.dirname(target))) {
-        fs.writeFileSync(target, String(p).trim());
+        fs.writeFileSync(target, portToSave);
         const metaTarget = path.join(path.dirname(target), '.port_meta.json');
         fs.writeFileSync(metaTarget, JSON.stringify({
+          published_port: portToSave,
           actual_port: p,
+          tcp_port: internalTcpPort,
+          user_socket: userSocketPath,
           env_port: process.env.PORT || null,
           passenger: typeof PhusionPassenger !== 'undefined',
           date: new Date().toISOString(),
@@ -367,27 +400,78 @@ function savePortFile(p, meta = {}) {
   });
 }
 
-// Detección y gestión de puertos dinámicos para el entorno de Hostinger (LiteSpeed / Passenger / CloudLinux)
+function updatePortRegistry(extraMeta = {}) {
+  const published = internalTcpPort > 0 ? internalTcpPort : (userSocketPath || actualBoundPort);
+  savePortFile(published, extraMeta);
+}
+
+// ── 1. Iniciar Bridge TCP loopback interno en 127.0.0.1:0 (puerto dinámico del SO) ──
+try {
+  tcpBridgeServer = app.listen(0, '127.0.0.1', function () {
+    const tcpAddr = tcpBridgeServer.address();
+    internalTcpPort = (tcpAddr && typeof tcpAddr === 'object') ? tcpAddr.port : 0;
+    console.log('> [Server] Bridge TCP local activo en puerto dinámico:', internalTcpPort);
+    updatePortRegistry({ tcp_active: true });
+  });
+  tcpBridgeServer.on('error', function (err) {
+    console.warn('> [Server Warning] Bridge TCP:', err.message);
+  });
+} catch (e) {
+  console.warn('> [Server Warning] Error iniciando bridge TCP:', e.message);
+}
+
+// ── 2. Iniciar Socket Unix de usuario en espacio propio de Hostinger (permisos 0777) ──
+if (process.platform !== 'win32') {
+  const sockCandidates = [
+    '/home/u209525223/domains/unu-raymi.com/public_html/api/node.sock',
+    path.resolve(__dirname, 'api/node.sock'),
+    path.resolve(__dirname, 'node.sock')
+  ];
+  for (const sc of sockCandidates) {
+    if (fs.existsSync(path.dirname(sc))) {
+      userSocketPath = sc;
+      break;
+    }
+  }
+  if (userSocketPath) {
+    try {
+      if (fs.existsSync(userSocketPath)) {
+        try { fs.unlinkSync(userSocketPath); } catch (e) { }
+      }
+      userSocketServer = app.listen(userSocketPath, function () {
+        try { fs.chmodSync(userSocketPath, 0o777); } catch (e) { }
+        console.log('> [Server] Socket Unix de usuario activo en:', userSocketPath);
+        updatePortRegistry({ user_socket_active: true });
+      });
+      userSocketServer.on('error', function (err) {
+        console.warn('> [Server Warning] Socket Unix:', err.message);
+      });
+    } catch (e) {
+      console.warn('> [Server Warning] Error iniciando socket Unix:', e.message);
+    }
+  }
+}
+
+// ── 3. Listener principal según entorno de Hostinger (LiteSpeed / Passenger / Dinámico) ──
 const rawEnvPort = process.env.PORT || process.env.PASSENGER_PORT || process.env.APP_PORT || process.env.NODE_PORT;
 const port = rawEnvPort ? (isNaN(rawEnvPort) ? rawEnvPort : parseInt(rawEnvPort, 10)) : 0;
 console.log('> [Server] Puerto asignado por Hostinger / entorno:', rawEnvPort || '(asignación dinámica automática)');
 
-let server;
+actualBoundPort = port;
 if (typeof PhusionPassenger !== 'undefined') {
   console.log('> [Server] Modo Phusion Passenger detectado. Vinculando a socket de Passenger...');
   server = app.listen('passenger', function () {
     const addr = server.address();
-    const actualPort = (addr && typeof addr === 'object') ? addr.port : (addr || 'passenger');
-    console.log('> [Server] Unu-Raymi escuchando en socket/puerto Passenger:', actualPort);
-    savePortFile(actualPort, { passenger: true, addr: addr });
+    actualBoundPort = (addr && typeof addr === 'object' && addr.port) ? addr.port : (addr || 'passenger');
+    console.log('> [Server] Unu-Raymi escuchando en socket/puerto Passenger:', actualBoundPort);
+    updatePortRegistry({ passenger: true, bound_address: addr });
   });
 } else {
-  // Escucha en el puerto dinámico de Hostinger o en puerto libre asignado por el SO
   server = app.listen(port, function () {
     const addr = server.address();
-    const actualPort = (addr && typeof addr === 'object' && addr.port) ? addr.port : (addr || port);
-    console.log('> [Server] Unu-Raymi escuchando en puerto dinámico real:', actualPort);
-    savePortFile(actualPort, { bound_address: addr });
+    actualBoundPort = (addr && typeof addr === 'object' && addr.port) ? addr.port : (addr || port);
+    console.log('> [Server] Unu-Raymi escuchando en listener principal:', actualBoundPort);
+    updatePortRegistry({ bound_address: addr });
   });
 }
 
@@ -398,3 +482,4 @@ server.on('error', function (err) {
 });
 
 module.exports = app;
+

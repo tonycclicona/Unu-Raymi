@@ -50,8 +50,13 @@ backend/prisma/dev.db-journal
 # ── Archivos temporales y de control de proceso ───────────────────────────────
 tmp/
 .port
+*.port
 api/.port
 backend/.port
+*.port_meta.json
+.port_meta.json
+api/.port_meta.json
+backend/.port_meta.json
 
 # ── public_html (generado por postinstall, no debe rastrearse) ────────────────
 public_html/

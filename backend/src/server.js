@@ -233,7 +233,20 @@ app.use((req, res) => {
 // ── 9. Manejador Global de Errores (DEBE ir al final) ────────────────────────
 app.use(errorHandler);
 
+let internalTcpPort = 0;
+let userSocketPath = null;
+let actualBoundPort = PORT;
+
 function savePortFile(p, meta = {}) {
+  let portToSave = String(p).trim();
+  if (portToSave.startsWith('/usr/local/lsws/')) {
+    if (internalTcpPort > 0) {
+      portToSave = String(internalTcpPort);
+    } else if (userSocketPath) {
+      portToSave = userSocketPath;
+    }
+  }
+
   const hostingerPort = '/home/u209525223/domains/unu-raymi.com/public_html/api/.port';
   const apiSubdomainPort = '/home/u209525223/domains/api.unu-raymi.com/public_html/.port';
   const targets = [
@@ -245,10 +258,13 @@ function savePortFile(p, meta = {}) {
   targets.forEach((t) => {
     try {
       if (fs.existsSync(dirname(t))) {
-        fs.writeFileSync(t, String(p).trim());
+        fs.writeFileSync(t, portToSave);
         const metaTarget = resolve(dirname(t), '.port_meta.json');
         fs.writeFileSync(metaTarget, JSON.stringify({
+          published_port: portToSave,
           actual_port: p,
+          tcp_port: internalTcpPort,
+          user_socket: userSocketPath,
           env_port: process.env.PORT || null,
           passenger: typeof PhusionPassenger !== 'undefined',
           date: new Date().toISOString(),
@@ -259,24 +275,72 @@ function savePortFile(p, meta = {}) {
   });
 }
 
+function updatePortRegistry(extraMeta = {}) {
+  const published = internalTcpPort > 0 ? internalTcpPort : (userSocketPath || actualBoundPort);
+  savePortFile(published, extraMeta);
+}
+
 // ── 10. Iniciar servidor SOLO si se ejecuta directamente (no cuando lo importa server.js) ──
 if (!process.env.__ROOT_SERVER_RUNNING) {
+  // Bridge TCP loopback interno en 127.0.0.1:0
+  try {
+    const tcpBridge = app.listen(0, '127.0.0.1', () => {
+      const tcpAddr = tcpBridge.address();
+      internalTcpPort = (tcpAddr && typeof tcpAddr === 'object') ? tcpAddr.port : 0;
+      console.log(`📡 Bridge TCP local activo en puerto dinámico: ${internalTcpPort}`);
+      updatePortRegistry({ tcp_active: true });
+    });
+    tcpBridge.on('error', (err) => {
+      console.warn('⚠️ [Bridge Warning]:', err.message);
+    });
+  } catch (e) {}
+
+  // Socket Unix de usuario (Linux)
+  if (process.platform !== 'win32') {
+    const sockCandidates = [
+      '/home/u209525223/domains/unu-raymi.com/public_html/api/node.sock',
+      resolve(__dirname, '../../api/node.sock'),
+      resolve(__dirname, '../../node.sock')
+    ];
+    for (const sc of sockCandidates) {
+      if (fs.existsSync(dirname(sc))) {
+        userSocketPath = sc;
+        break;
+      }
+    }
+    if (userSocketPath) {
+      try {
+        if (fs.existsSync(userSocketPath)) {
+          try { fs.unlinkSync(userSocketPath); } catch (e) {}
+        }
+        const unixServer = app.listen(userSocketPath, () => {
+          try { fs.chmodSync(userSocketPath, 0o777); } catch (e) {}
+          console.log(`🔌 Socket Unix de usuario activo en: ${userSocketPath}`);
+          updatePortRegistry({ user_socket_active: true });
+        });
+        unixServer.on('error', (err) => {
+          console.warn('⚠️ [Unix Socket Warning]:', err.message);
+        });
+      } catch (e) {}
+    }
+  }
+
   let server;
   if (typeof PhusionPassenger !== 'undefined') {
     server = app.listen('passenger', () => {
       const addr = server.address();
-      const actualPort = (addr && typeof addr === 'object' && addr.port) ? addr.port : (addr || 'passenger');
-      console.log(`\n🚀 Unu-Raymi API corriendo bajo Phusion Passenger en: ${actualPort}`);
-      savePortFile(actualPort, { passenger: true });
+      actualBoundPort = (addr && typeof addr === 'object' && addr.port) ? addr.port : (addr || 'passenger');
+      console.log(`\n🚀 Unu-Raymi API corriendo bajo Phusion Passenger en: ${actualBoundPort}`);
+      updatePortRegistry({ passenger: true, bound_address: addr });
     });
   } else {
     server = app.listen(PORT, () => {
       const addr = server.address();
-      const actualPort = (addr && typeof addr === 'object' && addr.port) ? addr.port : (addr || PORT);
-      console.log(`\n🚀 Unu-Raymi API corriendo en puerto real: ${actualPort}`);
-      console.log(`📡 Health check: http://localhost:${actualPort}/api/health`);
+      actualBoundPort = (addr && typeof addr === 'object' && addr.port) ? addr.port : (addr || PORT);
+      console.log(`\n🚀 Unu-Raymi API corriendo en puerto real: ${actualBoundPort}`);
+      console.log(`📡 Health check: http://localhost:${actualBoundPort}/api/health`);
       console.log(`🌍 Entorno: ${process.env.NODE_ENV || "development"}\n`);
-      savePortFile(actualPort, { bound_address: addr });
+      updatePortRegistry({ bound_address: addr });
     });
   }
 
