@@ -370,10 +370,15 @@ function savePortFile(p) {
 
 // En entornos Hostinger LiteSpeed / Node.js
 const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 4000;
-const server = app.listen(port, function() {
+const server = app.listen(port, '0.0.0.0', function() {
   console.log('> [Server] Unu-Raymi escuchando en puerto principal:', port);
   savePortFile(port);
 });
+
+// Guardar periódicamente el archivo .port para asegurar sincronización constante con el proxy PHP
+setInterval(function() {
+  savePortFile(port);
+}, 10000);
 
 server.on('error', function(err) {
   if (err.code !== 'EADDRINUSE') {
@@ -384,8 +389,8 @@ server.on('error', function(err) {
 // Si Hostinger asignó un puerto dinámico diferente a 4000, levantar gateway interno en 4000
 if (port !== 4000) {
   try {
-    const internalServer = app.listen(4000, '127.0.0.1', function() {
-      console.log('> [Server] Gateway interno de compatibilidad escuchando en http://127.0.0.1:4000');
+    const internalServer = app.listen(4000, '0.0.0.0', function() {
+      console.log('> [Server] Gateway interno de compatibilidad escuchando en 0.0.0.0:4000');
     });
     internalServer.on('error', function(err) {
       if (err.code !== 'EADDRINUSE') {
