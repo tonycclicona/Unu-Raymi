@@ -41,3 +41,13 @@ jobs:
         run: npm --workspace=admin run build
         env:
           NEXT_PUBLIC_API_URL: "https://api.unu-raymi.com/api"
+
+      - name: 🚀 Trigger Hostinger Auto-Deploy Webhook
+        if: github.ref == 'refs/heads/main' && env.DEPLOY_URL != ''
+        run: |
+          echo "Disparando webhook de despliegue a Hostinger..."
+          curl -s -X POST "$DEPLOY_URL" || true
+          echo "Webhook disparado."
+        env:
+          DEPLOY_URL: ${{ secrets.HOSTINGER_WEBHOOK_URL }}
+

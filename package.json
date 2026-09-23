@@ -17,7 +17,8 @@
     "build:admin": "node postinstall.cjs admin",
     "start:admin": "APP_TYPE=admin node server.js",
     "build:frontend": "node postinstall.cjs frontend",
-    "start:frontend": "APP_TYPE=frontend node server.js"
+    "start:frontend": "APP_TYPE=frontend node server.js",
+    "deploy": "git push origin main"
   },
   "main": "server.js",
   "workspaces": [

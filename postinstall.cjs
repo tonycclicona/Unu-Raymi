@@ -82,12 +82,15 @@ if (appType === 'all' || appType === 'backend') {
     ? fs.readFileSync(proxySourcePath, 'utf8')
     : `<?php header("Access-Control-Allow-Origin: *"); http_response_code(502); echo json_encode(["error" => "Proxy file missing"]); ?>`;
 
-  const apiHtaccessContent = `<IfModule mod_rewrite.c>
+  const apiHtaccessPath = path.resolve(process.cwd(), 'api/.htaccess');
+  const apiHtaccessContent = fs.existsSync(apiHtaccessPath)
+    ? fs.readFileSync(apiHtaccessPath, 'utf8')
+    : `<IfModule mod_rewrite.c>
 RewriteEngine On
-
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteRule ^ - [L]
 RewriteRule ^index\\.php$ - [L]
 RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(.*)$ index.php [QSA,L]
 </IfModule>
 `;
@@ -343,6 +346,22 @@ try {
         console.error(`Warning: Failed to sync to ${target}:`, err.message);
       }
     }
+  });
+} catch (e) {}
+
+// ── 5. REINICIO AUTOMÁTICO DE APLICACIÓN EN HOSTINGER (PASSENGER / LITESPEED) ──
+try {
+  const restartCandidates = [
+    path.resolve(process.cwd(), 'tmp/restart.txt'),
+    '/home/u209525223/domains/unu-raymi.com/tmp/restart.txt'
+  ];
+  restartCandidates.forEach(rf => {
+    try {
+      if (fs.existsSync(path.dirname(rf))) {
+        fs.writeFileSync(rf, String(Date.now()));
+        console.log(`[postinstall] 🔄 Disparado reinicio automático de Node.js via: ${rf}`);
+      }
+    } catch (e) {}
   });
 } catch (e) {}
 
