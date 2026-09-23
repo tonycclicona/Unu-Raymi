@@ -50,8 +50,12 @@ export default function LocaleHomePage({ params }) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Cargar tours de la API en tiempo real
-  const { data: response } = useSWR('/tours?activo=true', fetcher);
+  // Cargar tours de la API en tiempo real con configuración optimizada de caché SWR
+  const { data: response, isLoading } = useSWR('/tours?activo=true', fetcher, {
+    revalidateOnFocus: false,
+    dedupingInterval: 10000,
+    keepPreviousData: true,
+  });
   const toursList = response?.data || [];
 
   const activeTours = toursList.map(tour => ({
@@ -196,7 +200,20 @@ export default function LocaleHomePage({ params }) {
 
           {/* Lista de tours mobile */}
           <div className="p-4 space-y-4">
-            {filteredTours.length === 0 ? (
+            {isLoading && filteredTours.length === 0 ? (
+              <div className="space-y-4">
+                {[1, 2, 3].map((n) => (
+                  <div key={n} className="bg-[var(--card)]/40 border border-[var(--border)]/40 rounded-2xl h-44 animate-pulse p-4 flex flex-col justify-between">
+                    <div className="h-4 bg-[var(--border)]/60 rounded w-1/3"></div>
+                    <div className="space-y-2">
+                      <div className="h-5 bg-[var(--border)]/80 rounded w-3/4"></div>
+                      <div className="h-3 bg-[var(--border)]/50 rounded w-1/2"></div>
+                    </div>
+                    <div className="h-8 bg-[var(--border)]/40 rounded w-full"></div>
+                  </div>
+                ))}
+              </div>
+            ) : filteredTours.length === 0 ? (
               <div className="py-16 flex flex-col items-center justify-center text-center space-y-3">
                 <HelpCircle className="w-10 h-10 text-gray-600" />
                 <h4 className="text-[var(--foreground)] font-bold text-sm">{t('catalog.no_tours_title')}</h4>
@@ -318,7 +335,21 @@ export default function LocaleHomePage({ params }) {
 
             {/* Lista scrollable */}
             <div className="flex-1 overflow-y-auto p-4 lg:p-5 space-y-3 lg:space-y-4 no-scrollbar">
-              {filteredTours.length === 0 ? (
+              {isLoading && filteredTours.length === 0 ? (
+                <div className="space-y-4">
+                  {[1, 2, 3].map((n) => (
+                    <div key={n} className="bg-[var(--card)]/40 border border-[var(--border)]/40 rounded-2xl h-44 animate-pulse p-4 flex flex-col sm:flex-row gap-4 items-center">
+                      <div className="w-full sm:w-2/5 h-36 bg-[var(--border)]/60 rounded-xl"></div>
+                      <div className="w-full sm:w-3/5 space-y-3">
+                        <div className="h-4 bg-[var(--border)]/70 rounded w-1/4"></div>
+                        <div className="h-5 bg-[var(--border)]/90 rounded w-3/4"></div>
+                        <div className="h-3 bg-[var(--border)]/50 rounded w-1/2"></div>
+                        <div className="h-8 bg-[var(--border)]/40 rounded w-1/3 mt-2"></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : filteredTours.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-center space-y-3">
                   <HelpCircle className="w-12 h-12 text-gray-600" />
                   <h4 className="text-[var(--foreground)] font-bold text-sm">{t('catalog.no_tours_title')}</h4>

@@ -42,10 +42,10 @@ foreach ($possiblePortFiles as $pf) {
 }
 
 // Objetivos de conexión hacia Node.js:
-// 1. Probar el socket local dinámico en 127.0.0.1 y localhost
-// 2. Si el puerto dinámico difiere de 4000, probar 4000 como gateway de compatibilidad
-// 3. Como último recurso, conectar con el endpoint raíz de Passenger
+// 1. Primero intentar conexión directa a través del motor Passenger en unu-raymi.com
+// 2. Como respaldo, probar el socket local dinámico en 127.0.0.1 y localhost
 $targets = [
+    "https://unu-raymi.com",
     "http://127.0.0.1:$targetPort",
     "http://localhost:$targetPort"
 ];
@@ -53,7 +53,6 @@ if ($targetPort !== 4000) {
     $targets[] = "http://127.0.0.1:4000";
     $targets[] = "http://localhost:4000";
 }
-$targets[] = "https://unu-raymi.com";
 
 // ── 2. Diagnóstico simple (?diag=1) ──────────────────────────────────────────
 if (isset($_GET['diag']) || isset($_GET['diagnostic'])) {

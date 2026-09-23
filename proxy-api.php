@@ -165,6 +165,9 @@ if (function_exists('curl_init')) {
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $requestMethod);
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 3);
         curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+        curl_setopt($ch, CURLOPT_ENCODING, '');
         
         $reqHeaders = $headers;
         if (strpos($baseTarget, 'unu-raymi.com') !== false) {

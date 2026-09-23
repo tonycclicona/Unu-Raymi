@@ -40,12 +40,22 @@ loadEnv(path.resolve(__dirname, '.env'));
 loadEnv(path.resolve(__dirname, 'backend/.env.production'));
 loadEnv(path.resolve(__dirname, 'backend/.env'));
 
-// Directorios de compilación
+// Directorios de compilación y almacenamiento estático
 const frontendDir = fs.existsSync(path.resolve(__dirname, 'frontend/out'))
   ? path.resolve(__dirname, 'frontend/out')
   : path.resolve(__dirname, 'out');
 
 const adminDir = path.resolve(__dirname, 'admin/out');
+
+const hostingerBase = '/home/u209525223/domains/unu-raymi.com/public_html';
+const pubDir = fs.existsSync(hostingerBase) ? hostingerBase : path.resolve(__dirname, 'public_html');
+const adminDest = path.join(pubDir, 'admin');
+const apiDest = path.join(pubDir, 'api');
+const canonicalHostingerApiUploads = '/home/u209525223/domains/unu-raymi.com/public_html/api/uploads';
+const apiUploadsDest = fs.existsSync('/home/u209525223/domains/unu-raymi.com/public_html/api')
+  ? canonicalHostingerApiUploads
+  : path.join(apiDest, 'uploads');
+const publicUploadsDest = path.join(pubDir, 'uploads');
 
 console.log('> [Server] Frontend dir:', frontendDir);
 console.log('> [Server] Admin dir:', adminDir);
@@ -71,11 +81,6 @@ function copyStaticFiles(srcDir, destDir) {
 
 // ── Sincronizar frontend, admin y api en tiempo de ejecución ───────────────
 try {
-  const hostingerBase = '/home/u209525223/domains/unu-raymi.com/public_html';
-  const pubDir = fs.existsSync(hostingerBase) ? hostingerBase : path.resolve(__dirname, 'public_html');
-  const adminDest = path.join(pubDir, 'admin');
-  const apiDest = path.join(pubDir, 'api');
-
   // 1. Frontend
   if (fs.existsSync(frontendDir) && pubDir !== frontendDir) {
     fs.mkdirSync(pubDir, { recursive: true });
@@ -105,12 +110,6 @@ try {
   }
 
   // 4. Centralizar y asegurar carpeta de Uploads en public_html/api/uploads
-  const canonicalHostingerApiUploads = '/home/u209525223/domains/unu-raymi.com/public_html/api/uploads';
-  const apiUploadsDest = fs.existsSync('/home/u209525223/domains/unu-raymi.com/public_html/api')
-    ? canonicalHostingerApiUploads
-    : path.join(apiDest, 'uploads');
-  const publicUploadsDest = path.join(pubDir, 'uploads');
-
   fs.mkdirSync(apiUploadsDest, { recursive: true });
   fs.mkdirSync(publicUploadsDest, { recursive: true });
 
@@ -264,9 +263,13 @@ app.use(function(req, res, next) {
 });
 
 // ── 4. RUTEO DE FRONTEND (DEFAULT) Y SERVICIO ESTÁTICO DE UPLOADS ────────────
-app.use(['/uploads', '/api/uploads'], express.static(apiUploadsDest, {
-  maxAge: '7d'
-}));
+[apiUploadsDest, publicUploadsDest, path.resolve(__dirname, 'backend/storage/uploads')].forEach(function(dir) {
+  if (fs.existsSync(dir)) {
+    app.use(['/uploads', '/api/uploads'], express.static(dir, {
+      maxAge: '7d'
+    }));
+  }
+});
 
 if (fs.existsSync(frontendDir)) {
   app.use(express.static(frontendDir, { extensions: ['html'] }));

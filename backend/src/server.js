@@ -108,13 +108,16 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 // Servir carpeta de subidas estáticamente (tanto en /uploads como en /api/uploads)
 const hostingerApiUploads = "/home/u209525223/domains/unu-raymi.com/public_html/api/uploads";
-const uploadsPath = fs.existsSync(hostingerApiUploads)
-  ? hostingerApiUploads
-  : (process.env.UPLOADS_PATH ? resolve(process.env.UPLOADS_PATH) : resolve(__dirname, "../storage/uploads"));
+const hostingerPubUploads = "/home/u209525223/domains/unu-raymi.com/public_html/uploads";
+const fallbackUploads = resolve(__dirname, "../storage/uploads");
 
-app.use(["/uploads", "/api/uploads"], express.static(uploadsPath, {
-  maxAge: isProduction ? "7d" : 0,
-}));
+[hostingerApiUploads, hostingerPubUploads, fallbackUploads].forEach((dir) => {
+  if (fs.existsSync(dir)) {
+    app.use(["/uploads", "/api/uploads"], express.static(dir, {
+      maxAge: isProduction ? "7d" : 0,
+    }));
+  }
+});
 
 // ── Health & Root Check ───────────────────────────────────────
 app.get(["/", "/api"], (req, res) => {
