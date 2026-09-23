@@ -130,7 +130,9 @@ export default function MapaSudamericaGIS({ attractions = [], selectedTourId, on
     return Object.values(groups)
       .map((g) => {
         const sortedPoints = [...g.points].sort((a, b) => (a.orden || 0) - (b.orden || 0));
-        const positions = sortedPoints.map((p) => [p.latitude, p.longitude]);
+        const positions = sortedPoints
+          .map((p) => [parseFloat(p.latitude), parseFloat(p.longitude)])
+          .filter((pos) => !isNaN(pos[0]) && !isNaN(pos[1]));
         return {
           ...g,
           sortedPoints,
@@ -196,35 +198,39 @@ export default function MapaSudamericaGIS({ attractions = [], selectedTourId, on
           );
         })}
 
-        {attractions.map((att) => {
-          const fullImgUrl = att.imageUrl
-            ? att.imageUrl.startsWith('http')
-              ? att.imageUrl
-              : `${API_ASSETS_URL}${att.imageUrl}`
-            : null;
-          const icon = fullImgUrl
-            ? createPhotoBubbleIcon(fullImgUrl, att.category, att.orden)
-            : (categoryIcons[att.category] || defaultIcon);
-          const tourDificultad = formatDifficulty(att.tour?.nivel_dificultad || 'Moderado', language);
+        {attractions
+          .filter((att) => att && !isNaN(parseFloat(att.latitude)) && !isNaN(parseFloat(att.longitude)))
+          .map((att) => {
+            const lat = parseFloat(att.latitude);
+            const lng = parseFloat(att.longitude);
+            const fullImgUrl = att.imageUrl
+              ? att.imageUrl.startsWith('http')
+                ? att.imageUrl
+                : `${API_ASSETS_URL}${att.imageUrl}`
+              : null;
+            const icon = fullImgUrl
+              ? createPhotoBubbleIcon(fullImgUrl, att.category, att.orden)
+              : (categoryIcons[att.category] || defaultIcon);
+            const tourDificultad = formatDifficulty(att.tour?.nivel_dificultad || 'Moderado', language);
 
-          const categoryTranslated = {
-            ATRACTIVO: t('gis_map.atractivo'),
-            HOSPITAL: t('gis_map.hospital'),
-            TRANSPORTE: t('gis_map.transporte'),
-            RESTAURANTE: t('gis_map.restaurante'),
-            TIENDA: t('gis_map.tienda'),
-          }[att.category] || att.category;
-          
-          const localizedAttr = att.traducciones?.[language] || {};
-          const attrName = localizedAttr.name || att.name || att.nombre;
-          const attrDescription = localizedAttr.description || att.description;
-          const tourName = att.tour?.traducciones?.[language]?.nombre || att.tour?.nombre;
+            const categoryTranslated = {
+              ATRACTIVO: t('gis_map.atractivo'),
+              HOSPITAL: t('gis_map.hospital'),
+              TRANSPORTE: t('gis_map.transporte'),
+              RESTAURANTE: t('gis_map.restaurante'),
+              TIENDA: t('gis_map.tienda'),
+            }[att.category] || att.category;
+            
+            const localizedAttr = att.traducciones?.[language] || {};
+            const attrName = localizedAttr.name || att.name || att.nombre;
+            const attrDescription = localizedAttr.description || att.description;
+            const tourName = att.tour?.traducciones?.[language]?.nombre || att.tour?.nombre;
 
-          return (
-            <Marker
-              key={att.id}
-              position={[att.latitude, att.longitude]}
-              icon={icon}
+            return (
+              <Marker
+                key={att.id}
+                position={[lat, lng]}
+                icon={icon}
               eventHandlers={{
                 click: () => {
                   if (onSelectAttraction) {

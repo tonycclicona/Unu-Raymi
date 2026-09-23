@@ -38,6 +38,7 @@ export default function TourCard({ tour, onReservar }) {
     return () => clearInterval(interval);
   }, [imagenes.length]);
 
+  const currentImage = imagenes[currentImageIndex]?.url || (typeof imagenes[currentImageIndex] === 'string' ? imagenes[currentImageIndex] : null);
   const localized = tour.traducciones?.[language] || {};
   const displayName = localized.nombre || tour.nombre;
   const displayDesc = localized.descripcion || tour.descripcion;
