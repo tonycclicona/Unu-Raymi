@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { X, Shield, Backpack, Utensils, Bus, Camera, ArrowRight, Calendar, MapPin, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
-import { getImageUrl, handleImageFallback } from '@/lib/api';
+import { API_ASSETS_URL } from '../lib/api';
 import { useLanguage } from '@/context/LanguageContext';
 import {
   Compass3D,
@@ -252,9 +252,8 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
                 className="relative flex-shrink-0 w-24 h-24 rounded-xl overflow-hidden border border-[var(--border)]/50 cursor-pointer shadow-md"
               >
                 <img
-                  src={getImageUrl(img.url)}
+                  src={img.url.startsWith('http') ? img.url : `${API_ASSETS_URL}${img.url}`}
                   alt={`Imagen ${idx + 1}`}
-                  onError={(e) => handleImageFallback(e, img.url)}
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -269,9 +268,8 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
                 className="relative aspect-square rounded-2xl overflow-hidden group border border-[var(--border)]/50 cursor-pointer shadow-md hover:scale-[1.12] hover:z-30 hover:shadow-[0_20px_50px_rgba(233,69,96,0.3)] hover:border-[var(--accent)]/50 transition-all duration-300 ease-out"
               >
                 <img
-                  src={getImageUrl(img.url)}
+                  src={img.url.startsWith('http') ? img.url : `${API_ASSETS_URL}${img.url}`}
                   alt={`Imagen ${idx + 1}`}
-                  onError={(e) => handleImageFallback(e, img.url)}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors duration-300"></div>
@@ -542,9 +540,12 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
           {/* Contenedor de Imagen a Pantalla Completa */}
           <div className="relative w-full h-[86vh] md:h-[92vh] max-w-[96vw] flex items-center justify-center select-none">
             <img
-              src={getImageUrl(imagenes[lightboxIndex].url)}
+              src={
+                imagenes[lightboxIndex].url.startsWith('http')
+                  ? imagenes[lightboxIndex].url
+                  : `${API_ASSETS_URL}${imagenes[lightboxIndex].url}`
+              }
               alt={imagenes[lightboxIndex].altText || `Galería ${lightboxIndex + 1}`}
-              onError={(e) => handleImageFallback(e, imagenes[lightboxIndex].url)}
               className="max-w-full max-h-full w-auto h-auto object-contain rounded-2xl shadow-2xl animate-scale-up select-none"
             />
           </div>

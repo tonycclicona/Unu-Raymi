@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Calendar, Users, DollarSign, ArrowRight } from 'lucide-react';
-import { getImageUrl, handleImageFallback } from '@/lib/api';
+import { API_ASSETS_URL } from '../lib/api';
 import { useLanguage } from '@/context/LanguageContext';
 import { useCurrency } from '@/context/CurrencyContext';
 
@@ -45,13 +45,11 @@ export default function TourCard({ tour, onReservar }) {
       <div className="w-full sm:w-2/5 h-52 sm:h-auto relative overflow-hidden bg-[var(--card)] flex-shrink-0">
         {currentImage ? (
           <Image
-            src={getImageUrl(currentImage)}
+            src={currentImage.startsWith('http') ? currentImage : `${API_ASSETS_URL}${currentImage}`}
             alt={tour.nombre}
             fill
             sizes="(max-width: 640px) 100vw, 40vw"
             loading="lazy"
-            unoptimized
-            onError={(e) => handleImageFallback(e, currentImage)}
             className="object-cover group-hover:scale-105 transition-transform duration-500"
           />
         ) : (

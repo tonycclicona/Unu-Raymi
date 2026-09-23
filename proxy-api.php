@@ -70,12 +70,11 @@ $uriPath = parse_url($requestUri, PHP_URL_PATH) ?: '/';
 if (strpos($uriPath, '/uploads/') === 0) {
     $filename = basename($uriPath);
     $possibleDirs = [
-        __DIR__ . '/uploads',
-        '/home/u209525223/domains/unu-raymi.com/public_html/api/uploads',
-        '/home/u209525223/domains/unu-raymi.com/public_html/uploads',
         __DIR__ . '/../uploads',
-        dirname(__DIR__) . '/storage/uploads',
+        __DIR__ . '/uploads',
+        '/home/u209525223/domains/unu-raymi.com/public_html/uploads',
         dirname(__DIR__) . '/backend/storage/uploads',
+        dirname(__DIR__) . '/storage/uploads',
         dirname(dirname(__DIR__)) . '/backend/storage/uploads'
     ];
 
@@ -165,9 +164,6 @@ if (function_exists('curl_init')) {
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $requestMethod);
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 3);
         curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-        curl_setopt($ch, CURLOPT_ENCODING, '');
         
         $reqHeaders = $headers;
         if (strpos($baseTarget, 'unu-raymi.com') !== false) {

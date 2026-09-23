@@ -40,22 +40,12 @@ loadEnv(path.resolve(__dirname, '.env'));
 loadEnv(path.resolve(__dirname, 'backend/.env.production'));
 loadEnv(path.resolve(__dirname, 'backend/.env'));
 
-// Directorios de compilación y almacenamiento estático
+// Directorios de compilación
 const frontendDir = fs.existsSync(path.resolve(__dirname, 'frontend/out'))
   ? path.resolve(__dirname, 'frontend/out')
   : path.resolve(__dirname, 'out');
 
 const adminDir = path.resolve(__dirname, 'admin/out');
-
-const hostingerBase = '/home/u209525223/domains/unu-raymi.com/public_html';
-const pubDir = fs.existsSync(hostingerBase) ? hostingerBase : path.resolve(__dirname, 'public_html');
-const adminDest = path.join(pubDir, 'admin');
-const apiDest = path.join(pubDir, 'api');
-const canonicalHostingerApiUploads = '/home/u209525223/domains/unu-raymi.com/public_html/api/uploads';
-const apiUploadsDest = fs.existsSync('/home/u209525223/domains/unu-raymi.com/public_html/api')
-  ? canonicalHostingerApiUploads
-  : path.join(apiDest, 'uploads');
-const publicUploadsDest = path.join(pubDir, 'uploads');
 
 console.log('> [Server] Frontend dir:', frontendDir);
 console.log('> [Server] Admin dir:', adminDir);
@@ -81,6 +71,11 @@ function copyStaticFiles(srcDir, destDir) {
 
 // ── Sincronizar frontend, admin y api en tiempo de ejecución ───────────────
 try {
+  const hostingerBase = '/home/u209525223/domains/unu-raymi.com/public_html';
+  const pubDir = fs.existsSync(hostingerBase) ? hostingerBase : path.resolve(__dirname, 'public_html');
+  const adminDest = path.join(pubDir, 'admin');
+  const apiDest = path.join(pubDir, 'api');
+
   // 1. Frontend
   if (fs.existsSync(frontendDir) && pubDir !== frontendDir) {
     fs.mkdirSync(pubDir, { recursive: true });
@@ -109,57 +104,35 @@ try {
     console.log('> [Server] Synchronized API proxy to:', apiDest);
   }
 
-  // 4. Centralizar y asegurar carpeta de Uploads en public_html/api/uploads
-  fs.mkdirSync(apiUploadsDest, { recursive: true });
-  fs.mkdirSync(publicUploadsDest, { recursive: true });
-
-  // Sincronizar uploads existentes de las fuentes locales al destino canónico
-  const seedUploadSources = [
+  // 4. Sincronizar carpeta de Uploads bidireccionalmente
+  const uploadSources = [
     path.resolve(__dirname, 'backend/storage/uploads'),
     path.resolve(__dirname, 'storage/uploads'),
-    path.resolve(__dirname, 'frontend/public/uploads')
+    path.resolve(__dirname, 'public_html/uploads')
   ];
+  const publicUploadsDest = path.join(pubDir, 'uploads');
+  const apiUploadsDest = path.join(apiDest, 'uploads');
+  fs.mkdirSync(publicUploadsDest, { recursive: true });
+  fs.mkdirSync(apiUploadsDest, { recursive: true });
 
-  seedUploadSources.forEach(function(srcDir) {
+  uploadSources.forEach(function(srcDir) {
     if (fs.existsSync(srcDir)) {
       try {
         const files = fs.readdirSync(srcDir);
         files.forEach(function(f) {
           const s = path.join(srcDir, f);
-          const dApi = path.join(apiUploadsDest, f);
-          const dPub = path.join(publicUploadsDest, f);
-          if (!fs.existsSync(dApi)) {
-            try { fs.copyFileSync(s, dApi); } catch (e) {}
+          const d1 = path.join(publicUploadsDest, f);
+          const d2 = path.join(apiUploadsDest, f);
+          if (!fs.existsSync(d1)) {
+            try { fs.copyFileSync(s, d1); } catch (e) {}
           }
-          if (!fs.existsSync(dPub)) {
-            try { fs.copyFileSync(s, dPub); } catch (e) {}
+          if (!fs.existsSync(d2)) {
+            try { fs.copyFileSync(s, d2); } catch (e) {}
           }
         });
       } catch (e) {}
     }
   });
-
-  // Asegurar paridad bidireccional inmediata entre public_html/api/uploads y public_html/uploads
-  if (fs.existsSync(apiUploadsDest) && fs.existsSync(publicUploadsDest) && apiUploadsDest !== publicUploadsDest) {
-    try {
-      const apiFiles = fs.readdirSync(apiUploadsDest);
-      apiFiles.forEach(function(f) {
-        const s = path.join(apiUploadsDest, f);
-        const d = path.join(publicUploadsDest, f);
-        if (!fs.existsSync(d)) {
-          try { fs.copyFileSync(s, d); } catch (e) {}
-        }
-      });
-      const pubFiles = fs.readdirSync(publicUploadsDest);
-      pubFiles.forEach(function(f) {
-        const s = path.join(publicUploadsDest, f);
-        const d = path.join(apiUploadsDest, f);
-        if (!fs.existsSync(d)) {
-          try { fs.copyFileSync(s, d); } catch (e) {}
-        }
-      });
-    } catch (e) {}
-  }
 } catch (e) {
   console.error('> [Server] Warning syncing web targets:', e.message);
 }
@@ -203,10 +176,9 @@ app.use(async function(req, res, next) {
       } catch (e) {}
     }
     if (typeof backendApp === 'function') {
-      // Si la petición viene a través de api.unu-raymi.com (ej: api.unu-raymi.com/ o api.unu-raymi.com/tours)
-      // prefijarla con /api para que las rutas de Express coincidan exactamente
+      // Si la petición viene a api.unu-raymi.com/auth/login (sin prefijo /api y no es uploads), prefijarla para que Express la reconozca
       if (host.startsWith('api.') && !req.url.startsWith('/api') && !req.url.startsWith('/uploads')) {
-        req.url = '/api' + (req.url.startsWith('/') ? req.url : '/' + req.url);
+        req.url = '/api' + req.url;
       }
       return backendApp(req, res, next);
     }
@@ -263,15 +235,7 @@ app.use(function(req, res, next) {
   next();
 });
 
-// ── 4. RUTEO DE FRONTEND (DEFAULT) Y SERVICIO ESTÁTICO DE UPLOADS ────────────
-[apiUploadsDest, publicUploadsDest, path.resolve(__dirname, 'backend/storage/uploads')].forEach(function(dir) {
-  if (fs.existsSync(dir)) {
-    app.use(['/uploads', '/api/uploads'], express.static(dir, {
-      maxAge: '7d'
-    }));
-  }
-});
-
+// ── 4. RUTEO DE FRONTEND (DEFAULT) ───────────────────────────────────────────
 if (fs.existsSync(frontendDir)) {
   app.use(express.static(frontendDir, { extensions: ['html'] }));
 }
