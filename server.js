@@ -95,10 +95,18 @@ const backendPromise = import(pathToFileURL(resolvedBackendPath).href)
   });
 
 // ── 6. Ruteo de API (Subdominio api.unu-raymi.com y rutas /api/*) ──────────────
+// Orígenes permitidos: se leen de la variable de entorno ALLOWED_ORIGINS o se
+// usan los dominios de producción conocidos como fallback.
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'https://unu-raymi.com,https://www.unu-raymi.com,https://admin.unu-raymi.com')
+  .split(',').map(o => o.trim()).filter(Boolean);
+
 app.use(async (req, res, next) => {
-  // Encabezados CORS universales
-  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
-  res.header('Access-Control-Allow-Credentials', 'true');
+  // Cabeceras CORS restringidas a orígenes permitidos
+  const requestOrigin = req.headers.origin;
+  if (requestOrigin && (ALLOWED_ORIGINS.includes(requestOrigin) || requestOrigin.includes('localhost') || requestOrigin.includes('127.0.0.1'))) {
+    res.header('Access-Control-Allow-Origin', requestOrigin);
+    res.header('Access-Control-Allow-Credentials', 'true');
+  }
   res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS,PATCH');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
 

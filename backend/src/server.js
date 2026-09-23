@@ -43,20 +43,23 @@ const isProduction = process.env.NODE_ENV === "production";
 
 // ── 1. CORS Y PREFLIGHT OPTIONS EN PRIMERA PRIORIDAD ─────────────────────────
 // Debe ser el PRIMER middleware para que ninguna petición sufra bloqueo CORS
+const allowedOriginsEnv = (process.env.ALLOWED_ORIGINS || 'https://unu-raymi.com,https://admin.unu-raymi.com')
+  .split(',').map(o => o.trim()).filter(Boolean);
+
 app.use(
   cors({
     origin: function(origin, callback) {
       // Permitir peticiones sin origen (curl, scripts, apps móviles, server-to-server)
       if (!origin) return callback(null, true);
-      // Permitir dominios de producción y desarrollo
-      if (
-        origin.includes('unu-raymi.com') ||
-        origin.includes('localhost') ||
-        origin.includes('127.0.0.1')
-      ) {
+      // Permitir dominios de desarrollo local siempre
+      if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
         return callback(null, true);
       }
-      return callback(null, true); // En producción permitir cualquier origen con credenciales
+      // Validar contra la lista de orígenes permitidos de producción
+      if (allowedOriginsEnv.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error('Origen no permitido por CORS: ' + origin));
     },
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept", "Origin"],

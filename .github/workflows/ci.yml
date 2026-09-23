@@ -17,32 +17,33 @@ jobs:
       - name: 🟢 Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: 📦 Install Dependencies
         run: npm ci
 
       - name: 🗄️ Generate Prisma Client
-        run: npm --workspace=backend run db:local:generate
-        env:
-          DATABASE_URL: "file:./prisma/dev.db"
-
-      - name: ⚙️ Build Backend API
         run: npm --workspace=backend run build
         env:
-          DATABASE_URL: "file:./prisma/dev.db"
+          DATABASE_URL: "mysql://user:password@localhost:3306/unuraymi"
 
       - name: 🎨 Build Frontend (Static Export)
         run: npm --workspace=frontend run build
         env:
+          NODE_ENV: production
           NEXT_PUBLIC_API_URL: "https://api.unu-raymi.com/api"
+          NEXT_PUBLIC_API_ASSETS_URL: "https://api.unu-raymi.com"
 
       - name: 🛡️ Build Admin (Static Export)
         run: npm --workspace=admin run build
         env:
+          NODE_ENV: production
           NEXT_PUBLIC_API_URL: "https://api.unu-raymi.com/api"
+          NEXT_PUBLIC_API_ASSETS_URL: "https://api.unu-raymi.com"
 
       - name: 🚀 Trigger Hostinger Auto-Deploy Webhook
+        # Requiere configurar el secret HOSTINGER_WEBHOOK_URL en:
+        # GitHub → Settings → Secrets and variables → Actions → New repository secret
         if: github.ref == 'refs/heads/main' && env.DEPLOY_URL != ''
         run: |
           echo "Disparando webhook de despliegue a Hostinger..."

@@ -83,10 +83,14 @@ if (targetScope === 'all' || targetScope === 'frontend') {
   const frontendOut = path.join(process.cwd(), 'frontend', 'out');
   if (fs.existsSync(frontendOut)) {
     console.log(`[postinstall] 📦 Desplegando Frontend en: ${targetPublicHtml}`);
+    if (fs.existsSync(path.join(targetPublicHtml, 'default.php'))) {
+      try { fs.unlinkSync(path.join(targetPublicHtml, 'default.php')); } catch (e) {}
+    }
     copyDirectoryContents(frontendOut, targetPublicHtml, { preserveUploads: true });
 
     // .htaccess maestro para frontend, caché, compresión y exclusión de api/admin/uploads
-    const frontendHtaccess = `<IfModule mod_rewrite.c>
+    const frontendHtaccess = `DirectoryIndex index.html index.php
+<IfModule mod_rewrite.c>
 RewriteEngine On
 RewriteBase /
 
@@ -177,7 +181,8 @@ if (targetScope === 'all' || targetScope === 'admin') {
     }
     copyDirectoryContents(adminOut, adminDest);
 
-    const adminHtaccess = `<IfModule mod_rewrite.c>
+    const adminHtaccess = `DirectoryIndex index.html index.php
+<IfModule mod_rewrite.c>
 RewriteEngine On
 RewriteBase /
 
