@@ -1,4 +1,4 @@
-# ── Unu-Raymi Monorepo ────────────────────────────
+# ── Unu-Raymi Monorepo — .gitignore ──────────────────────────
 
 # IDE
 .vscode/
@@ -26,9 +26,42 @@ pnpm-debug.log*
 EnvironmentVariables.env
 !*.env.example
 
-# Each sub-project has its own .gitignore for
-# node_modules, .env, build artifacts, etc.
-node_modules
+# Dependencies
+node_modules/
+
+# ── Artefactos de build (generados por postinstall / npm run build) ──────────
+# NUNCA deben estar en Git — Hostinger los genera al hacer npm install
+out/
+frontend/out/
+admin/out/
+backend/dist/
+.next/
+frontend/.next/
+admin/.next/
+
+# ── Bases de datos locales ────────────────────────────────────────────────────
+backend/prisma/dev.db
+backend/prisma/dev.db-journal
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# ── Archivos temporales y de control de proceso ───────────────────────────────
+tmp/
 .port
+api/.port
+backend/.port
+
+# ── public_html (generado por postinstall, no debe rastrearse) ────────────────
 public_html/
+
+# ── Prisma: solo schema SQLite local (MySQL/producción se mantiene) ───────────
+backend/prisma/schema.sqlite.prisma
+
+# ── Uploads de usuario (archivos subidos en runtime, no assets del repo) ─────
+# Los assets estáticos del frontend (videos, logo) SÍ están en frontend/public/
+backend/storage/uploads/*
+!backend/storage/uploads/.gitkeep
+
 
