@@ -21,7 +21,7 @@ export default function Sidebar({ isOpen = false, onClose = () => {} }) {
 
   const handleLogout = () => {
     document.cookie = 'session_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-    window.location.href = '/login';
+    window.location.href = '/login/';
   };
 
   const handleNavClick = () => {

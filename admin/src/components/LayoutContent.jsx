@@ -21,7 +21,7 @@ export default function LayoutContent({ children }) {
 
     const hasCookie = typeof document !== 'undefined' && document.cookie.includes('session_token=');
     if (!hasCookie) {
-      window.location.href = '/login';
+      window.location.href = '/login/';
     } else {
       setAuthorized(true);
     }
