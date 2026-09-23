@@ -1,4 +1,20 @@
 import prisma from "../lib/prismaClient.js";
+import { generateBilingualGuia } from "../services/translationService.js";
+
+const formatearGuia = (g) => {
+  if (!g) return g;
+  let traducciones = null;
+  try {
+    traducciones = typeof g.traducciones === 'string' ? JSON.parse(g.traducciones) : g.traducciones;
+  } catch {}
+  return {
+    ...g,
+    traducciones: traducciones || {
+      es: { rol: g.rol, descripcion: g.descripcion, experiencia: g.experiencia, idiomas: g.idiomas },
+      en: { rol: g.rol, descripcion: g.descripcion, experiencia: g.experiencia, idiomas: g.idiomas },
+    }
+  };
+};
 
 // ── GET /api/guias ───────────────────────────────────────────
 export const obtenerGuias = async (req, res, next) => {
@@ -19,7 +35,7 @@ export const obtenerGuias = async (req, res, next) => {
 
     return res.status(200).json({
       success: true,
-      data: guias,
+      data: guias.map(formatearGuia),
     });
   } catch (error) {
     console.error("Error al consultar guías en base de datos:", error.message);
@@ -48,7 +64,7 @@ export const obtenerGuiaPorId = async (req, res, next) => {
 
     return res.status(200).json({
       success: true,
-      data: guia,
+      data: formatearGuia(guia),
     });
   } catch (error) {
     next(error);
@@ -58,7 +74,21 @@ export const obtenerGuiaPorId = async (req, res, next) => {
 // ── POST /api/guias ──────────────────────────────────────────
 export const crearGuia = async (req, res, next) => {
   try {
-    const { nombre, rol, experiencia, idiomas, foto, descripcion, activo, orden } = req.body;
+    const { nombre, rol, experiencia, idiomas, foto, descripcion, activo, orden, traducciones } = req.body;
+
+    let finalTraducciones = null;
+    if (traducciones && typeof traducciones === 'object') {
+      finalTraducciones = JSON.stringify(traducciones);
+    } else if (typeof traducciones === 'string' && traducciones.trim().startsWith('{')) {
+      finalTraducciones = traducciones;
+    } else {
+      try {
+        const generated = await generateBilingualGuia({ rol, descripcion, experiencia, idiomas });
+        finalTraducciones = JSON.stringify(generated);
+      } catch (err) {
+        console.warn('[GuiaController] Error autotraduciendo guía:', err.message);
+      }
+    }
 
     const nuevaGuia = await prisma.guia.create({
       data: {
@@ -70,13 +100,14 @@ export const crearGuia = async (req, res, next) => {
         descripcion,
         activo: activo ?? true,
         orden: orden ?? 0,
+        traducciones: finalTraducciones,
       },
     });
 
     return res.status(201).json({
       success: true,
       message: "Guía creado exitosamente.",
-      data: nuevaGuia,
+      data: formatearGuia(nuevaGuia),
     });
   } catch (error) {
     next(error);
@@ -97,15 +128,32 @@ export const actualizarGuia = async (req, res, next) => {
       });
     }
 
+    const updateData = { ...req.body };
+    if (updateData.traducciones && typeof updateData.traducciones === 'object') {
+      updateData.traducciones = JSON.stringify(updateData.traducciones);
+    } else if (!updateData.traducciones && (updateData.rol || updateData.descripcion)) {
+      try {
+        const generated = await generateBilingualGuia({
+          rol: updateData.rol || guiaExistente.rol,
+          descripcion: updateData.descripcion || guiaExistente.descripcion,
+          experiencia: updateData.experiencia || guiaExistente.experiencia,
+          idiomas: updateData.idiomas || guiaExistente.idiomas,
+        });
+        updateData.traducciones = JSON.stringify(generated);
+      } catch (err) {
+        console.warn('[GuiaController] Error autotraduciendo en update:', err.message);
+      }
+    }
+
     const guiaActualizado = await prisma.guia.update({
       where: { id: guiaId },
-      data: req.body,
+      data: updateData,
     });
 
     return res.status(200).json({
       success: true,
       message: "Guía actualizado exitosamente.",
-      data: guiaActualizado,
+      data: formatearGuia(guiaActualizado),
     });
   } catch (error) {
     next(error);

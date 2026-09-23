@@ -1,4 +1,20 @@
 import prisma from "../lib/prismaClient.js";
+import { generateBilingualGarantia } from "../services/translationService.js";
+
+const formatearGarantia = (g) => {
+  if (!g) return g;
+  let traducciones = null;
+  try {
+    traducciones = typeof g.traducciones === 'string' ? JSON.parse(g.traducciones) : g.traducciones;
+  } catch {}
+  return {
+    ...g,
+    traducciones: traducciones || {
+      es: { titulo: g.titulo, descripcion: g.descripcion },
+      en: { titulo: g.titulo, descripcion: g.descripcion },
+    }
+  };
+};
 
 // ── GET /api/garantias ───────────────────────────────────────
 export const obtenerGarantias = async (req, res, next) => {
@@ -19,7 +35,7 @@ export const obtenerGarantias = async (req, res, next) => {
 
     return res.status(200).json({
       success: true,
-      data: garantias,
+      data: garantias.map(formatearGarantia),
     });
   } catch (error) {
     console.error("Error al consultar garantías en base de datos:", error.message);
@@ -48,7 +64,7 @@ export const obtenerGarantiaPorId = async (req, res, next) => {
 
     return res.status(200).json({
       success: true,
-      data: garantia,
+      data: formatearGarantia(garantia),
     });
   } catch (error) {
     next(error);
@@ -58,7 +74,21 @@ export const obtenerGarantiaPorId = async (req, res, next) => {
 // ── POST /api/garantias ───────────────────────────────────────
 export const crearGarantia = async (req, res, next) => {
   try {
-    const { titulo, descripcion, icono, color, imagenUrl, activo, orden } = req.body;
+    const { titulo, descripcion, icono, color, imagenUrl, activo, orden, traducciones } = req.body;
+
+    let finalTraducciones = null;
+    if (traducciones && typeof traducciones === 'object') {
+      finalTraducciones = JSON.stringify(traducciones);
+    } else if (typeof traducciones === 'string' && traducciones.trim().startsWith('{')) {
+      finalTraducciones = traducciones;
+    } else {
+      try {
+        const generated = await generateBilingualGarantia({ titulo, descripcion });
+        finalTraducciones = JSON.stringify(generated);
+      } catch (err) {
+        console.warn('[GarantiaController] Error autotraduciendo garantía:', err.message);
+      }
+    }
 
     const nuevaGarantia = await prisma.garantia.create({
       data: {
@@ -69,13 +99,14 @@ export const crearGarantia = async (req, res, next) => {
         imagenUrl,
         activo: activo ?? true,
         orden: orden ?? 0,
+        traducciones: finalTraducciones,
       },
     });
 
     return res.status(201).json({
       success: true,
       message: "Garantía creada exitosamente.",
-      data: nuevaGarantia,
+      data: formatearGarantia(nuevaGarantia),
     });
   } catch (error) {
     next(error);
@@ -96,15 +127,30 @@ export const actualizarGarantia = async (req, res, next) => {
       });
     }
 
+    const updateData = { ...req.body };
+    if (updateData.traducciones && typeof updateData.traducciones === 'object') {
+      updateData.traducciones = JSON.stringify(updateData.traducciones);
+    } else if (!updateData.traducciones && (updateData.titulo || updateData.descripcion)) {
+      try {
+        const generated = await generateBilingualGarantia({
+          titulo: updateData.titulo || garantiaExistente.titulo,
+          descripcion: updateData.descripcion || garantiaExistente.descripcion,
+        });
+        updateData.traducciones = JSON.stringify(generated);
+      } catch (err) {
+        console.warn('[GarantiaController] Error autotraduciendo en update:', err.message);
+      }
+    }
+
     const garantiaActualizada = await prisma.garantia.update({
       where: { id: garantiaId },
-      data: req.body,
+      data: updateData,
     });
 
     return res.status(200).json({
       success: true,
       message: "Garantía actualizada exitosamente.",
-      data: garantiaActualizada,
+      data: formatearGarantia(garantiaActualizada),
     });
   } catch (error) {
     next(error);

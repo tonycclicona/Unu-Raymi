@@ -6,6 +6,7 @@ import { Calendar, Users, DollarSign, ArrowRight } from 'lucide-react';
 import { API_ASSETS_URL, getImageUrl, handleImageFallback } from '../lib/api';
 import { useLanguage } from '@/context/LanguageContext';
 import { useCurrency } from '@/context/CurrencyContext';
+import { formatDifficulty } from '@/lib/translations';
 
 export default function TourCard({ tour, onReservar }) {
   const imagenes = tour.imagenes || [];
@@ -117,7 +118,7 @@ export default function TourCard({ tour, onReservar }) {
             )}
             {tour.nivel_dificultad && (
               <span className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/25 px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider">
-                {tour.nivel_dificultad}
+                {formatDifficulty(tour.nivel_dificultad, language)}
               </span>
             )}
           </div>

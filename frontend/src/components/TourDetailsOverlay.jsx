@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { X, Shield, Backpack, Utensils, Bus, Camera, ArrowRight, Calendar, MapPin, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
 import { API_ASSETS_URL } from '../lib/api';
 import { useLanguage } from '@/context/LanguageContext';
+import { formatDifficulty } from '@/lib/translations';
 import {
   Compass3D,
   Backpack3D,
@@ -271,7 +272,7 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
                 )}
                 {tour.nivel_dificultad && (
                   <span className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/25 px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider flex items-center gap-1">
-                    <span>🏔️</span> {tour.nivel_dificultad}
+                    <span>🏔️</span> {formatDifficulty(tour.nivel_dificultad, language)}
                   </span>
                 )}
                 <span className="text-xs text-[var(--muted-foreground)] flex items-center gap-1">

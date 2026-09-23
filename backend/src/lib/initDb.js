@@ -123,6 +123,7 @@ export async function ensureTablesExist() {
         \`updatedAt\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     `);
+    await addColumnSafe('guias', 'traducciones', 'LONGTEXT NULL');
 
     // 5. Tabla: garantias
     await prisma.$executeRawUnsafe(`
@@ -139,6 +140,7 @@ export async function ensureTablesExist() {
         \`updatedAt\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     `);
+    await addColumnSafe('garantias', 'traducciones', 'LONGTEXT NULL');
 
     // 6. Tabla: reservas
     await prisma.$executeRawUnsafe(`

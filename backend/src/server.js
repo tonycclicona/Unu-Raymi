@@ -36,6 +36,7 @@ import reclamacionRoutes from "./routes/reclamacionRoutes.js";
 import errorHandler from "./middlewares/errorHandler.js";
 import { ensureTablesExist } from "./lib/initDb.js";
 import { getCentralizedUploadDir } from "./controllers/uploadController.js";
+import { translateWithPreservation } from "./services/translationService.js";
 
 const app = express();
 const PORT = process.env.PORT || 0;
@@ -189,6 +190,30 @@ mountDual("/gis", gisRoutes);
 mountDual("/reclamaciones", reclamacionRoutes);
 app.use("/api", attractionsRoutes);
 app.use("/", attractionsRoutes);
+
+// ── Endpoint Libre de Traducción para el Panel Admin y Clientes ──────────────
+const handleTranslate = async (req, res) => {
+  try {
+    const { text, texts, targetLang = 'en', sourceLang = null } = req.body;
+    if (text) {
+      const translated = await translateWithPreservation(text, targetLang, sourceLang);
+      return res.json({ success: true, data: translated });
+    }
+    if (Array.isArray(texts)) {
+      const results = [];
+      for (const item of texts) {
+        results.push(await translateWithPreservation(item, targetLang, sourceLang));
+      }
+      return res.json({ success: true, data: results });
+    }
+    return res.status(400).json({ success: false, error: 'Debe enviar text o texts.' });
+  } catch (err) {
+    console.error('Error en /translate:', err);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+};
+app.post("/translate", handleTranslate);
+app.post("/api/translate", handleTranslate);
 
 // ── 8. Ruta 404 para endpoints no existentes ─────────────────────────────────
 app.use((req, res) => {

@@ -199,3 +199,68 @@ export async function generateBilingualAttraction(attractionInput) {
     [targetLang]: translatedData,
   };
 }
+
+/**
+ * Genera el objeto bilingüe { es: {...}, en: {...} } para un Guía.
+ */
+export async function generateBilingualGuia(guiaInput) {
+  const sampleText = `${guiaInput.rol || ''} ${guiaInput.descripcion || ''}`;
+  const sourceLang = detectLanguage(sampleText);
+  const targetLang = sourceLang === 'es' ? 'en' : 'es';
+
+  const originalData = {
+    rol: guiaInput.rol || '',
+    descripcion: guiaInput.descripcion || '',
+    experiencia: guiaInput.experiencia || '',
+    idiomas: guiaInput.idiomas || '',
+  };
+
+  const [translatedRol, translatedDesc, translatedExp, translatedIdiomas] = await Promise.all([
+    translateWithPreservation(originalData.rol, targetLang, sourceLang),
+    translateWithPreservation(originalData.descripcion, targetLang, sourceLang),
+    translateWithPreservation(originalData.experiencia, targetLang, sourceLang),
+    translateWithPreservation(originalData.idiomas, targetLang, sourceLang),
+  ]);
+
+  const translatedData = {
+    rol: translatedRol,
+    descripcion: translatedDesc,
+    experiencia: translatedExp,
+    idiomas: translatedIdiomas,
+  };
+
+  return {
+    [sourceLang]: originalData,
+    [targetLang]: translatedData,
+  };
+}
+
+/**
+ * Genera el objeto bilingüe { es: {...}, en: {...} } para una Garantía.
+ */
+export async function generateBilingualGarantia(garantiaInput) {
+  const sampleText = `${garantiaInput.titulo || ''} ${garantiaInput.descripcion || ''}`;
+  const sourceLang = detectLanguage(sampleText);
+  const targetLang = sourceLang === 'es' ? 'en' : 'es';
+
+  const originalData = {
+    titulo: garantiaInput.titulo || '',
+    descripcion: garantiaInput.descripcion || '',
+  };
+
+  const [translatedTitulo, translatedDesc] = await Promise.all([
+    translateWithPreservation(originalData.titulo, targetLang, sourceLang),
+    translateWithPreservation(originalData.descripcion, targetLang, sourceLang),
+  ]);
+
+  const translatedData = {
+    titulo: translatedTitulo,
+    descripcion: translatedDesc,
+  };
+
+  return {
+    [sourceLang]: originalData,
+    [targetLang]: translatedData,
+  };
+}
+

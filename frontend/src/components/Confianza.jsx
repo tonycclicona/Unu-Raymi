@@ -189,10 +189,10 @@ export default function Confianza() {
                       <h4 className={`text-xs font-bold text-[var(--foreground)] transition-colors ${
                         g.imagenUrl ? 'group-hover/sello:text-[#ca8a04]' : ''
                       }`}>
-                        {g.titulo}
+                        {g.traducciones?.[language]?.titulo || g.titulo}
                       </h4>
                       <p className="text-[10px] text-[var(--muted-foreground)]/80 leading-normal">
-                        {g.descripcion}
+                        {g.traducciones?.[language]?.descripcion || g.descripcion}
                       </p>
                     </div>
                   </div>

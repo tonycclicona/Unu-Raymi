@@ -19,7 +19,7 @@ export default function Guias() {
   const [currentBgIndex, setCurrentBgIndex] = useState(0);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   // 1. Cargar guías de la base de datos
   const { data: responseGuias } = useSWR('/guias?activo=true', fetcher);
@@ -217,14 +217,14 @@ export default function Guias() {
                             </h4>
                             {/* Rol / Especialidad en dorado */}
                             <p className="text-xs sm:text-[13px] font-semibold text-[#d4af37] tracking-normal leading-relaxed">
-                              {guia.rol}
+                              {guia.traducciones?.[language]?.rol || guia.rol}
                             </p>
                           </div>
 
                           {/* Descripción / Bio */}
-                          {guia.descripcion && (
+                          {(guia.traducciones?.[language]?.descripcion || guia.descripcion) && (
                             <p className="text-xs sm:text-[12.5px] text-gray-300/90 leading-relaxed font-normal line-clamp-4 text-center px-1">
-                              {guia.descripcion}
+                              {guia.traducciones?.[language]?.descripcion || guia.descripcion}
                             </p>
                           )}
                         </div>
@@ -232,27 +232,27 @@ export default function Guias() {
                         {/* ── Parte Inferior: Experiencia e Idiomas ── */}
                         <div className="mt-6 pt-4 border-t border-white/10 space-y-2 text-xs sm:text-[12px]">
                           {/* Experiencia */}
-                          {guia.experiencia && (
+                          {(guia.traducciones?.[language]?.experiencia || guia.experiencia) && (
                             <div className="flex items-center justify-between gap-2 text-gray-300">
                               <div className="flex items-center gap-1.5 text-gray-400">
                                 <Award className="w-3.5 h-3.5 text-[#d4af37] shrink-0" />
                                 <span>{t('guias.experiencia')}:</span>
                               </div>
                               <span className="font-bold text-white text-right">
-                                {guia.experiencia}
+                                {guia.traducciones?.[language]?.experiencia || guia.experiencia}
                               </span>
                             </div>
                           )}
 
                           {/* Idiomas */}
-                          {guia.idiomas && (
+                          {(guia.traducciones?.[language]?.idiomas || guia.idiomas) && (
                             <div className="flex items-center justify-between gap-2 text-gray-300">
                               <div className="flex items-center gap-1.5 text-gray-400">
                                 <Languages className="w-3.5 h-3.5 text-[#d4af37] shrink-0" />
                                 <span>{t('guias.idiomas')}:</span>
                               </div>
                               <span className="font-bold text-white text-right">
-                                {guia.idiomas}
+                                {guia.traducciones?.[language]?.idiomas || guia.idiomas}
                               </span>
                             </div>
                           )}

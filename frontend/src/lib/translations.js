@@ -76,6 +76,8 @@ export const translations = {
       adulto: "Adulto",
       nino: "Niño",
       ver_detalles: "Ver detalles",
+      sin_imagen: "Sin Imagen",
+      reservar: "Reservar",
     },
     tour_details: {
       duracion: "Duración",
@@ -187,10 +189,6 @@ export const translations = {
       libro_reclamaciones: "Libro de Reclamaciones",
       libro_reclamaciones_sub: "Conforme a la Ley N° 29571 / INDECOPI",
       libro_reclamaciones_btn: "Presentar Reclamo o Queja",
-    },
-    tour_card: {
-      sin_imagen: "Sin Imagen",
-      reservar: "Reservar",
     },
     checkout_success: {
       titulo: "¡Reserva Registrada!",
@@ -328,6 +326,8 @@ export const translations = {
       adulto: "Adult",
       nino: "Child",
       ver_detalles: "View details",
+      sin_imagen: "No Image",
+      reservar: "Book",
     },
     tour_details: {
       duracion: "Duration",
@@ -440,10 +440,6 @@ export const translations = {
       libro_reclamaciones_sub: "In accordance with Law No. 29571 / INDECOPI",
       libro_reclamaciones_btn: "File a Claim or Complaint",
     },
-    tour_card: {
-      sin_imagen: "No Image",
-      reservar: "Book",
-    },
     checkout_success: {
       titulo: "Booking Registered!",
       procesando: "Processing payment with",
@@ -504,3 +500,26 @@ export const translations = {
     }
   }
 };
+
+export function formatDifficulty(diff, lang = 'es') {
+  if (!diff) return '';
+  const clean = String(diff).toLowerCase();
+  if (lang === 'en') {
+    if (clean.includes('facil') || clean.includes('fácil') || clean.includes('principiante') || clean.includes('easy')) return 'Easy / Beginner';
+    if (clean.includes('moderado') || clean.includes('moderate')) return 'Moderate';
+    if (clean.includes('desafiante') || clean.includes('challenging')) return 'Challenging';
+    if (clean.includes('dificil') || clean.includes('difícil') || clean.includes('difficult')) return 'Difficult';
+    if (clean.includes('extremo') || clean.includes('extreme')) return 'Extreme';
+    if (clean.includes('experto') || clean.includes('expert')) return 'Expert';
+    return diff;
+  } else {
+    if (clean.includes('easy') || clean.includes('beginner') || clean.includes('facil') || clean.includes('fácil')) return 'Fácil / Principiante';
+    if (clean.includes('moderate') || clean.includes('moderado')) return 'Moderado';
+    if (clean.includes('challenging') || clean.includes('desafiante')) return 'Desafiante';
+    if (clean.includes('difficult') || clean.includes('dificil') || clean.includes('difícil')) return 'Difícil';
+    if (clean.includes('extreme') || clean.includes('extremo')) return 'Extremo';
+    if (clean.includes('expert') || clean.includes('experto')) return 'Experto';
+    return diff;
+  }
+}
+

@@ -199,6 +199,7 @@ model Guia {
   idiomas     String   @db.VarChar(255)
   foto        String   @db.VarChar(500)
   descripcion String   @db.LongText
+  traducciones String? @db.LongText
   activo      Boolean  @default(true)
   orden       Int      @default(0)
   createdAt   DateTime @default(now())
@@ -217,6 +218,7 @@ model Garantia {
   icono       String   @db.VarChar(100) // e.g. "Award", "Lock", "ShieldCheck", "Star"
   color       String   @db.VarChar(100) // e.g. "red", "emerald", "blue", "amber"
   imagenUrl   String?  @db.VarChar(500)
+  traducciones String? @db.LongText
   activo      Boolean  @default(true)
   orden       Int      @default(0)
   createdAt   DateTime @default(now())

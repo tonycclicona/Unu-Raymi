@@ -7,6 +7,7 @@ import 'leaflet/dist/leaflet.css';
 import { RotateCcw, Route, Image as ImageIcon } from 'lucide-react';
 import { API_ASSETS_URL } from '@/lib/api';
 import { useLanguage } from '@/context/LanguageContext';
+import { formatDifficulty } from '@/lib/translations';
 
 // Solución marcadores e iconos Leaflet en Next.js
 delete L.Icon.Default.prototype._getIconUrl;
@@ -204,7 +205,7 @@ export default function MapaSudamericaGIS({ attractions = [], selectedTourId, on
           const icon = fullImgUrl
             ? createPhotoBubbleIcon(fullImgUrl, att.category, att.orden)
             : (categoryIcons[att.category] || defaultIcon);
-          const tourDificultad = att.tour?.nivel_dificultad || 'Moderado';
+          const tourDificultad = formatDifficulty(att.tour?.nivel_dificultad || 'Moderado', language);
 
           const categoryTranslated = {
             ATRACTIVO: t('gis_map.atractivo'),
