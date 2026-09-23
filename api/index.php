@@ -65,6 +65,25 @@ if (isset($_GET['diag']) || isset($_GET['diagnostic'])) {
         @fclose($fp);
     }
 
+    $targetResults = [];
+    foreach ($targets as $t) {
+        $ch = curl_init($t . '/api/health');
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 1);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 2);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+        $res = curl_exec($ch);
+        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $err = curl_error($ch);
+        curl_close($ch);
+        $targetResults[$t] = [
+            "code" => $code,
+            "error" => $err,
+            "response_preview" => substr(strval($res), 0, 100)
+        ];
+    }
+
     echo json_encode([
         "status" => "ok",
         "api_directory" => __DIR__,
@@ -73,6 +92,7 @@ if (isset($_GET['diag']) || isset($_GET['diagnostic'])) {
         "target_port" => $targetPort,
         "socket_open" => $socketConnected,
         "targets" => $targets,
+        "target_results" => $targetResults,
         "curl_available" => function_exists('curl_init'),
         "timestamp" => date("c")
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
@@ -180,8 +200,10 @@ if (function_exists('curl_init')) {
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $requestMethod);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 3);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
         
         $reqHeaders = $headers;
         if (strpos($baseTarget, 'unu-raymi.com') !== false) {
