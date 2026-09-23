@@ -1,35 +1,43 @@
-// postinstall.cjs — Runs after install in the root
-// Automatically builds all subapps (backend, frontend, admin) and delivers them cleanly to Hostinger public_html.
+// ==============================================================================
+// postinstall.cjs — Build & Deployment Centralizado para Hostinger Web Business
+// ==============================================================================
+// Compila backend, frontend y admin y los ubica en una ÚNICA estructura canónica:
+//   /home/u209525223/domains/unu-raymi.com/public_html/
+//     ├── (Frontend estático Next.js)
+//     ├── admin/   (Panel de Administración estático Next.js)
+//     ├── api/     (Proxy inverso PHP para LiteSpeed hacia Node.js)
+//     └── uploads/ (Almacenamiento centralizado y único de media)
+// ==============================================================================
+
+'use strict';
 
 const { execSync } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 
-console.log('\n[postinstall] ==========================================');
-console.log('[postinstall] Starting Full Monorepo Build & Setup');
-console.log('[postinstall] CWD:', process.cwd());
-// appType solo se restringe si se pasa explícitamente por CLI (ej: node postinstall.cjs backend).
-// En Hostinger, debe compilar SIEMPRE todo (backend + frontend + admin) para tener public_html listo.
-const appType = (process.argv[2] || 'all').toLowerCase();
-console.log('[postinstall] Target build:', appType);
-console.log('[postinstall] ==========================================\n');
+console.log('\n==========================================================');
+console.log('🚀 [postinstall] Unu-Raymi Monorepo Build & Setup');
+console.log('📍 [postinstall] CWD:', process.cwd());
+const targetScope = (process.argv[2] || 'all').toLowerCase();
+console.log('🎯 [postinstall] Alcance de compilación:', targetScope);
+console.log('==========================================================\n');
 
 function run(cmd, subdir) {
   const cwd = path.join(process.cwd(), subdir);
   if (!fs.existsSync(cwd)) {
-    console.log(`[postinstall] Skipping ${subdir} (directory does not exist)`);
+    console.log(`[postinstall] Omitiendo ${subdir} (directorio no encontrado)`);
     return;
   }
-  console.log(`[postinstall] Running: "${cmd}" in: ${cwd}`);
+  console.log(`[postinstall] Ejecutando: "${cmd}" en: ${subdir}`);
   try {
     execSync(cmd, { cwd, stdio: 'inherit', env: process.env });
-    console.log(`[postinstall] ✅ Finished: "${cmd}" in: ${subdir}`);
+    console.log(`[postinstall] ✅ Finalizado con éxito: "${cmd}" en ${subdir}\n`);
   } catch (err) {
-    console.error(`[postinstall] ❌ ERROR running "${cmd}" in ${subdir}:`, err.message);
+    console.error(`[postinstall] ❌ Error en "${cmd}" en ${subdir}:`, err.message);
   }
 }
 
-function copyStaticFiles(srcDir, destDir) {
+function copyDirectoryContents(srcDir, destDir, options = {}) {
   if (!fs.existsSync(srcDir)) return;
   if (!fs.existsSync(destDir)) {
     fs.mkdirSync(destDir, { recursive: true });
@@ -37,8 +45,8 @@ function copyStaticFiles(srcDir, destDir) {
 
   const items = fs.readdirSync(srcDir);
   for (const item of items) {
-    // Si ya existe uploads en destino, no sobreescribir las fotos del usuario
-    if (item === 'uploads' && fs.existsSync(path.join(destDir, 'uploads'))) {
+    // Si la carpeta de destino ya tiene uploads, no sobreescribir los archivos del usuario
+    if (item === 'uploads' && options.preserveUploads && fs.existsSync(path.join(destDir, 'uploads'))) {
       continue;
     }
     const srcItem = path.join(srcDir, item);
@@ -46,94 +54,43 @@ function copyStaticFiles(srcDir, destDir) {
     try {
       fs.cpSync(srcItem, destItem, { recursive: true, force: true });
     } catch (e) {
-      console.warn(`[postinstall] Warning copying ${item} to ${destItem}:`, e.message);
+      console.warn(`[postinstall] Aviso copiando ${item}:`, e.message);
     }
   }
 }
 
-// ── 0. LIMPIEZA DE CARPETAS ERRÓNEAS ──────────────────────────────────────────
-try {
-  const wrongRootPub = '/home/u209525223/public_html';
-  if (fs.existsSync(wrongRootPub) && !wrongRootPub.includes('domains')) {
-    fs.rmSync(wrongRootPub, { recursive: true, force: true });
-    console.log(`[postinstall] 🧹 Erroneous root directory cleaned up: ${wrongRootPub}`);
-  }
-} catch (e) {}
+// ── Determinación de la ruta raíz canónica de Hostinger ───────────────────────
+const hostingerDomainPub = '/home/u209525223/domains/unu-raymi.com/public_html';
+const isHostingerLinux = process.platform !== 'win32' && fs.existsSync('/home/u209525223');
+const targetPublicHtml = (isHostingerLinux && fs.existsSync(path.dirname(hostingerDomainPub)))
+  ? hostingerDomainPub
+  : path.resolve(process.cwd(), 'public_html');
 
-// ── 1. BUILD BACKEND ──────────────────────────────────────────────────────────
-if (appType === 'all' || appType === 'backend') {
-  console.log('[postinstall] === 1/3 BACKEND setup ===');
-  try {
-    const nodeModulesPath = path.join(process.cwd(), 'node_modules');
-    execSync(`find "${nodeModulesPath}" -name "schema-engine*" -exec chmod +x {} + 2>/dev/null || true`, { stdio: 'ignore' });
-    execSync(`find "${nodeModulesPath}" -name "query-engine*" -exec chmod +x {} + 2>/dev/null || true`, { stdio: 'ignore' });
-  } catch (e) {}
+console.log(`[postinstall] 📂 Carpeta raíz canónica de despliegue: ${targetPublicHtml}\n`);
+fs.mkdirSync(targetPublicHtml, { recursive: true });
+
+// ── 1. COMPILACIÓN DE BACKEND (Prisma Client) ─────────────────────────────────
+if (targetScope === 'all' || targetScope === 'backend') {
+  console.log('── [1/3] Preparando Backend API ──');
   run('npm run build', 'backend');
-
-  // ── Rutas canónicas ────────────────────────────────────────────────────────
-  const hostingerBase = '/home/u209525223/domains/unu-raymi.com/public_html';
-  const apiDomainBase = '/home/u209525223/domains/api.unu-raymi.com/public_html';
-  const pubDir = fs.existsSync(hostingerBase) ? hostingerBase : path.resolve(process.cwd(), 'public_html');
-  const apiDest = path.join(pubDir, 'api');
-
-  // Proxy dinámico index.php para LiteSpeed hacia Node.js
-  const proxySourcePath = path.resolve(process.cwd(), 'proxy-api.php');
-  const apiIndexContent = fs.existsSync(proxySourcePath)
-    ? fs.readFileSync(proxySourcePath, 'utf8')
-    : `<?php header("Access-Control-Allow-Origin: *"); http_response_code(502); echo json_encode(["error" => "Proxy file missing"]); ?>`;
-
-  const apiHtaccessPath = path.resolve(process.cwd(), 'api/.htaccess');
-  const apiHtaccessContent = fs.existsSync(apiHtaccessPath)
-    ? fs.readFileSync(apiHtaccessPath, 'utf8')
-    : `<IfModule mod_rewrite.c>
-RewriteEngine On
-RewriteCond %{REQUEST_FILENAME} -f
-RewriteRule ^ - [L]
-RewriteRule ^index\\.php$ - [L]
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteRule ^(.*)$ index.php [QSA,L]
-</IfModule>
-`;
-
-  const deployProxy = (targetDir) => {
-    try {
-      if (fs.existsSync(path.dirname(targetDir))) {
-        fs.mkdirSync(targetDir, { recursive: true });
-        if (fs.existsSync(path.join(targetDir, 'default.php'))) {
-          fs.unlinkSync(path.join(targetDir, 'default.php'));
-        }
-        fs.writeFileSync(path.join(targetDir, 'index.php'), apiIndexContent);
-        fs.writeFileSync(path.join(targetDir, '.htaccess'), apiHtaccessContent);
-        console.log(`[postinstall] ✅ Created API reverse proxy in: ${targetDir}`);
-      }
-    } catch (err) {
-      console.error(`[postinstall] Warning creating API proxy in ${targetDir}:`, err.message);
-    }
-  };
-
-  deployProxy(apiDest);
-  deployProxy(apiDomainBase);
 }
 
-// ── 2. BUILD FRONTEND ─────────────────────────────────────────────────────────
-if (appType === 'all' || appType === 'frontend') {
-  console.log('[postinstall] === 2/3 FRONTEND setup ===');
+// ── 2. COMPILACIÓN Y DESPLIEGUE DEL FRONTEND ──────────────────────────────────
+if (targetScope === 'all' || targetScope === 'frontend') {
+  console.log('── [2/3] Compilando Frontend (Static Export) ──');
   run('npm run build', 'frontend');
-  try {
-    const srcOut = path.join(process.cwd(), 'frontend', 'out');
-    const destOut = path.join(process.cwd(), 'out');
-    if (fs.existsSync(srcOut)) {
-      copyStaticFiles(srcOut, destOut);
-    }
 
-    const hostingerBase = '/home/u209525223/domains/unu-raymi.com/public_html';
-    const pubDir = fs.existsSync(hostingerBase) ? hostingerBase : path.resolve(process.cwd(), 'public_html');
+  const frontendOut = path.join(process.cwd(), 'frontend', 'out');
+  if (fs.existsSync(frontendOut)) {
+    console.log(`[postinstall] 📦 Desplegando Frontend en: ${targetPublicHtml}`);
+    copyDirectoryContents(frontendOut, targetPublicHtml, { preserveUploads: true });
 
+    // .htaccess maestro para frontend, caché, compresión y exclusión de api/admin/uploads
     const frontendHtaccess = `<IfModule mod_rewrite.c>
 RewriteEngine On
 RewriteBase /
 
-# No interceptar las rutas de API, Admin ni Uploads con el SPA del frontend
+# No interceptar las rutas de API, Admin ni Uploads
 RewriteRule ^api(/.*)?$ - [L]
 RewriteRule ^admin(/.*)?$ - [L]
 RewriteRule ^uploads(/.*)?$ - [L]
@@ -145,6 +102,18 @@ RewriteCond %{REQUEST_FILENAME} -d
 RewriteCond %{REQUEST_FILENAME}/index.txt -f
 RewriteRule ^(.*)$ $1/index.txt [T=text/plain,L]
 
+# Servir versión en español si el navegador lo solicita
+RewriteCond %{REQUEST_URI} ^/?$
+RewriteCond %{HTTP:Accept-Language} ^es [NC]
+RewriteCond %{DOCUMENT_ROOT}/es/index.html -f
+RewriteRule ^$ es/index.html [L]
+
+# Servir versión en inglés si está disponible
+RewriteCond %{REQUEST_URI} ^/?$
+RewriteCond %{DOCUMENT_ROOT}/en/index.html -f
+RewriteRule ^$ en/index.html [L]
+
+# Fallback general SPA a index.html
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule . /index.html [L]
@@ -180,70 +149,39 @@ RewriteRule . /index.html [L]
   <FilesMatch "\\.(webp|png|jpg|jpeg|gif|svg|ico)$">
     Header set Cache-Control "public, max-age=2592000"
   </FilesMatch>
-  # Páginas HTML siempre frescas para reflejar cambios inmediatamente
+  # Páginas HTML siempre frescas
   <FilesMatch "\\.html$">
     Header set Cache-Control "no-cache, no-store, must-revalidate"
   </FilesMatch>
   Header set X-Content-Type-Options "nosniff"
 </IfModule>
 `;
-
-    if (fs.existsSync(srcOut) && pubDir !== srcOut) {
-      fs.mkdirSync(pubDir, { recursive: true });
-      copyStaticFiles(srcOut, pubDir);
-      fs.writeFileSync(path.join(pubDir, '.htaccess'), frontendHtaccess);
-      console.log(`[postinstall] ✅ Copied frontend static export and secured .htaccess in: ${pubDir}`);
-    }
-
-    // Sincronizar uploads existentes hacia public_html/uploads
-    const uploadSources = [
-      path.resolve(process.cwd(), 'backend/storage/uploads'),
-      path.resolve(process.cwd(), 'storage/uploads')
-    ];
-    const pubUploads = path.join(pubDir, 'uploads');
-    const apiUploads = path.join(pubDir, 'api/uploads');
-    fs.mkdirSync(pubUploads, { recursive: true });
-    fs.mkdirSync(apiUploads, { recursive: true });
-
-    uploadSources.forEach(function(srcDir) {
-      if (fs.existsSync(srcDir)) {
-        try {
-          const files = fs.readdirSync(srcDir);
-          files.forEach(function(f) {
-            const s = path.join(srcDir, f);
-            const d1 = path.join(pubUploads, f);
-            const d2 = path.join(apiUploads, f);
-            if (!fs.existsSync(d1)) {
-              try { fs.copyFileSync(s, d1); } catch (e) {}
-            }
-            if (!fs.existsSync(d2)) {
-              try { fs.copyFileSync(s, d2); } catch (e) {}
-            }
-          });
-          console.log(`[postinstall] ✅ Sincronizados uploads desde ${srcDir} hacia ${pubUploads}`);
-        } catch (e) {}
-      }
-    });
-  } catch (e) {
-    console.error('Warning: Failed to copy frontend build:', e.message);
+    fs.writeFileSync(path.join(targetPublicHtml, '.htaccess'), frontendHtaccess);
+    console.log('[postinstall] ✅ Frontend y .htaccess maestro desplegados.');
   }
 }
 
-// ── 3. BUILD ADMIN ────────────────────────────────────────────────────────────
-if (appType === 'all' || appType === 'admin') {
-  console.log('[postinstall] === 3/3 ADMIN setup ===');
+// ── 3. COMPILACIÓN Y DESPLIEGUE DEL ADMIN ─────────────────────────────────────
+if (targetScope === 'all' || targetScope === 'admin') {
+  console.log('── [3/3] Compilando Admin (Static Export) ──');
   run('npm run build', 'admin');
-  try {
-    const srcOut = path.join(process.cwd(), 'admin', 'out');
-    const hostingerBase = '/home/u209525223/domains/unu-raymi.com/public_html';
-    const pubDir = fs.existsSync(hostingerBase) ? hostingerBase : path.resolve(process.cwd(), 'public_html');
-    const adminDest = path.join(pubDir, 'admin');
+
+  const adminOut = path.join(process.cwd(), 'admin', 'out');
+  const adminDest = path.join(targetPublicHtml, 'admin');
+
+  if (fs.existsSync(adminOut)) {
+    console.log(`[postinstall] 📦 Desplegando Admin en: ${adminDest}`);
+    fs.mkdirSync(adminDest, { recursive: true });
+    if (fs.existsSync(path.join(adminDest, 'default.php'))) {
+      try { fs.unlinkSync(path.join(adminDest, 'default.php')); } catch (e) {}
+    }
+    copyDirectoryContents(adminOut, adminDest);
 
     const adminHtaccess = `<IfModule mod_rewrite.c>
 RewriteEngine On
 RewriteBase /
 
-# 1. Peticiones de RSC / Prefetch de Next.js (navegación SPA interna entre apartados)
+# 1. Peticiones de RSC / Prefetch de Next.js
 RewriteCond %{HTTP:RSC} 1 [OR]
 RewriteCond %{QUERY_STRING} (^|&)_rsc=
 RewriteCond %{REQUEST_FILENAME} -d
@@ -255,15 +193,11 @@ RewriteCond %{QUERY_STRING} (^|&)_rsc=
 RewriteCond %{REQUEST_FILENAME}.txt -f
 RewriteRule ^(.*)$ $1.txt [T=text/plain,L]
 
-# 2. Si Next.js solicita directamente un .txt correspondiente a una subcarpeta
-RewriteCond %{DOCUMENT_ROOT}/$1/index.txt -f
-RewriteRule ^(.*)\\.txt$ /$1/index.txt [T=text/plain,L]
+# 2. Archivos estáticos existentes
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteRule ^ - [L]
 
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME}/index.txt -f
-RewriteRule ^(.*)$ $1/index.txt [T=text/plain,L]
-
-# 3. Directorios con index.html (visitas directas o refresco del navegador)
+# 3. Directorios con index.html
 RewriteCond %{REQUEST_FILENAME} -d
 RewriteCond %{REQUEST_FILENAME}/index.html -f
 RewriteRule ^(.*)$ $1/index.html [L]
@@ -272,22 +206,16 @@ RewriteRule ^(.*)$ $1/index.html [L]
 RewriteCond %{REQUEST_FILENAME}.html -f
 RewriteRule ^(.*)$ $1.html [L]
 
-# 5. Archivos estáticos existentes
-RewriteCond %{REQUEST_FILENAME} -f
-RewriteRule ^ - [L]
-
-# 6. Fallback general a index.html
+# 5. Fallback general a index.html del Admin
 RewriteRule ^ index.html [L]
 </IfModule>
 
-# Compresión GZIP / Deflate para el panel de administración
 <IfModule mod_deflate.c>
   AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript
   AddOutputFilterByType DEFLATE application/javascript application/x-javascript application/json
   AddOutputFilterByType DEFLATE image/svg+xml
 </IfModule>
 
-# Políticas de Caché para bundles estáticos
 <IfModule mod_headers.c>
   <FilesMatch "\\.(js|css)$">
     Header set Cache-Control "public, max-age=31536000, immutable"
@@ -298,72 +226,71 @@ RewriteRule ^ index.html [L]
   Header set X-Content-Type-Options "nosniff"
 </IfModule>
 `;
-
-    if (fs.existsSync(srcOut)) {
-      fs.mkdirSync(adminDest, { recursive: true });
-      if (fs.existsSync(path.join(adminDest, 'default.php'))) {
-        fs.unlinkSync(path.join(adminDest, 'default.php'));
-      }
-      copyStaticFiles(srcOut, adminDest);
-      fs.writeFileSync(path.join(adminDest, '.htaccess'), adminHtaccess);
-      console.log(`[postinstall] ✅ Copied admin static export and created .htaccess in: ${adminDest}`);
-
-      const adminDomainBase = '/home/u209525223/domains/admin.unu-raymi.com/public_html';
-      if (fs.existsSync(path.dirname(adminDomainBase))) {
-        fs.mkdirSync(adminDomainBase, { recursive: true });
-        copyStaticFiles(srcOut, adminDomainBase);
-        fs.writeFileSync(path.join(adminDomainBase, '.htaccess'), adminHtaccess);
-        console.log(`[postinstall] ✅ Copied admin static export to domain root: ${adminDomainBase}`);
-      }
-    }
-  } catch (e) {
-    console.error('Warning: Failed to copy admin build:', e.message);
+    fs.writeFileSync(path.join(adminDest, '.htaccess'), adminHtaccess);
+    console.log('[postinstall] ✅ Admin y .htaccess desplegados en public_html/admin.');
   }
 }
 
-// ── 4. SINCRONIZACIÓN AUTOMÁTICA A RUNTIME DIRECTORIES ───────────────────────
-console.log('\n[postinstall] === Syncing build artifacts to runtime directories ===');
-try {
-  const currentDirs = [
-    '/home/u209525223/domains/unu-raymi.com/hbuilds/current/nodejs',
-    path.resolve(process.cwd(), '../current/nodejs')
-  ];
+// ── 4. DESPLIEGUE DEL PROXY INVERSO API (public_html/api) ─────────────────────
+console.log('\n── Desplegando Proxy Inverso API en public_html/api ──');
+const apiDest = path.join(targetPublicHtml, 'api');
+fs.mkdirSync(apiDest, { recursive: true });
 
-  currentDirs.forEach(target => {
-    if (fs.existsSync(path.dirname(target))) {
-      try {
-        fs.mkdirSync(target, { recursive: true });
-        const itemsToCopy = ['server.js', 'package.json', 'out', 'frontend', 'admin', 'backend', '.env', '.env.production', 'proxy-api.php'];
-        itemsToCopy.forEach(item => {
-          const itemSrc = path.join(process.cwd(), item);
-          const itemDest = path.join(target, item);
-          if (fs.existsSync(itemSrc)) {
-            fs.cpSync(itemSrc, itemDest, { recursive: true });
-          }
-        });
-        console.log(`[postinstall] ✅ Automatically synced app files to: ${target}`);
-      } catch (err) {
-        console.error(`Warning: Failed to sync to ${target}:`, err.message);
+const apiPhpSource = path.resolve(process.cwd(), 'api/index.php');
+const apiHtaccessSource = path.resolve(process.cwd(), 'api/.htaccess');
+
+if (fs.existsSync(apiPhpSource)) {
+  fs.copyFileSync(apiPhpSource, path.join(apiDest, 'index.php'));
+}
+if (fs.existsSync(apiHtaccessSource)) {
+  fs.copyFileSync(apiHtaccessSource, path.join(apiDest, '.htaccess'));
+}
+if (fs.existsSync(path.join(apiDest, 'default.php'))) {
+  try { fs.unlinkSync(path.join(apiDest, 'default.php')); } catch (e) {}
+}
+console.log(`[postinstall] ✅ Proxy API sincronizado en: ${apiDest}`);
+
+// ── 5. PERSISTENCIA CENTRALIZADA DE MEDIA (public_html/uploads) ────────────────
+console.log('\n── Verificando carpeta centralizada de media en public_html/uploads ──');
+const centralizedUploads = path.join(targetPublicHtml, 'uploads');
+fs.mkdirSync(centralizedUploads, { recursive: true });
+
+// Sincronizar assets estáticos iniciales si existen en frontend/public/uploads
+const initialAssetsDir = path.resolve(process.cwd(), 'frontend/public/uploads');
+if (fs.existsSync(initialAssetsDir)) {
+  try {
+    const assets = fs.readdirSync(initialAssetsDir);
+    assets.forEach(file => {
+      const srcFile = path.join(initialAssetsDir, file);
+      const destFile = path.join(centralizedUploads, file);
+      if (!fs.existsSync(destFile)) {
+        fs.copyFileSync(srcFile, destFile);
       }
+    });
+    console.log(`[postinstall] ✅ Assets multimedia verificados en: ${centralizedUploads}`);
+  } catch (e) {
+    console.warn('[postinstall] Aviso sincronizando assets iniciales:', e.message);
+  }
+}
+
+// ── 6. DISPARAR REINICIO AUTOMÁTICO DE NODE.JS EN HOSTINGER ───────────────────
+console.log('\n── Señalizando reinicio de Node.js a Hostinger / Passenger ──');
+const restartPaths = [
+  path.resolve(process.cwd(), 'tmp/restart.txt'),
+  '/home/u209525223/domains/unu-raymi.com/tmp/restart.txt'
+];
+
+restartPaths.forEach(rf => {
+  try {
+    if (fs.existsSync(path.dirname(rf))) {
+      fs.writeFileSync(rf, String(Date.now()));
+      console.log(`[postinstall] 🔄 Reinicio disparado vía: ${rf}`);
     }
-  });
-} catch (e) {}
+  } catch (e) {}
+});
 
-// ── 5. REINICIO AUTOMÁTICO DE APLICACIÓN EN HOSTINGER (PASSENGER / LITESPEED) ──
-try {
-  const restartCandidates = [
-    path.resolve(process.cwd(), 'tmp/restart.txt'),
-    '/home/u209525223/domains/unu-raymi.com/tmp/restart.txt'
-  ];
-  restartCandidates.forEach(rf => {
-    try {
-      if (fs.existsSync(path.dirname(rf))) {
-        fs.writeFileSync(rf, String(Date.now()));
-        console.log(`[postinstall] 🔄 Disparado reinicio automático de Node.js via: ${rf}`);
-      }
-    } catch (e) {}
-  });
-} catch (e) {}
-
-console.log('\n[postinstall] ✅ All subapps processed and delivered successfully.\n');
+console.log('\n==========================================================');
+console.log('🎉 [postinstall] Todos los componentes procesados exitosamente.');
+console.log('📍 Destino unificado: ' + targetPublicHtml);
+console.log('==========================================================\n');
 process.exit(0);

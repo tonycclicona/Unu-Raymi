@@ -23,8 +23,9 @@ pnpm-debug.log*
 *.env.*
 *.env*.local
 *.env.production.local
-EnvironmentVariables.env
 !*.env.example
+!admin/.env.production
+!frontend/.env.production
 
 # Dependencies
 node_modules/

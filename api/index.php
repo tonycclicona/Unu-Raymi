@@ -36,11 +36,10 @@ $portFile = __DIR__ . '/.port';
 $portValue = '';
 $portCandidates = [
     $portFile,
-    '/home/u209525223/domains/api.unu-raymi.com/public_html/.port',
     '/home/u209525223/domains/unu-raymi.com/public_html/api/.port',
     '/home/u209525223/domains/unu-raymi.com/public_html/.port',
-    dirname(__DIR__) . '/.port',
-    dirname(__DIR__) . '/api/.port'
+    dirname(__DIR__) . '/api/.port',
+    dirname(__DIR__) . '/.port'
 ];
 
 foreach ($portCandidates as $candidate) {
@@ -204,20 +203,10 @@ $uriPath = parse_url($requestUri, PHP_URL_PATH) ?: '/';
 if (strpos($uriPath, '/uploads/') === 0) {
     $filename = basename($uriPath);
     $possibleDirs = [
-        // Prioridad: storage del subdominio api.unu-raymi.com
-        '/home/u209525223/domains/api.unu-raymi.com/storage/uploads',
-        // Storage compartido de unu-raymi.com
-        '/home/u209525223/domains/unu-raymi.com/storage/uploads',
-        // Fallback: public_html del dominio principal
+        // Prioridad 1: Carpeta centralizada de uploads en public_html
+        dirname(__DIR__) . '/uploads',
         '/home/u209525223/domains/unu-raymi.com/public_html/uploads',
-        // Fallback: api subfolder dentro de public_html
-        '/home/u209525223/domains/unu-raymi.com/public_html/api/uploads',
-        // Rutas relativas del repositorio
-        __DIR__ . '/../uploads',
-        __DIR__ . '/uploads',
-        dirname(__DIR__) . '/backend/storage/uploads',
-        dirname(__DIR__) . '/storage/uploads',
-        dirname(dirname(__DIR__)) . '/backend/storage/uploads'
+        __DIR__ . '/uploads'
     ];
 
     foreach ($possibleDirs as $dir) {

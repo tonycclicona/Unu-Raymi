@@ -35,6 +35,7 @@ import attractionsRoutes from "./routes/attractionsRoutes.js";
 import reclamacionRoutes from "./routes/reclamacionRoutes.js";
 import errorHandler from "./middlewares/errorHandler.js";
 import { ensureTablesExist } from "./lib/initDb.js";
+import { getCentralizedUploadDir } from "./controllers/uploadController.js";
 
 const app = express();
 const PORT = process.env.PORT || 0;
@@ -105,49 +106,12 @@ app.use(["/api/webhooks", "/webhooks"], webhookRoutes);
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
-// ── 5. Directorios de uploads en orden de prioridad ──────────────────────────
-const uploadsPath = process.env.UPLOADS_PATH
-  ? resolve(process.env.UPLOADS_PATH)
-  : resolve(__dirname, "../storage/uploads");
-
-const uploadSearchDirs = [
-  uploadsPath,
-  "/home/u209525223/domains/api.unu-raymi.com/storage/uploads",
-  "/home/u209525223/domains/unu-raymi.com/public_html/uploads",
-  "/home/u209525223/domains/unu-raymi.com/public_html/api/uploads",
-  resolve(__dirname, "../storage/uploads"),
-  resolve(__dirname, "../../public_html/uploads"),
-].filter((d, i, arr) => arr.indexOf(d) === i);
-
-function serveUploadFile(req, res, next) {
-  const filename = req.params.filename || req.params[0];
-  if (!filename || filename.includes('..')) return next();
-
-  const MIME_TYPES = {
-    webp: 'image/webp', jpg: 'image/jpeg', jpeg: 'image/jpeg',
-    png: 'image/png', gif: 'image/gif', svg: 'image/svg+xml',
-    pdf: 'application/pdf', ico: 'image/x-icon'
-  };
-
-  for (const dir of uploadSearchDirs) {
-    const filePath = resolve(dir, filename);
-    if (existsSync(filePath)) {
-      try {
-        const stat = statSync(filePath);
-        const ext = filename.split('.').pop().toLowerCase();
-        const contentType = MIME_TYPES[ext] || 'application/octet-stream';
-        res.setHeader('Content-Type', contentType);
-        res.setHeader('Content-Length', stat.size);
-        res.setHeader('Cache-Control', isProduction ? 'public, max-age=604800, immutable' : 'no-cache');
-        return createReadStream(filePath).pipe(res);
-      } catch (e) { /* Intentar siguiente directorio */ }
-    }
-  }
-  next();
-}
-
-app.use(["/uploads", "/api/uploads"], express.static(uploadsPath, { maxAge: isProduction ? '7d' : 0 }));
-app.get(["/uploads/:filename", "/api/uploads/:filename"], serveUploadFile);
+// ── 5. Directorio centralizado de uploads ─────────────────────────────────────
+const uploadsPath = getCentralizedUploadDir();
+app.use(["/uploads", "/api/uploads"], express.static(uploadsPath, {
+  maxAge: isProduction ? '7d' : 0,
+  immutable: isProduction
+}));
 
 // ── 6. Health & Root Checks (Dual Route: "/" y "/api") ───────────────────────
 const healthHandler = (req, res) => {
@@ -248,31 +212,27 @@ function savePortFile(p, meta = {}) {
   }
 
   const hostingerPort = '/home/u209525223/domains/unu-raymi.com/public_html/api/.port';
-  const apiSubdomainPort = '/home/u209525223/domains/api.unu-raymi.com/public_html/.port';
-  const targets = [
-    hostingerPort,
-    apiSubdomainPort,
-    resolve(__dirname, "../../api/.port"),
-    resolve(__dirname, "../../.port")
-  ];
-  targets.forEach((t) => {
-    try {
-      if (fs.existsSync(dirname(t))) {
-        fs.writeFileSync(t, portToSave);
-        const metaTarget = resolve(dirname(t), '.port_meta.json');
-        fs.writeFileSync(metaTarget, JSON.stringify({
-          published_port: portToSave,
-          actual_port: p,
-          tcp_port: internalTcpPort,
-          user_socket: userSocketPath,
-          env_port: process.env.PORT || null,
-          passenger: typeof PhusionPassenger !== 'undefined',
-          date: new Date().toISOString(),
-          ...meta
-        }, null, 2));
-      }
-    } catch (e) {}
-  });
+  const localPort = resolve(process.cwd(), 'public_html/api/.port');
+  const target = (process.platform !== 'win32' && fs.existsSync(dirname(hostingerPort)))
+    ? hostingerPort
+    : localPort;
+
+  try {
+    if (fs.existsSync(dirname(target))) {
+      fs.writeFileSync(target, portToSave);
+      const metaTarget = resolve(dirname(target), '.port_meta.json');
+      fs.writeFileSync(metaTarget, JSON.stringify({
+        published_port: portToSave,
+        actual_port: p,
+        tcp_port: internalTcpPort,
+        user_socket: userSocketPath,
+        env_port: process.env.PORT || null,
+        passenger: typeof PhusionPassenger !== 'undefined',
+        date: new Date().toISOString(),
+        ...meta
+      }, null, 2));
+    }
+  } catch (e) {}
 }
 
 function updatePortRegistry(extraMeta = {}) {
