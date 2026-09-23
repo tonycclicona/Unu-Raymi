@@ -200,32 +200,34 @@ function savePortFile(p) {
   } catch (e) {}
 }
 
-// ── Iniciar servidor backend en el puerto configurado (4000 por defecto) ──
-const server = app.listen(PORT, () => {
-  console.log(`\n🚀 Unu-Raymi API corriendo en http://localhost:${PORT}`);
-  console.log(`📡 Health check: http://localhost:${PORT}/api/health`);
-  console.log(`🌍 Entorno: ${process.env.NODE_ENV || "development"}\n`);
-  savePortFile(PORT);
-});
+// ── Iniciar servidor backend de manera independiente sólo si se ejecuta directamente ──
+const isMainModule = process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1]);
+if (isMainModule || process.env.STANDALONE_BACKEND === "true") {
+  const server = app.listen(PORT, () => {
+    console.log(`\n🚀 Unu-Raymi API corriendo en http://localhost:${PORT}`);
+    console.log(`📡 Health check: http://localhost:${PORT}/api/health`);
+    console.log(`🌍 Entorno: ${process.env.NODE_ENV || "development"}\n`);
+    savePortFile(PORT);
+  });
 
-server.on('error', (err) => {
-  if (err.code !== 'EADDRINUSE') {
-    console.error('⚠️ [Server Error]:', err.message);
+  server.on('error', (err) => {
+    if (err.code !== 'EADDRINUSE') {
+      console.error('⚠️ [Server Error]:', err.message);
+    }
+  });
+
+  if (PORT !== 4000) {
+    try {
+      const internalServer = app.listen(4000, "127.0.0.1", () => {
+        console.log(`📡 Gateway interno de compatibilidad escuchando en http://127.0.0.1:4000`);
+      });
+      internalServer.on("error", (err) => {
+        if (err.code !== "EADDRINUSE") {
+          console.warn("⚠️ [Server Warning] Gateway interno 4000:", err.message);
+        }
+      });
+    } catch (e) {}
   }
-});
-
-// Si se inició en un puerto asignado dinámico distinto a 4000, levantar gateway interno en 4000
-if (PORT !== 4000) {
-  try {
-    const internalServer = app.listen(4000, "127.0.0.1", () => {
-      console.log(`📡 Gateway interno de compatibilidad escuchando en http://127.0.0.1:4000`);
-    });
-    internalServer.on("error", (err) => {
-      if (err.code !== "EADDRINUSE") {
-        console.warn("⚠️ [Server Warning] Gateway interno 4000:", err.message);
-      }
-    });
-  } catch (e) {}
 }
 
 export default app;

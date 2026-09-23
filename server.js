@@ -203,9 +203,10 @@ app.use(async function(req, res, next) {
       } catch (e) {}
     }
     if (typeof backendApp === 'function') {
-      // Si la petición viene a api.unu-raymi.com/auth/login (sin prefijo /api y no es uploads), prefijarla para que Express la reconozca
+      // Si la petición viene a través de api.unu-raymi.com (ej: api.unu-raymi.com/ o api.unu-raymi.com/tours)
+      // prefijarla con /api para que las rutas de Express coincidan exactamente
       if (host.startsWith('api.') && !req.url.startsWith('/api') && !req.url.startsWith('/uploads')) {
-        req.url = '/api' + req.url;
+        req.url = '/api' + (req.url.startsWith('/') ? req.url : '/' + req.url);
       }
       return backendApp(req, res, next);
     }
