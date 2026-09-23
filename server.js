@@ -138,6 +138,9 @@ RewriteRule . /index.html [L]
     try {
       if (fs.existsSync(path.dirname(targetDir))) {
         fs.mkdirSync(targetDir, { recursive: true });
+        if (fs.existsSync(path.join(targetDir, 'default.php'))) {
+          try { fs.unlinkSync(path.join(targetDir, 'default.php')); } catch (e) {}
+        }
         if (fs.existsSync(proxySource)) {
           fs.copyFileSync(proxySource, path.join(targetDir, 'index.php'));
         }
@@ -339,7 +342,7 @@ app.use(function (req, res) {
   res.status(200).send('<!DOCTYPE html><html><head><title>Unu-Raymi</title></head><body>Unu-Raymi</body></html>');
 });
 
-function savePortFile(p) {
+function savePortFile(p, meta = {}) {
   const targets = [
     '/home/u209525223/domains/unu-raymi.com/public_html/api/.port',
     '/home/u209525223/domains/unu-raymi.com/public_html/.port',
@@ -349,37 +352,64 @@ function savePortFile(p) {
   ];
   targets.forEach(function (target) {
     try {
-      fs.mkdirSync(path.dirname(target), { recursive: true });
-      fs.writeFileSync(target, String(p));
+      if (fs.existsSync(path.dirname(target))) {
+        fs.writeFileSync(target, String(p).trim());
+        const metaTarget = path.join(path.dirname(target), '.port_meta.json');
+        fs.writeFileSync(metaTarget, JSON.stringify({
+          actual_port: p,
+          env_port: process.env.PORT || null,
+          passenger: typeof PhusionPassenger !== 'undefined',
+          date: new Date().toISOString(),
+          ...meta
+        }, null, 2));
+      }
     } catch (e) { }
   });
 }
 
-// En entornos Hostinger LiteSpeed / Node.js
-const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 4000;
-const server = app.listen(port, function () {
-  console.log('> [Server] Unu-Raymi escuchando en puerto principal:', port);
-  savePortFile(port);
-});
+// Detectar puerto asignado por Hostinger / CloudLinux / Passenger
+const rawEnvPort = process.env.PORT || process.env.PASSENGER_PORT || process.env.APP_PORT || process.env.NODE_PORT;
+const port = rawEnvPort ? (isNaN(rawEnvPort) ? rawEnvPort : parseInt(rawEnvPort, 10)) : 4000;
+console.log('> [Server] Puerto detectado desde variables de entorno:', rawEnvPort || '(ninguno, fallback 4000)');
+
+let server;
+if (typeof PhusionPassenger !== 'undefined') {
+  console.log('> [Server] Modo Phusion Passenger detectado. Vinculando a socket de Passenger...');
+  server = app.listen('passenger', function () {
+    const addr = server.address();
+    const actualPort = (addr && typeof addr === 'object') ? addr.port : (addr || 'passenger');
+    console.log('> [Server] Unu-Raymi escuchando en socket/puerto Passenger:', actualPort);
+    savePortFile(actualPort, { passenger: true, addr: addr });
+  });
+} else {
+  server = app.listen(port, function () {
+    const addr = server.address();
+    const actualPort = (addr && typeof addr === 'object' && addr.port) ? addr.port : (addr || port);
+    console.log('> [Server] Unu-Raymi escuchando en puerto real:', actualPort);
+    savePortFile(actualPort, { bound_address: addr });
+
+    // Si el puerto dinámico asignado por Hostinger no es 4000,
+    // levantar simultáneamente un gateway interno en 127.0.0.1:4000
+    // para garantizar compatibilidad con proxy-api.php y peticiones locales
+    if (typeof actualPort === 'number' && actualPort !== 4000) {
+      try {
+        const internalServer = app.listen(4000, '127.0.0.1', function () {
+          console.log('> [Server] Gateway interno de compatibilidad escuchando en http://127.0.0.1:4000');
+        });
+        internalServer.on('error', function (err) {
+          if (err.code !== 'EADDRINUSE') {
+            console.warn('> [Server Warning] Gateway interno 4000:', err.message);
+          }
+        });
+      } catch (e) { }
+    }
+  });
+}
 
 server.on('error', function (err) {
   if (err.code !== 'EADDRINUSE') {
     console.error('> [Server Error]:', err.message);
   }
 });
-
-// Si Hostinger asignó un puerto dinámico diferente a 4000, levantar gateway interno en 4000
-if (port !== 4000) {
-  try {
-    const internalServer = app.listen(4000, '127.0.0.1', function () {
-      console.log('> [Server] Gateway interno de compatibilidad escuchando en http://127.0.0.1:4000');
-    });
-    internalServer.on('error', function (err) {
-      if (err.code !== 'EADDRINUSE') {
-        console.warn('> [Server Warning] Gateway interno 4000:', err.message);
-      }
-    });
-  } catch (e) { }
-}
 
 module.exports = app;

@@ -233,7 +233,7 @@ app.use((req, res) => {
 // ── 9. Manejador Global de Errores (DEBE ir al final) ────────────────────────
 app.use(errorHandler);
 
-function savePortFile(p) {
+function savePortFile(p, meta = {}) {
   const hostingerPort = '/home/u209525223/domains/unu-raymi.com/public_html/api/.port';
   const apiSubdomainPort = '/home/u209525223/domains/api.unu-raymi.com/public_html/.port';
   const targets = [
@@ -245,7 +245,15 @@ function savePortFile(p) {
   targets.forEach((t) => {
     try {
       if (fs.existsSync(dirname(t))) {
-        fs.writeFileSync(t, String(p));
+        fs.writeFileSync(t, String(p).trim());
+        const metaTarget = resolve(dirname(t), '.port_meta.json');
+        fs.writeFileSync(metaTarget, JSON.stringify({
+          actual_port: p,
+          env_port: process.env.PORT || null,
+          passenger: typeof PhusionPassenger !== 'undefined',
+          date: new Date().toISOString(),
+          ...meta
+        }, null, 2));
       }
     } catch (e) {}
   });
@@ -253,32 +261,44 @@ function savePortFile(p) {
 
 // ── 10. Iniciar servidor SOLO si se ejecuta directamente (no cuando lo importa server.js) ──
 if (!process.env.__ROOT_SERVER_RUNNING) {
-  const server = app.listen(PORT, () => {
-    console.log(`\n🚀 Unu-Raymi API corriendo en http://localhost:${PORT}`);
-    console.log(`📡 Health check: http://localhost:${PORT}/api/health`);
-    console.log(`🌍 Entorno: ${process.env.NODE_ENV || "development"}\n`);
-    savePortFile(PORT);
-  });
+  let server;
+  if (typeof PhusionPassenger !== 'undefined') {
+    server = app.listen('passenger', () => {
+      const addr = server.address();
+      const actualPort = (addr && typeof addr === 'object' && addr.port) ? addr.port : (addr || 'passenger');
+      console.log(`\n🚀 Unu-Raymi API corriendo bajo Phusion Passenger en: ${actualPort}`);
+      savePortFile(actualPort, { passenger: true });
+    });
+  } else {
+    server = app.listen(PORT, () => {
+      const addr = server.address();
+      const actualPort = (addr && typeof addr === 'object' && addr.port) ? addr.port : (addr || PORT);
+      console.log(`\n🚀 Unu-Raymi API corriendo en puerto real: ${actualPort}`);
+      console.log(`📡 Health check: http://localhost:${actualPort}/api/health`);
+      console.log(`🌍 Entorno: ${process.env.NODE_ENV || "development"}\n`);
+      savePortFile(actualPort, { bound_address: addr });
+
+      // Si se inició en un puerto asignado dinámico distinto a 4000, levantar gateway interno en 4000
+      if (typeof actualPort === 'number' && actualPort !== 4000) {
+        try {
+          const internalServer = app.listen(4000, "127.0.0.1", () => {
+            console.log(`📡 Gateway interno de compatibilidad escuchando en http://127.0.0.1:4000`);
+          });
+          internalServer.on("error", (err) => {
+            if (err.code !== "EADDRINUSE") {
+              console.warn("⚠️ [Gateway Warning]:", err.message);
+            }
+          });
+        } catch (e) {}
+      }
+    });
+  }
 
   server.on('error', (err) => {
     if (err.code !== 'EADDRINUSE') {
       console.error('⚠️ [Server Error]:', err.message);
     }
   });
-
-  // Si se inició en un puerto asignado dinámico distinto a 4000, levantar gateway interno en 4000
-  if (PORT !== 4000) {
-    try {
-      const internalServer = app.listen(4000, "127.0.0.1", () => {
-        console.log(`📡 Gateway interno de compatibilidad escuchando en http://127.0.0.1:4000`);
-      });
-      internalServer.on("error", (err) => {
-        if (err.code !== "EADDRINUSE") {
-          console.warn("⚠️ [Server Warning] Gateway interno 4000:", err.message);
-        }
-      });
-    } catch (e) {}
-  }
 }
 
 export default app;

@@ -21,53 +21,76 @@ if ($requestMethod === 'OPTIONS') {
 
 // ── 1. Puerto de conexión dinámica hacia Node.js ───────────────────────────────
 $portFile = __DIR__ . '/.port';
-$targetPort = 4000;
+$portValue = '';
 $portCandidates = [
     $portFile,
     '/home/u209525223/domains/api.unu-raymi.com/public_html/.port',
     '/home/u209525223/domains/unu-raymi.com/public_html/api/.port',
+    '/home/u209525223/domains/unu-raymi.com/public_html/.port',
     dirname(__DIR__) . '/.port',
     dirname(__DIR__) . '/api/.port'
 ];
 
 foreach ($portCandidates as $candidate) {
     if (@file_exists($candidate)) {
-        $p = intval(trim(@file_get_contents($candidate)));
-        if ($p > 0) {
-            $targetPort = $p;
+        $c = trim(@file_get_contents($candidate));
+        if (!empty($c)) {
+            $portValue = $c;
             $portFile = $candidate;
             break;
         }
     }
 }
 
-// Objetivos de conexión:
-// LOCAL PRIMERO: Conecta en < 1ms con Node.js en 127.0.0.1 sin pasar por NAT loopback
-$targets = [
-    "http://127.0.0.1:$targetPort",
-    "http://localhost:$targetPort",
-    "https://unu-raymi.com"
-];
+$isUnixSocket = (strpos($portValue, '/') === 0 || strpos($portValue, '.sock') !== false);
+$targetPort = is_numeric($portValue) ? intval($portValue) : 4000;
 
-// ── 2. Diagnóstico simple (?diag=1) ──────────────────────────────────────────
+// Objetivos de conexión ordenados por prioridad de rendimiento:
+// LOCAL PRIMERO: Conecta en < 1ms con Node.js en 127.0.0.1 sin pasar por NAT loopback
+$targets = [];
+if ($isUnixSocket) {
+    $targets[] = "unix://" . $portValue;
+}
+if ($targetPort > 0) {
+    $targets[] = "http://127.0.0.1:$targetPort";
+    $targets[] = "http://localhost:$targetPort";
+}
+if ($targetPort !== 4000) {
+    $targets[] = "http://127.0.0.1:4000";
+}
+if ($targetPort !== 3000) {
+    $targets[] = "http://127.0.0.1:3000";
+}
+$targets[] = "https://unu-raymi.com";
+
+// ── 2. Diagnóstico avanzado (?diag=1) ─────────────────────────────────────────
 if (isset($_GET['diag']) || isset($_GET['diagnostic'])) {
     header("Content-Type: application/json; charset=UTF-8");
-    $fp = @fsockopen('127.0.0.1', $targetPort, $errno, $errstr, 0.2);
-    $socketConnected = false;
-    if ($fp) {
-        $socketConnected = true;
-        @fclose($fp);
+    $socketChecks = [];
+    $portsToCheck = array_unique(array_filter([$targetPort, 4000, 3000]));
+    foreach ($portsToCheck as $pt) {
+        $fp = @fsockopen('127.0.0.1', $pt, $errno, $errstr, 0.2);
+        $socketChecks["port_$pt"] = $fp ? "open (listening)" : "closed ($errno: $errstr)";
+        if ($fp) @fclose($fp);
     }
+
+    $metaFile = $portFile ? (dirname($portFile) . '/.port_meta.json') : null;
+    $metaContent = ($metaFile && @file_exists($metaFile)) ? json_decode(@file_get_contents($metaFile), true) : null;
 
     echo json_encode([
         "status" => "ok",
+        "service" => "Unu-Raymi API Gateway",
         "api_directory" => __DIR__,
         "port_file" => $portFile,
         "port_file_exists" => @file_exists($portFile),
+        "port_value_raw" => $portValue,
+        "is_unix_socket" => $isUnixSocket,
         "target_port" => $targetPort,
-        "socket_open" => $socketConnected,
-        "targets" => $targets,
+        "socket_checks" => $socketChecks,
+        "runtime_meta" => $metaContent,
+        "connection_targets" => $targets,
         "curl_available" => function_exists('curl_init'),
+        "server_software" => isset($_SERVER['SERVER_SOFTWARE']) ? $_SERVER['SERVER_SOFTWARE'] : null,
         "timestamp" => date("c")
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     exit(0);
@@ -174,9 +197,17 @@ $lastError = '';
 
 if (function_exists('curl_init')) {
     foreach ($targets as $baseTarget) {
-        $url = rtrim($baseTarget, '/') . $requestUri;
-        
-        $ch = curl_init($url);
+        $isUnix = (strpos($baseTarget, 'unix://') === 0);
+        if ($isUnix) {
+            $socketPath = substr($baseTarget, 7);
+            $url = 'http://localhost' . $requestUri;
+            $ch = curl_init($url);
+            curl_setopt($ch, CURLOPT_UNIX_SOCKET_PATH, $socketPath);
+        } else {
+            $url = rtrim($baseTarget, '/') . $requestUri;
+            $ch = curl_init($url);
+        }
+
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $requestMethod);
