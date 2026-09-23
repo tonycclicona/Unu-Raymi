@@ -367,10 +367,10 @@ function savePortFile(p, meta = {}) {
   });
 }
 
-// Detectar puerto asignado por Hostinger / CloudLinux / Passenger
+// Detección y gestión de puertos dinámicos para el entorno de Hostinger (LiteSpeed / Passenger / CloudLinux)
 const rawEnvPort = process.env.PORT || process.env.PASSENGER_PORT || process.env.APP_PORT || process.env.NODE_PORT;
-const port = rawEnvPort ? (isNaN(rawEnvPort) ? rawEnvPort : parseInt(rawEnvPort, 10)) : 4000;
-console.log('> [Server] Puerto detectado desde variables de entorno:', rawEnvPort || '(ninguno, fallback 4000)');
+const port = rawEnvPort ? (isNaN(rawEnvPort) ? rawEnvPort : parseInt(rawEnvPort, 10)) : 0;
+console.log('> [Server] Puerto asignado por Hostinger / entorno:', rawEnvPort || '(asignación dinámica automática)');
 
 let server;
 if (typeof PhusionPassenger !== 'undefined') {
@@ -382,27 +382,12 @@ if (typeof PhusionPassenger !== 'undefined') {
     savePortFile(actualPort, { passenger: true, addr: addr });
   });
 } else {
+  // Escucha en el puerto dinámico de Hostinger o en puerto libre asignado por el SO
   server = app.listen(port, function () {
     const addr = server.address();
     const actualPort = (addr && typeof addr === 'object' && addr.port) ? addr.port : (addr || port);
-    console.log('> [Server] Unu-Raymi escuchando en puerto real:', actualPort);
+    console.log('> [Server] Unu-Raymi escuchando en puerto dinámico real:', actualPort);
     savePortFile(actualPort, { bound_address: addr });
-
-    // Si el puerto dinámico asignado por Hostinger no es 4000,
-    // levantar simultáneamente un gateway interno en 127.0.0.1:4000
-    // para garantizar compatibilidad con proxy-api.php y peticiones locales
-    if (typeof actualPort === 'number' && actualPort !== 4000) {
-      try {
-        const internalServer = app.listen(4000, '127.0.0.1', function () {
-          console.log('> [Server] Gateway interno de compatibilidad escuchando en http://127.0.0.1:4000');
-        });
-        internalServer.on('error', function (err) {
-          if (err.code !== 'EADDRINUSE') {
-            console.warn('> [Server Warning] Gateway interno 4000:', err.message);
-          }
-        });
-      } catch (e) { }
-    }
   });
 }
 

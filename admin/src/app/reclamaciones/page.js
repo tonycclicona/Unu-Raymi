@@ -1,9 +1,9 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect } from 'react';
 import { ClipboardList, Eye, Send, RefreshCw, Filter, AlertTriangle, CheckCircle, Clock, X } from 'lucide-react';
 
-const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.unu-raymi.com/api';
 const API_BASE_URL = rawApiUrl.replace(/\/api\/?$/, '') + '/api';
 
 const TIPO_LABELS = { QUEJA: 'Queja', RECLAMO: 'Reclamo', CONSULTA: 'Consulta' };

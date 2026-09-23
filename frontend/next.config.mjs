@@ -16,7 +16,6 @@ const nextConfig = {
       {
         protocol: 'http',
         hostname: 'localhost',
-        port: '4000',
         pathname: '/**',
       },
       // API subdominio (origen principal de assets en producción)

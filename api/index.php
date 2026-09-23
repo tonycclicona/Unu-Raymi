@@ -43,10 +43,9 @@ foreach ($portCandidates as $candidate) {
 }
 
 $isUnixSocket = (strpos($portValue, '/') === 0 || strpos($portValue, '.sock') !== false);
-$targetPort = is_numeric($portValue) ? intval($portValue) : 4000;
+$targetPort = is_numeric($portValue) ? intval($portValue) : 0;
 
-// Objetivos de conexión ordenados por prioridad de rendimiento:
-// LOCAL PRIMERO: Conecta en < 1ms con Node.js en 127.0.0.1 sin pasar por NAT loopback
+// Objetivos de conexión dinámicos para Hostinger:
 $targets = [];
 if ($isUnixSocket) {
     $targets[] = "unix://" . $portValue;
@@ -55,22 +54,16 @@ if ($targetPort > 0) {
     $targets[] = "http://127.0.0.1:$targetPort";
     $targets[] = "http://localhost:$targetPort";
 }
-if ($targetPort !== 4000) {
-    $targets[] = "http://127.0.0.1:4000";
-}
-if ($targetPort !== 3000) {
-    $targets[] = "http://127.0.0.1:3000";
-}
+// Fallback a nivel de servidor web: Hostinger enruta unu-raymi.com internamente a Node.js
 $targets[] = "https://unu-raymi.com";
 
 // ── 2. Diagnóstico avanzado (?diag=1) ─────────────────────────────────────────
 if (isset($_GET['diag']) || isset($_GET['diagnostic'])) {
     header("Content-Type: application/json; charset=UTF-8");
     $socketChecks = [];
-    $portsToCheck = array_unique(array_filter([$targetPort, 4000, 3000]));
-    foreach ($portsToCheck as $pt) {
-        $fp = @fsockopen('127.0.0.1', $pt, $errno, $errstr, 0.2);
-        $socketChecks["port_$pt"] = $fp ? "open (listening)" : "closed ($errno: $errstr)";
+    if ($targetPort > 0) {
+        $fp = @fsockopen('127.0.0.1', $targetPort, $errno, $errstr, 0.2);
+        $socketChecks["dynamic_port_$targetPort"] = $fp ? "open (listening)" : "closed ($errno: $errstr)";
         if ($fp) @fclose($fp);
     }
 

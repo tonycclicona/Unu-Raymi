@@ -5,7 +5,7 @@ import { X, ClipboardList, AlertTriangle, CheckCircle, ShieldCheck, Send } from 
 import { useLanguage } from '@/context/LanguageContext';
 import { Book3D } from './illustrations/Neomorphic3DIcons';
 
-const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.unu-raymi.com/api';
 const API_BASE_URL = rawApiUrl.replace(/\/api\/?$/, '') + '/api';
 
 export default function LibroReclamaciones({ onClose }) {

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ShieldCheck, Copy, AlertTriangle, CheckCircle2, User, FileText, Activity } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 
-const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.unu-raymi.com/api';
 const API_BASE_URL = rawApiUrl.replace(/\/api\/?$/, '') + '/api';
 
 export default function AdaptiveHealthForm({ tour, pasajeros = [], onEvaluationsComplete }) {

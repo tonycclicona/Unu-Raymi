@@ -49,7 +49,7 @@ export default function ReservasPage() {
       <div className="glass-card rounded-2xl p-6">
         {error && (
           <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-xl text-sm">
-            Error al cargar las reservas. Verifica que el servidor backend esté activo en el puerto 4000.
+            Error al cargar las reservas. Verifica que el servidor backend esté activo.
           </div>
         )}
 

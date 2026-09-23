@@ -37,7 +37,7 @@ import errorHandler from "./middlewares/errorHandler.js";
 import { ensureTablesExist } from "./lib/initDb.js";
 
 const app = express();
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 0;
 const isProduction = process.env.NODE_ENV === "production";
 
 // ── 1. CORS Y PREFLIGHT OPTIONS EN PRIMERA PRIORIDAD ─────────────────────────
@@ -277,20 +277,6 @@ if (!process.env.__ROOT_SERVER_RUNNING) {
       console.log(`📡 Health check: http://localhost:${actualPort}/api/health`);
       console.log(`🌍 Entorno: ${process.env.NODE_ENV || "development"}\n`);
       savePortFile(actualPort, { bound_address: addr });
-
-      // Si se inició en un puerto asignado dinámico distinto a 4000, levantar gateway interno en 4000
-      if (typeof actualPort === 'number' && actualPort !== 4000) {
-        try {
-          const internalServer = app.listen(4000, "127.0.0.1", () => {
-            console.log(`📡 Gateway interno de compatibilidad escuchando en http://127.0.0.1:4000`);
-          });
-          internalServer.on("error", (err) => {
-            if (err.code !== "EADDRINUSE") {
-              console.warn("⚠️ [Gateway Warning]:", err.message);
-            }
-          });
-        } catch (e) {}
-      }
     });
   }
 

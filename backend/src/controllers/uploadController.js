@@ -15,8 +15,7 @@ import { randomUUID } from "crypto";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // URL pública del API para construir URLs absolutas de uploads
-const API_PUBLIC_URL = process.env.API_BASE_URL ||
-  (process.env.NODE_ENV === 'production' ? 'https://api.unu-raymi.com' : 'http://localhost:4000');
+const API_PUBLIC_URL = process.env.API_BASE_URL || 'https://api.unu-raymi.com';
 
 // Obtiene todos los directorios canónicos donde debe guardarse el archivo.
 // ORDEN IMPORTANTE: el primero con UPLOADS_PATH tiene prioridad para servir assets.
