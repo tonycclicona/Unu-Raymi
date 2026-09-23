@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import useSWR from 'swr';
-import { fetcher, getImageUrl, handleImageFallback } from '@/lib/api';
+import { fetcher, API_ASSETS_URL } from '@/lib/api';
 import { Sparkles, Languages, Award, Footprints, ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 
@@ -36,7 +36,7 @@ export default function Guias() {
       dbTours.forEach((tour) => {
         if (Array.isArray(tour.imagenes)) {
           tour.imagenes.forEach((img) => {
-            const url = img.url ? getImageUrl(img.url) : '';
+            const url = img.url?.startsWith('http') ? img.url : `${API_ASSETS_URL}${img.url}`;
             if (url && !extracted.includes(url)) extracted.push(url);
           });
         }
@@ -202,7 +202,6 @@ export default function Guias() {
                               <img
                                 src={guiaImg}
                                 alt={guia.nombre}
-                                onError={(e) => handleImageFallback(e, guia.foto)}
                                 className="w-full h-full object-cover object-top"
                               />
                             </div>

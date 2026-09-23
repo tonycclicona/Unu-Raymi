@@ -240,16 +240,8 @@ if (fs.existsSync(frontendDir)) {
   app.use(express.static(frontendDir, { extensions: ['html'] }));
 }
 
-// Fallback SPA Frontend y Soporte de sub-rutas /[locale]
+// Fallback SPA Frontend
 app.use(function(req, res) {
-  const p = req.path || '';
-  if (p.startsWith('/es') && fs.existsSync(path.join(frontendDir, 'es/index.html'))) {
-    return res.sendFile(path.join(frontendDir, 'es/index.html'));
-  }
-  if (p.startsWith('/en') && fs.existsSync(path.join(frontendDir, 'en/index.html'))) {
-    return res.sendFile(path.join(frontendDir, 'en/index.html'));
-  }
-
   const candidates = [
     path.join(frontendDir, 'index.html'),
     path.resolve(__dirname, 'out/index.html'),

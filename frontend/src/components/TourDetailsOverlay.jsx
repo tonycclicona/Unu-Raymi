@@ -82,84 +82,53 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
         lower.includes('guia') ||
         lower.includes('guiado') ||
         lower.includes('bilingue') ||
-        lower.includes('bilingual') ||
-        lower.includes('guide') ||
-        lower.includes('guiding') ||
-        lower.includes('driver') ||
         lower.includes('conductor') ||
         lower.includes('experto') ||
-        lower.includes('expert') ||
-        lower.includes('lider') ||
-        lower.includes('leader')
+        lower.includes('lider')
       ) {
         guia.push(s);
       } else if (
         lower.includes('seguro') ||
-        lower.includes('insurance') ||
         lower.includes('asistencia') ||
-        lower.includes('assistance') ||
         lower.includes('medico') ||
-        lower.includes('medical') ||
         lower.includes('botquin') ||
         lower.includes('botiquin') ||
-        lower.includes('first aid') ||
         lower.includes('emergencia') ||
-        lower.includes('emergency') ||
-        lower.includes('oxigeno') ||
-        lower.includes('oxygen')
+        lower.includes('oxigeno')
       ) {
         seguridad.push(s);
       } else if (
         lower.includes('comida') ||
-        lower.includes('food') ||
-        lower.includes('meal') ||
-        lower.includes('lunch') ||
         lower.includes('almuerzo') ||
-        lower.includes('dinner') ||
         lower.includes('cena') ||
         lower.includes('snack') ||
-        lower.includes('breakfast') ||
         lower.includes('desayuno') ||
         lower.includes('box') ||
         lower.includes('alimentacion') ||
-        lower.includes('beverage') ||
-        lower.includes('bebida')
+        lower.includes('cena')
       ) {
         alimentacion.push(s);
       } else if (
         lower.includes('transporte') ||
-        lower.includes('transport') ||
         lower.includes('traslado') ||
-        lower.includes('transfer') ||
         lower.includes('bus') ||
         lower.includes('auto') ||
-        lower.includes('car') ||
         lower.includes('tren') ||
-        lower.includes('train') ||
         lower.includes('recogida') ||
-        lower.includes('pick-up') ||
-        lower.includes('pickup') ||
         lower.includes('vehiculo') ||
-        lower.includes('vehicle') ||
-        lower.includes('bote') ||
-        lower.includes('boat')
+        lower.includes('bote')
       ) {
         transporte.push(s);
       } else if (
         lower.includes('entrada') ||
-        lower.includes('entrance') ||
-        lower.includes('fee') ||
         lower.includes('ticket') ||
         lower.includes('boleto') ||
         lower.includes('actividad') ||
-        lower.includes('activity') ||
         lower.includes('visita') ||
-        lower.includes('visit') ||
         lower.includes('camara') ||
         lower.includes('acceso') ||
-        lower.includes('access') ||
         lower.includes('permiso') ||
-        lower.includes('permit')
+        lower.includes('ticket')
       ) {
         actividades.push(s);
       } else {
@@ -294,15 +263,7 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
                 )}
                 {tour.nivel_dificultad && (
                   <span className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/25 px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider flex items-center gap-1">
-                    <span>🏔️</span> {(() => {
-                      const dif = tour.nivel_dificultad.toLowerCase();
-                      if (dif.includes('facil') || dif.includes('fácil') || dif.includes('easy')) return t('catalog.difficulties.facil');
-                      if (dif.includes('moder')) return t('catalog.difficulties.moderado');
-                      if (dif.includes('exig')) return t('catalog.difficulties.exigente');
-                      if (dif.includes('extr')) return t('catalog.difficulties.extremo');
-                      if (dif.includes('dif')) return t('catalog.difficulties.dificil');
-                      return tour.nivel_dificultad;
-                    })()}
+                    <span>🏔️</span> {tour.nivel_dificultad}
                   </span>
                 )}
                 <span className="text-xs text-[var(--muted-foreground)] flex items-center gap-1">
@@ -310,12 +271,8 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
                   {displayDuration} {displayDuration === 1 ? t('tour_card.dia') : t('tour_card.dias')}
                 </span>
               </div>
-              <h2 className="text-xl md:text-3xl font-black text-[var(--foreground)] leading-tight">
-                {(language === 'en' && tour.nombre_en) ? tour.nombre_en : tour.nombre}
-              </h2>
-              <p className="text-[var(--muted-foreground)] text-sm leading-relaxed">
-                {(language === 'en' && tour.descripcion_en) ? tour.descripcion_en : tour.descripcion}
-              </p>
+              <h2 className="text-xl md:text-3xl font-black text-[var(--foreground)] leading-tight">{tour.nombre}</h2>
+              <p className="text-[var(--muted-foreground)] text-sm leading-relaxed">{tour.descripcion}</p>
             </div>
 
             {/* Multi-duration Toggle Tabs */}

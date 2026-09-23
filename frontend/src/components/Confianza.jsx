@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import useSWR from 'swr';
-import { fetcher, getImageUrl, handleImageFallback } from '@/lib/api';
+import { fetcher, API_ASSETS_URL } from '@/lib/api';
 import { ShieldCheck, Award, Lock, Star, Heart, Shield, X } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { Award3D, Lock3D, Star3D, ShieldCheck3D, Shield3D } from './illustrations/Neomorphic3DIcons';
@@ -173,9 +173,8 @@ export default function Confianza() {
                     {hoveredGarantiaId === g.id && g.imagenUrl && (
                       <div className="absolute z-20 bottom-full mb-3 left-1/2 -translate-x-1/2 w-48 h-32 bg-[var(--card)] border border-[var(--border)]/40 rounded-2xl shadow-xl p-1.5 pointer-events-none animate-fade-in flex items-center justify-center">
                         <img
-                          src={getImageUrl(g.imagenUrl)}
+                          src={g.imagenUrl.startsWith('http') ? g.imagenUrl : `${API_ASSETS_URL}${g.imagenUrl}`}
                           alt={g.titulo}
-                          onError={(e) => handleImageFallback(e, g.imagenUrl)}
                           className="max-w-full max-h-full object-contain rounded-lg"
                         />
                       </div>
@@ -217,9 +216,8 @@ export default function Confianza() {
         >
           <div className="relative max-w-4xl max-h-[85vh] w-full h-full flex items-center justify-center">
             <img
-              src={getImageUrl(selectedGarantiaImg)}
+              src={selectedGarantiaImg.startsWith('http') ? selectedGarantiaImg : `${API_ASSETS_URL}${selectedGarantiaImg}`}
               alt={t('reviews.certificado_titulo')}
-              onError={(e) => handleImageFallback(e, selectedGarantiaImg)}
               className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl border border-white/10"
             />
             <button

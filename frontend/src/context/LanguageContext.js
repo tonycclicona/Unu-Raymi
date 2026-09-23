@@ -5,44 +5,18 @@ import { translations } from '@/lib/translations';
 
 const LanguageContext = createContext();
 
-export function LanguageProvider({ children, initialLocale }) {
-  const [language, setLanguageState] = useState(initialLocale || 'en');
-  const [loading, setLoading] = useState(!initialLocale);
+export function LanguageProvider({ children }) {
+  const [language, setLanguageState] = useState('en');
+  const [loading, setLoading] = useState(true);
 
   const setLanguage = (lang) => {
     if (lang === 'es' || lang === 'en') {
       setLanguageState(lang);
-      try {
-        localStorage.setItem('lang', lang);
-      } catch (e) {}
-
-      if (typeof window !== 'undefined') {
-        const currentPath = window.location.pathname;
-        const currentHash = window.location.hash || '';
-        const currentSearch = window.location.search || '';
-        
-        // Si estamos en una ruta /[locale], reemplazar el prefijo
-        if (currentPath.startsWith('/es/') || currentPath === '/es') {
-          const newPath = currentPath.replace(/^\/es(\/|$)/, `/${lang}$1`);
-          window.location.href = `${newPath}${currentSearch}${currentHash}`;
-        } else if (currentPath.startsWith('/en/') || currentPath === '/en') {
-          const newPath = currentPath.replace(/^\/en(\/|$)/, `/${lang}$1`);
-          window.location.href = `${newPath}${currentSearch}${currentHash}`;
-        } else {
-          // Si estamos en la raíz '/', navegar a /{lang}/
-          window.location.href = `/${lang}/${currentSearch}${currentHash}`;
-        }
-      }
+      localStorage.setItem('lang', lang);
     }
   };
 
   useEffect(() => {
-    if (initialLocale) {
-      setLanguageState(initialLocale);
-      setLoading(false);
-      return;
-    }
-
     const detectLanguage = async () => {
       // 1. Check localStorage first
       const savedLang = localStorage.getItem('lang');

@@ -28,25 +28,6 @@ export const translations = {
       no_tours_desc: "Pronto agregaremos nuevas expediciones para {country}. Selecciona otro país en el mapa.",
       load_more: "Cargar más aventuras",
       category_all: "Todos",
-      categories: {
-        all: "Todos",
-        full_days: "Full Days",
-        trekking: "Trekking",
-        trek_climb: "Trek & Climb",
-      },
-      countries: {
-        all: "Sudamérica",
-        peru: "Perú",
-        colombia: "Colombia",
-        chile: "Chile",
-      },
-      difficulties: {
-        facil: "Fácil",
-        moderado: "Moderado",
-        exigente: "Exigente",
-        extremo: "Extremo",
-        dificil: "Difícil",
-      },
     },
     reviews: {
       badge: "Opiniones Reales",
@@ -299,25 +280,6 @@ export const translations = {
       no_tours_desc: "We will soon add new expeditions for {country}. Select another country on the map.",
       load_more: "Load more adventures",
       category_all: "All",
-      categories: {
-        all: "All",
-        full_days: "Full Days",
-        trekking: "Trekking",
-        trek_climb: "Trek & Climb",
-      },
-      countries: {
-        all: "South America",
-        peru: "Peru",
-        colombia: "Colombia",
-        chile: "Chile",
-      },
-      difficulties: {
-        facil: "Easy",
-        moderado: "Moderate",
-        exigente: "Demanding",
-        extremo: "Extreme",
-        dificil: "Difficult",
-      },
     },
     reviews: {
       badge: "Real Reviews",
