@@ -187,7 +187,8 @@ mountDual("/garantias", garantiaRoutes);
 mountDual("/form-engine", formEngineRoutes);
 mountDual("/gis", gisRoutes);
 mountDual("/reclamaciones", reclamacionRoutes);
-app.use(["/", "/api"], attractionsRoutes);
+app.use("/api", attractionsRoutes);
+app.use("/", attractionsRoutes);
 
 // ── 8. Ruta 404 para endpoints no existentes ─────────────────────────────────
 app.use((req, res) => {
