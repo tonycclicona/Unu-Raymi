@@ -20,40 +20,23 @@ if ($requestMethod === 'OPTIONS') {
 }
 
 // ── 1. Puerto de conexión dinámica hacia Node.js ───────────────────────────────
-$possiblePortFiles = [
-    __DIR__ . '/.port',
-    __DIR__ . '/../.port',
-    '/home/u209525223/domains/unu-raymi.com/public_html/api/.port',
-    '/home/u209525223/domains/unu-raymi.com/public_html/.port',
-    dirname(__DIR__) . '/api/.port'
-];
-
+$portFile = __DIR__ . '/.port';
 $targetPort = 4000;
-$foundPortFile = null;
-foreach ($possiblePortFiles as $pf) {
-    if (@file_exists($pf)) {
-        $p = intval(trim(@file_get_contents($pf)));
-        if ($p > 0) {
-            $targetPort = $p;
-            $foundPortFile = $pf;
-            break;
-        }
+if (@file_exists($portFile)) {
+    $p = intval(trim(@file_get_contents($portFile)));
+    if ($p > 0) {
+        $targetPort = $p;
     }
 }
 
-// Objetivos de conexión hacia Node.js:
-// 1. Probar el socket local dinámico en 127.0.0.1 y localhost
-// 2. Si el puerto dinámico difiere de 4000, probar 4000 como gateway de compatibilidad
-// 3. Como último recurso, conectar con el endpoint raíz de Passenger
+// Objetivos de conexión:
+// Primero conectar directamente con el proceso Passenger en unu-raymi.com,
+// y como respaldo intentar el puerto local 127.0.0.1
 $targets = [
+    "https://unu-raymi.com",
     "http://127.0.0.1:$targetPort",
     "http://localhost:$targetPort"
 ];
-if ($targetPort !== 4000) {
-    $targets[] = "http://127.0.0.1:4000";
-    $targets[] = "http://localhost:4000";
-}
-$targets[] = "https://unu-raymi.com";
 
 // ── 2. Diagnóstico simple (?diag=1) ──────────────────────────────────────────
 if (isset($_GET['diag']) || isset($_GET['diagnostic'])) {
@@ -65,34 +48,14 @@ if (isset($_GET['diag']) || isset($_GET['diagnostic'])) {
         @fclose($fp);
     }
 
-    $targetResults = [];
-    foreach ($targets as $t) {
-        $ch = curl_init($t . '/api/health');
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 1);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 2);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-        $res = curl_exec($ch);
-        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $err = curl_error($ch);
-        curl_close($ch);
-        $targetResults[$t] = [
-            "code" => $code,
-            "error" => $err,
-            "response_preview" => substr(strval($res), 0, 100)
-        ];
-    }
-
     echo json_encode([
         "status" => "ok",
         "api_directory" => __DIR__,
-        "port_file" => $foundPortFile,
-        "port_file_exists" => ($foundPortFile !== null),
+        "port_file" => $portFile,
+        "port_file_exists" => @file_exists($portFile),
         "target_port" => $targetPort,
         "socket_open" => $socketConnected,
         "targets" => $targets,
-        "target_results" => $targetResults,
         "curl_available" => function_exists('curl_init'),
         "timestamp" => date("c")
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
@@ -200,10 +163,8 @@ if (function_exists('curl_init')) {
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $requestMethod);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 3);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
         
         $reqHeaders = $headers;
         if (strpos($baseTarget, 'unu-raymi.com') !== false) {

@@ -43,25 +43,43 @@ export function LanguageProvider({ children, initialLocale }) {
       return;
     }
 
-    const detectLanguage = () => {
+    const detectLanguage = async () => {
       // 1. Check localStorage first
-      try {
-        const savedLang = localStorage.getItem('lang');
-        if (savedLang === 'es' || savedLang === 'en') {
-          setLanguageState(savedLang);
-          setLoading(false);
-          return;
-        }
-      } catch (e) {}
+      const savedLang = localStorage.getItem('lang');
+      if (savedLang === 'es' || savedLang === 'en') {
+        setLanguageState(savedLang);
+        setLoading(false);
+        return;
+      }
 
-      // 2. Detección instantánea por navegador (0ms, sin llamadas de red externas)
-      if (typeof navigator !== 'undefined') {
-        const browserLang = (navigator.language || navigator.userLanguage || '').toLowerCase();
-        if (browserLang.startsWith('es')) {
-          setLanguageState('es');
-          setLoading(false);
-          return;
+      // 2. Try Geolocation via API (with a 2-second timeout)
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 2000);
+
+        const res = await fetch('https://ipapi.co/json/', { signal: controller.signal });
+        clearTimeout(timeoutId);
+        
+        if (res.ok) {
+          const data = await res.json();
+          const country = data.country_code;
+          
+          const spanishSpeaking = [
+            'AR', 'BO', 'CL', 'CO', 'CR', 'CU', 'DO', 'EC', 'SV', 
+            'GQ', 'GT', 'HN', 'MX', 'NI', 'PA', 'PY', 'PE', 'ES', 
+            'UY', 'VE'
+          ];
+
+          if (country) {
+            const isSpanishCountry = spanishSpeaking.includes(country.toUpperCase());
+            const detectedLang = isSpanishCountry ? 'es' : 'en';
+            setLanguageState(detectedLang);
+            setLoading(false);
+            return;
+          }
         }
+      } catch (err) {
+        console.warn('Geolocation lookup failed or timed out, defaulting to English:', err);
       }
 
       // 3. Fallback Default: English

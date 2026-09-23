@@ -7,11 +7,9 @@
 const fs = require('fs');
 const path = require('path');
 const express = require('express');
-const compression = require('compression');
 
 const app = express();
 app.disable('x-powered-by');
-app.use(compression({ threshold: 1024 }));
 
 // Cargar variables de entorno
 function loadEnv(file) {
@@ -71,33 +69,18 @@ function copyStaticFiles(srcDir, destDir) {
   }
 }
 
-// Rutas de uploads canónicas y de compatibilidad pública
-const hostingerBase = '/home/u209525223/domains/unu-raymi.com/public_html';
-const pubDir = fs.existsSync(hostingerBase) ? hostingerBase : path.resolve(__dirname, 'public_html');
-const adminDest = path.join(pubDir, 'admin');
-const apiDest = path.join(pubDir, 'api');
-const canonicalHostingerApiUploads = '/home/u209525223/domains/unu-raymi.com/public_html/api/uploads';
-const apiUploadsDest = fs.existsSync('/home/u209525223/domains/unu-raymi.com/public_html/api')
-  ? canonicalHostingerApiUploads
-  : path.join(apiDest, 'uploads');
-const publicUploadsDest = path.join(pubDir, 'uploads');
-
 // ── Sincronizar frontend, admin y api en tiempo de ejecución ───────────────
 try {
+  const hostingerBase = '/home/u209525223/domains/unu-raymi.com/public_html';
+  const pubDir = fs.existsSync(hostingerBase) ? hostingerBase : path.resolve(__dirname, 'public_html');
+  const adminDest = path.join(pubDir, 'admin');
+  const apiDest = path.join(pubDir, 'api');
+
   // 1. Frontend
   if (fs.existsSync(frontendDir) && pubDir !== frontendDir) {
     fs.mkdirSync(pubDir, { recursive: true });
     copyStaticFiles(frontendDir, pubDir);
     console.log('> [Server] Synchronized frontend to:', pubDir);
-  }
-
-  // 1.1 Sincronizar .htaccess principal
-  const rootHtaccess = path.resolve(__dirname, '.htaccess');
-  if (fs.existsSync(rootHtaccess) && pubDir !== __dirname) {
-    try {
-      fs.copyFileSync(rootHtaccess, path.join(pubDir, '.htaccess'));
-      console.log('> [Server] Synchronized root .htaccess to:', pubDir);
-    } catch (e) {}
   }
 
   // 2. Admin
@@ -122,6 +105,12 @@ try {
   }
 
   // 4. Centralizar y asegurar carpeta de Uploads en public_html/api/uploads
+  const canonicalHostingerApiUploads = '/home/u209525223/domains/unu-raymi.com/public_html/api/uploads';
+  const apiUploadsDest = fs.existsSync('/home/u209525223/domains/unu-raymi.com/public_html/api')
+    ? canonicalHostingerApiUploads
+    : path.join(apiDest, 'uploads');
+  const publicUploadsDest = path.join(pubDir, 'uploads');
+
   fs.mkdirSync(apiUploadsDest, { recursive: true });
   fs.mkdirSync(publicUploadsDest, { recursive: true });
 
@@ -208,29 +197,18 @@ app.use(async function(req, res, next) {
   }
 
   const host = (req.headers.host || '').toLowerCase();
-  const isApi = host.startsWith('api.') || req.url.startsWith('/api') || req.url.startsWith('/uploads');
-
-  if (isApi) {
+  if (host.startsWith('api.') || req.url.startsWith('/api') || req.url.startsWith('/uploads')) {
     if (!backendApp && backendPromise) {
       try {
         await backendPromise;
       } catch (e) {}
     }
     if (typeof backendApp === 'function') {
-      // Si la petición viene a api.unu-raymi.com/ (o cualquier subruta sin prefijo /api y no es uploads), prefijarla para que Express backend la reconozca
+      // Si la petición viene a api.unu-raymi.com/auth/login (sin prefijo /api y no es uploads), prefijarla para que Express la reconozca
       if (host.startsWith('api.') && !req.url.startsWith('/api') && !req.url.startsWith('/uploads')) {
-        req.url = '/api' + (req.url.startsWith('/') ? '' : '/') + req.url;
+        req.url = '/api' + req.url;
       }
-      return backendApp(req, res, function(err) {
-        if (err) return next(err);
-        // Si el backend no encontró la ruta para una petición de API, responder 404 JSON (no dejar caer a frontend)
-        if (!res.headersSent) {
-          res.status(404).json({
-            success: false,
-            error: 'Endpoint de API no encontrado: ' + req.originalUrl
-          });
-        }
-      });
+      return backendApp(req, res, next);
     }
     if (backendError) {
       return res.status(503).json({
@@ -287,36 +265,11 @@ app.use(function(req, res, next) {
 
 // ── 4. RUTEO DE FRONTEND (DEFAULT) Y SERVICIO ESTÁTICO DE UPLOADS ────────────
 app.use(['/uploads', '/api/uploads'], express.static(apiUploadsDest, {
-  maxAge: '7d',
-  immutable: true
+  maxAge: '7d'
 }));
 
-// Ruteo instantáneo para la raíz / (Cero rebote de cliente, 0ms TTFB)
-app.get(['/', '/index.html'], function(req, res, next) {
-  const acceptLang = (req.headers['accept-language'] || '').toLowerCase();
-  const prefersEs = acceptLang.startsWith('es') || acceptLang.includes(',es') || acceptLang.includes('es-');
-  const targetDir = prefersEs ? 'es' : 'en';
-
-  const localizedIndex = path.join(frontendDir, targetDir, 'index.html');
-  if (fs.existsSync(localizedIndex)) {
-    res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    return res.sendFile(localizedIndex);
-  }
-  next();
-});
-
 if (fs.existsSync(frontendDir)) {
-  app.use(express.static(frontendDir, {
-    extensions: ['html'],
-    maxAge: '1d',
-    setHeaders: function(res, filePath) {
-      if (filePath.endsWith('.html')) {
-        res.setHeader('Cache-Control', 'no-cache, must-revalidate');
-      } else if (filePath.match(/\.(js|css|webp|png|jpg|jpeg|svg|woff2)$/)) {
-        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-      }
-    }
-  }));
+  app.use(express.static(frontendDir, { extensions: ['html'] }));
 }
 
 // Fallback SPA Frontend y Soporte de sub-rutas /[locale]
@@ -327,16 +280,6 @@ app.use(function(req, res) {
   }
   if (p.startsWith('/en') && fs.existsSync(path.join(frontendDir, 'en/index.html'))) {
     return res.sendFile(path.join(frontendDir, 'en/index.html'));
-  }
-
-  const acceptLang = (req.headers['accept-language'] || '').toLowerCase();
-  const prefersEs = acceptLang.startsWith('es') || acceptLang.includes(',es') || acceptLang.includes('es-');
-  const preferredIndex = prefersEs
-    ? path.join(frontendDir, 'es/index.html')
-    : path.join(frontendDir, 'en/index.html');
-
-  if (fs.existsSync(preferredIndex)) {
-    return res.sendFile(preferredIndex);
   }
 
   const candidates = [
@@ -353,32 +296,22 @@ app.use(function(req, res) {
 });
 
 function savePortFile(p) {
-  const possiblePortFiles = [
-    '/home/u209525223/domains/unu-raymi.com/public_html/api/.port',
-    '/home/u209525223/domains/unu-raymi.com/public_html/.port',
-    path.resolve(__dirname, 'api/.port'),
-    path.resolve(__dirname, 'public_html/api/.port')
-  ];
-
-  possiblePortFiles.forEach(function(target) {
-    try {
-      fs.mkdirSync(path.dirname(target), { recursive: true });
-      fs.writeFileSync(target, String(p));
-    } catch (e) {}
-  });
+  const hostingerPort = '/home/u209525223/domains/unu-raymi.com/public_html/api/.port';
+  const target = fs.existsSync(path.dirname(hostingerPort))
+    ? hostingerPort
+    : path.resolve(__dirname, 'api/.port');
+  try {
+    fs.mkdirSync(path.dirname(target), { recursive: true });
+    fs.writeFileSync(target, String(p));
+  } catch (e) {}
 }
 
 // En entornos Hostinger LiteSpeed / Node.js
 const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 4000;
-const server = app.listen(port, '0.0.0.0', function() {
+const server = app.listen(port, function() {
   console.log('> [Server] Unu-Raymi escuchando en puerto principal:', port);
   savePortFile(port);
 });
-
-// Guardar periódicamente el archivo .port para asegurar sincronización constante con el proxy PHP
-setInterval(function() {
-  savePortFile(port);
-}, 10000);
 
 server.on('error', function(err) {
   if (err.code !== 'EADDRINUSE') {
@@ -389,8 +322,8 @@ server.on('error', function(err) {
 // Si Hostinger asignó un puerto dinámico diferente a 4000, levantar gateway interno en 4000
 if (port !== 4000) {
   try {
-    const internalServer = app.listen(4000, '0.0.0.0', function() {
-      console.log('> [Server] Gateway interno de compatibilidad escuchando en 0.0.0.0:4000');
+    const internalServer = app.listen(4000, '127.0.0.1', function() {
+      console.log('> [Server] Gateway interno de compatibilidad escuchando en http://127.0.0.1:4000');
     });
     internalServer.on('error', function(err) {
       if (err.code !== 'EADDRINUSE') {

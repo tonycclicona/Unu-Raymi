@@ -40,15 +40,28 @@ const PORT = process.env.PORT || 4000;
 const isProduction = process.env.NODE_ENV === "production";
 
 let dbInitialized = false;
-// La inicialización de la base de datos se ejecuta en segundo plano para no congelar ni colgar peticiones HTTP
-ensureTablesExist()
+let dbInitPromise = ensureTablesExist()
   .then(() => {
     dbInitialized = true;
     console.log("✅ [initDb] Esquema MySQL sincronizado al 100%.");
   })
   .catch((err) => {
-    console.error("⚠️ [initDb] Error inicializando tablas en segundo plano:", err.message);
+    console.error("⚠️ [initDb] Error inicializando tablas:", err.message);
   });
+
+// Middleware para asegurar que la inicialización de tablas termine y se reintente si falló al arrancar
+app.use(async (req, res, next) => {
+  if (!dbInitialized) {
+    try {
+      await ensureTablesExist();
+      dbInitialized = true;
+      console.log("✅ [initDb] Esquema MySQL sincronizado exitosamente bajo demanda.");
+    } catch (e) {
+      console.error("⚠️ [initDb] Reintento de sincronización de tablas falló:", e.message);
+    }
+  }
+  next();
+});
 
 // CORS: permitir solicitudes desde los distintos orígenes del frontend y panel de administración
 app.use(
@@ -184,35 +197,32 @@ function savePortFile(p) {
   } catch (e) {}
 }
 
-// ── Iniciar servidor backend solo si se ejecuta directamente (no si se importa desde server.js) ──
-const isMain = process.argv[1] && (process.argv[1] === fileURLToPath(import.meta.url) || process.argv[1].endsWith('backend/src/server.js'));
+// ── Iniciar servidor backend en el puerto configurado (4000 por defecto) ──
+const server = app.listen(PORT, () => {
+  console.log(`\n🚀 Unu-Raymi API corriendo en http://localhost:${PORT}`);
+  console.log(`📡 Health check: http://localhost:${PORT}/api/health`);
+  console.log(`🌍 Entorno: ${process.env.NODE_ENV || "development"}\n`);
+  savePortFile(PORT);
+});
 
-if (isMain) {
-  const server = app.listen(PORT, () => {
-    console.log(`\n🚀 Unu-Raymi API corriendo en http://localhost:${PORT}`);
-    console.log(`📡 Health check: http://localhost:${PORT}/api/health`);
-    console.log(`🌍 Entorno: ${process.env.NODE_ENV || "development"}\n`);
-    savePortFile(PORT);
-  });
-
-  server.on('error', (err) => {
-    if (err.code !== 'EADDRINUSE') {
-      console.error('⚠️ [Server Error]:', err.message);
-    }
-  });
-
-  if (PORT !== 4000) {
-    try {
-      const internalServer = app.listen(4000, "127.0.0.1", () => {
-        console.log(`📡 Gateway interno de compatibilidad escuchando en http://127.0.0.1:4000`);
-      });
-      internalServer.on("error", (err) => {
-        if (err.code !== "EADDRINUSE") {
-          console.warn("⚠️ [Server Warning] Gateway interno 4000:", err.message);
-        }
-      });
-    } catch (e) {}
+server.on('error', (err) => {
+  if (err.code !== 'EADDRINUSE') {
+    console.error('⚠️ [Server Error]:', err.message);
   }
+});
+
+// Si se inició en un puerto asignado dinámico distinto a 4000, levantar gateway interno en 4000
+if (PORT !== 4000) {
+  try {
+    const internalServer = app.listen(4000, "127.0.0.1", () => {
+      console.log(`📡 Gateway interno de compatibilidad escuchando en http://127.0.0.1:4000`);
+    });
+    internalServer.on("error", (err) => {
+      if (err.code !== "EADDRINUSE") {
+        console.warn("⚠️ [Server Warning] Gateway interno 4000:", err.message);
+      }
+    });
+  } catch (e) {}
 }
 
 export default app;

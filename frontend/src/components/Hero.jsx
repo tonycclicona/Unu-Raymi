@@ -38,7 +38,6 @@ export default function Hero() {
           loop
           muted
           playsInline
-          preload="metadata"
           className="w-full h-full object-cover"
           style={{ opacity: videoOpacity }}
           poster="/uploads/Background_Home_page_poster.jpg"
