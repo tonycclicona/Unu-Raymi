@@ -1,4 +1,16 @@
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
+
+/**
+ * Comparación segura en tiempo constante usando SHA-256 + timingSafeEqual
+ * Previene ataques de canal lateral (timing attacks).
+ */
+function safeCompare(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string') return false;
+  const hashA = crypto.createHash('sha256').update(a).digest();
+  const hashB = crypto.createHash('sha256').update(b).digest();
+  return crypto.timingSafeEqual(hashA, hashB);
+}
 
 export const login = async (req, res, next) => {
   try {
@@ -23,15 +35,23 @@ export const login = async (req, res, next) => {
     const inputUser = String(username).trim();
     const inputPass = String(password).trim();
 
-    // Validación estricta ÚNICAMENTE contra lo configurado en las variables de entorno
-    const isUserValid = inputUser === adminUser;
-    const isPassValid = inputPass === adminPass;
+    // Validación en tiempo constante contra credenciales de entorno
+    const isUserValid = safeCompare(inputUser, adminUser);
+    const isPassValid = safeCompare(inputPass, adminPass);
 
     if (!isUserValid || !isPassValid) {
       return res.status(401).json({ success: false, error: 'Credenciales incorrectas' });
     }
 
-    const jwtSecret = process.env.JWT_SECRET || 'unu_raymi_super_secret_key_2026';
+    const jwtSecret = process.env.JWT_SECRET || (!isProduction ? 'unu_raymi_super_secret_key_2026' : null);
+    if (!jwtSecret) {
+      console.error('[Auth] Error crítico: JWT_SECRET no está definido en variables de entorno de producción.');
+      return res.status(500).json({
+        success: false,
+        error: 'Configuración de seguridad del servidor incompleta.',
+      });
+    }
+
     // Generar token JWT
     const token = jwt.sign(
       { role: 'admin', user: inputUser },

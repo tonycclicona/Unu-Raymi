@@ -8,6 +8,7 @@ import { checkout, obtenerReserva, descargarInvoice, obtenerReservas, crearPagoO
 import validateRequest from "../middlewares/validateRequest.js";
 import { checkoutReservaSchema } from "../schemas/reservaSchema.js";
 import { requireAuth } from "../middlewares/authMiddleware.js";
+import { checkoutLimiter } from "../middlewares/rateLimiter.js";
 
 const router = Router();
 
@@ -16,8 +17,8 @@ const router = Router();
 router.get("/", requireAuth, obtenerReservas);
 
 // ── POST /api/reservas/checkout ──────────────────────────────────
-// Valida el payload con Zod → Procesa checkout → Crea reserva PENDING
-router.post("/checkout", validateRequest(checkoutReservaSchema), checkout);
+// Valida el payload con Zod → Procesa checkout → Crea reserva PENDING (con rate limiting)
+router.post("/checkout", checkoutLimiter, validateRequest(checkoutReservaSchema), checkout);
 
 // ── POST /api/reservas/:id/openpay ────────────────────────────
 // Inicia sesión de pago con pasarela OpenPay Perú

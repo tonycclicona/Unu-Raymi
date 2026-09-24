@@ -526,4 +526,25 @@ model GisRouteWarning {
   @@map("gis_route_warnings")
 }
 
+// ─────────────────────────────────────────────
+// MODEL: Reclamacion (Libro de Reclamaciones)
+// ─────────────────────────────────────────────
+model Reclamacion {
+  id               Int       @id @default(autoincrement())
+  nombre           String    @db.VarChar(100)
+  apellido         String    @db.VarChar(100)
+  email            String    @db.VarChar(200)
+  telefono         String?   @db.VarChar(30)
+  tipo_reclamo     String    @db.VarChar(20)
+  descripcion      String    @db.Text
+  pedido           String    @db.Text
+  fecha_ocurrencia DateTime  @db.Date
+  estado           String    @default("PENDIENTE") @db.VarChar(20)
+  respuesta_admin  String?   @db.Text
+  fecha_respuesta  DateTime?
+  created_at       DateTime  @default(now())
+
+  @@map("reclamaciones")
+}
+
 

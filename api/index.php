@@ -18,9 +18,19 @@ if (isset($_SERVER['HTTP_X_PROXY_HOP'])) {
     ]);
     exit(0);
 }
-
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Credentials: true");
+$allowedOrigins = [
+    'https://unu-raymi.com',
+    'https://www.unu-raymi.com',
+    'https://admin.unu-raymi.com'
+];
+$origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '';
+if (!empty($origin)) {
+    $parsedHost = parse_url($origin, PHP_URL_HOST);
+    if (in_array($origin, $allowedOrigins) || ($parsedHost && ($parsedHost === 'localhost' || $parsedHost === '127.0.0.1'))) {
+        header("Access-Control-Allow-Origin: $origin");
+        header("Access-Control-Allow-Credentials: true");
+    }
+}
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS, PATCH");
 header("Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept, Authorization");
 
@@ -127,6 +137,17 @@ if ($targetPort > 0 && !in_array("http://localhost:$targetPort", $targets)) {
 
 // ── 2. Diagnóstico avanzado en tiempo real (?diag=1) ─────────────────────────
 if (isset($_GET['diag']) || isset($_GET['diagnostic'])) {
+    $clientToken = isset($_GET['token']) ? $_GET['token'] : '';
+    $remoteIp = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
+    $isLocal = in_array($remoteIp, ['127.0.0.1', '::1']);
+    $validToken = 'unuraymi_admin_secure_2026';
+    if (!$isLocal && $clientToken !== $validToken) {
+        http_response_code(403);
+        header("Content-Type: application/json; charset=UTF-8");
+        echo json_encode(["status" => "error", "message" => "Acceso no autorizado al diagnóstico."]);
+        exit(0);
+    }
+
     header("Content-Type: application/json; charset=UTF-8");
     $targetProbes = [];
 

@@ -37,6 +37,8 @@ import errorHandler from "./middlewares/errorHandler.js";
 import { ensureTablesExist } from "./lib/initDb.js";
 import { getCentralizedUploadDir } from "./controllers/uploadController.js";
 import { translateWithPreservation } from "./services/translationService.js";
+import { translationLimiter } from "./middlewares/rateLimiter.js";
+import { requireAuth } from "./middlewares/authMiddleware.js";
 
 const app = express();
 const PORT = process.env.PORT || 0;
@@ -152,8 +154,8 @@ app.get(["/", "/api", "/api/"], (req, res) => {
   });
 });
 
-// Endpoint para sincronización / verificación bajo demanda de esquema MySQL
-app.get(["/db-sync", "/api/db-sync"], async (req, res) => {
+// Endpoint para sincronización / verificación bajo demanda de esquema MySQL (protegido con JWT)
+app.get(["/db-sync", "/api/db-sync"], requireAuth, async (req, res) => {
   try {
     await ensureTablesExist();
     dbInitialized = true;
@@ -195,13 +197,24 @@ app.use("/", attractionsRoutes);
 const handleTranslate = async (req, res) => {
   try {
     const { text, texts, targetLang = 'en', sourceLang = null } = req.body;
+
+    // Validación de seguridad para evitar DoS por payloads masivos
     if (text) {
+      if (typeof text !== 'string' || text.length > 25000) {
+        return res.status(400).json({ success: false, error: 'El texto excede el límite máximo permitido de 25,000 caracteres.' });
+      }
       const translated = await translateWithPreservation(text, targetLang, sourceLang);
       return res.json({ success: true, data: translated });
     }
     if (Array.isArray(texts)) {
+      if (texts.length > 50) {
+        return res.status(400).json({ success: false, error: 'Máximo 50 elementos por lote de traducción.' });
+      }
       const results = [];
       for (const item of texts) {
+        if (typeof item === 'string' && item.length > 25000) {
+          return res.status(400).json({ success: false, error: 'Uno de los elementos excede el límite de longitud.' });
+        }
         results.push(await translateWithPreservation(item, targetLang, sourceLang));
       }
       return res.json({ success: true, data: results });
@@ -209,11 +222,11 @@ const handleTranslate = async (req, res) => {
     return res.status(400).json({ success: false, error: 'Debe enviar text o texts.' });
   } catch (err) {
     console.error('Error en /translate:', err);
-    return res.status(500).json({ success: false, error: err.message });
+    return res.status(500).json({ success: false, error: 'Error interno en el servicio de traducción.' });
   }
 };
-app.post("/translate", handleTranslate);
-app.post("/api/translate", handleTranslate);
+app.post("/translate", translationLimiter, handleTranslate);
+app.post("/api/translate", translationLimiter, handleTranslate);
 
 // ── 8. Ruta 404 para endpoints no existentes ─────────────────────────────────
 app.use((req, res) => {

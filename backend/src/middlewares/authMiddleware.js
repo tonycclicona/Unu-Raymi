@@ -1,7 +1,5 @@
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'unu_raymi_super_secret_key_2026';
-
 export const requireAuth = (req, res, next) => {
   const authHeader = req.headers.authorization;
 
@@ -13,9 +11,19 @@ export const requireAuth = (req, res, next) => {
   }
 
   const token = authHeader.split(' ')[1];
+  const isProduction = process.env.NODE_ENV === 'production';
+  const jwtSecret = process.env.JWT_SECRET || (!isProduction ? 'unu_raymi_super_secret_key_2026' : null);
+
+  if (!jwtSecret) {
+    console.error('[AuthMiddleware] Error crítico: JWT_SECRET no configurado en entorno de producción.');
+    return res.status(500).json({
+      success: false,
+      error: 'Configuración de seguridad del servidor inválida.',
+    });
+  }
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
+    const decoded = jwt.verify(token, jwtSecret);
     req.user = decoded;
     next();
   } catch (error) {

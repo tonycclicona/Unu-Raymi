@@ -75,14 +75,29 @@ export const subirImagen = async (req, res, next) => {
     let outputFilename;
     let fileBuffer;
 
-    if (req.file.mimetype === "application/pdf") {
+    if (req.file.mimetype === "application/pdf" || req.file.originalname.toLowerCase().endsWith(".pdf")) {
+      // Validación estricta de Magic Bytes (%PDF- / 0x25 0x50 0x44 0x46 0x2D)
+      const isRealPdf = req.file.buffer.length >= 5 && req.file.buffer.subarray(0, 5).toString("ascii") === "%PDF-";
+      if (!isRealPdf) {
+        return res.status(400).json({
+          success: false,
+          error: "El archivo subido no es un documento PDF válido.",
+        });
+      }
       outputFilename = `${originalNameClean}-${uniqueId}.pdf`;
       fileBuffer = req.file.buffer;
     } else {
-      outputFilename = `${originalNameClean}-${uniqueId}.webp`;
-      fileBuffer = await sharp(req.file.buffer)
-        .webp({ quality: 82 })
-        .toBuffer();
+      try {
+        fileBuffer = await sharp(req.file.buffer)
+          .webp({ quality: 82 })
+          .toBuffer();
+        outputFilename = `${originalNameClean}-${uniqueId}.webp`;
+      } catch (imgErr) {
+        return res.status(400).json({
+          success: false,
+          error: "El archivo no es una imagen válida o está corrupto.",
+        });
+      }
     }
 
     // Escribir el buffer procesado directamente en el directorio centralizado
