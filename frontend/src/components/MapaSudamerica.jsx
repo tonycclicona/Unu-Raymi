@@ -56,7 +56,7 @@ export default function MapaSudamerica({ filtroPais, setFiltroPais, onSelectAttr
   };
 
   const filteredAttractions = v1Attractions.filter(a => {
-    if (filtroPais && filtroPais !== 'Todos' && a.tour?.pais !== filtroPais) {
+    if (filtroPais && filtroPais !== 'Todos' && a.tour?.pais && a.tour.pais.toLowerCase() !== filtroPais.toLowerCase()) {
       return false;
     }
     return true;

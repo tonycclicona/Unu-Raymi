@@ -59,24 +59,30 @@ export default function Home() {
   function filteredToursList() {
     let list = activeTours;
     if (filtroPais !== 'Todos') {
-      list = list.filter(tour => tour.pais.toLowerCase() === filtroPais.toLowerCase());
+      list = list.filter(tour => tour.pais?.toLowerCase() === filtroPais.toLowerCase());
     }
     if (filtroCategoria !== '*') {
-      list = list.filter(tour => tour.categoria.toLowerCase() === filtroCategoria.toLowerCase());
+      list = list.filter(tour => tour.categoria?.toLowerCase() === filtroCategoria.toLowerCase());
     }
-    if (busqueda.trim() !== '') {
+    if (busqueda && busqueda.trim() !== '') {
+      const term = busqueda.trim().toLowerCase();
       list = list.filter(tour => {
         const trans = tour.traducciones?.[language] || {};
-        const nombre = trans.nombre || tour.nombre;
-        const descripcion = trans.descripcion || tour.descripcion;
+        const nombre = trans.nombre || tour.nombre || '';
+        const descripcion = trans.descripcion || tour.descripcion || '';
+        const tourNombre = tour.nombre || '';
+        const tourDescripcion = tour.descripcion || '';
+        const tourPais = tour.pais || '';
+        const tourCiudad = tour.ciudad || '';
+        const tourCategoria = tour.categoria || '';
         return (
           nombre.toLowerCase().includes(term) ||
           descripcion.toLowerCase().includes(term) ||
-          tour.nombre.toLowerCase().includes(term) ||
-          tour.descripcion.toLowerCase().includes(term) ||
-          tour.pais.toLowerCase().includes(term) ||
-          tour.ciudad.toLowerCase().includes(term) ||
-          tour.categoria.toLowerCase().includes(term)
+          tourNombre.toLowerCase().includes(term) ||
+          tourDescripcion.toLowerCase().includes(term) ||
+          tourPais.toLowerCase().includes(term) ||
+          tourCiudad.toLowerCase().includes(term) ||
+          tourCategoria.toLowerCase().includes(term)
         );
       });
     }
@@ -105,6 +111,10 @@ export default function Home() {
                 setVisibleCount(6);
               }}
               onSelectAttraction={(attr) => {
+                if (attr?.tour?.pais && filtroPais !== 'Todos' && filtroPais.toLowerCase() !== attr.tour.pais.toLowerCase()) {
+                  setFiltroPais('Todos');
+                }
+                setFiltroCategoria('*');
                 const term = attr?.tour?.nombre || attr?.name || attr?.nombre;
                 if (term) {
                   setBusqueda(term);
@@ -226,6 +236,10 @@ export default function Home() {
               }}
               onSelectAttraction={(attr) => {
                 // Sincronizar búsqueda al hacer clic en un punto del mapa Leaflet
+                if (attr?.tour?.pais && filtroPais !== 'Todos' && filtroPais.toLowerCase() !== attr.tour.pais.toLowerCase()) {
+                  setFiltroPais('Todos');
+                }
+                setFiltroCategoria('*');
                 const term = attr?.tour?.nombre || attr?.name || attr?.nombre;
                 if (term) {
                   setBusqueda(term);

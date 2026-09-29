@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { X, Shield, Backpack, Utensils, Bus, Camera, ArrowRight, Calendar, MapPin, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { X, Shield, Backpack, Utensils, Bus, Camera, ArrowRight, Calendar, MapPin, Sparkles, ChevronLeft, ChevronRight, Clock, Milestone } from 'lucide-react';
 import { API_ASSETS_URL } from '../lib/api';
 import { useLanguage } from '@/context/LanguageContext';
 import { formatDifficulty } from '@/lib/translations';
@@ -56,6 +56,65 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
   const displayPrecioAdulto = activeVariant ? activeVariant.precio_adulto : tour.precio_adulto;
   const displayCupos = activeVariant ? activeVariant.cupos_disponibles : tour.cupos_disponibles;
   const displayItinerario = (activeVariant && activeVariant.itinerario) ? activeVariant.itinerario : tourItinerario;
+
+  // Parser inteligente para estructurar el itinerario en una Línea de Tiempo interactiva
+  const parsedItinerario = useMemo(() => {
+    if (!displayItinerario || typeof displayItinerario !== 'string') return [];
+
+    let blocks = displayItinerario.split(/\n\s*\n/).map(b => b.trim()).filter(Boolean);
+
+    if (blocks.length <= 1 && displayItinerario.includes('\n')) {
+      blocks = displayItinerario.split(/\n+/).map(b => b.trim()).filter(Boolean);
+    }
+
+    return blocks.map((block, idx) => {
+      const lines = block.split(/\n+/).map(l => l.trim()).filter(Boolean);
+      const firstLine = lines[0] || '';
+      const details = lines.slice(1).join('\n');
+
+      const timeMatch = firstLine.match(/^(\d{1,2}:\d{2}(?:\s*(?:AM|PM|am|pm|Hrs|hrs))?)(?:\s*[-–:]\s*|\s+)(.*)$/i);
+      const dayMatch = firstLine.match(/^(D[ií]a\s+\d+|Day\s+\d+)(?:\s*[:–-]\s*|\s+)(.*)$/i);
+
+      if (timeMatch) {
+        return {
+          id: `step-${idx}`,
+          tag: timeMatch[1].trim(),
+          tagType: 'time',
+          title: timeMatch[2].trim() || timeMatch[1].trim(),
+          description: details,
+        };
+      }
+
+      if (dayMatch) {
+        return {
+          id: `step-${idx}`,
+          tag: dayMatch[1].trim(),
+          tagType: 'day',
+          title: dayMatch[2].trim() || dayMatch[1].trim(),
+          description: details,
+        };
+      }
+
+      const colonMatch = firstLine.match(/^([^:–-]{2,25})[:–-]\s*(.*)$/);
+      if (colonMatch && colonMatch[2].length > 0) {
+        return {
+          id: `step-${idx}`,
+          tag: colonMatch[1].trim(),
+          tagType: 'custom',
+          title: colonMatch[2].trim(),
+          description: details,
+        };
+      }
+
+      return {
+        id: `step-${idx}`,
+        tag: null,
+        tagType: 'step',
+        title: firstLine,
+        description: details,
+      };
+    });
+  }, [displayItinerario]);
 
   useEffect(() => {
     if (imagenes.length <= 1) return;
@@ -281,7 +340,9 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
                 </span>
               </div>
               <h2 className="text-xl md:text-3xl font-black text-[var(--foreground)] leading-tight">{tourNombre}</h2>
-              <p className="text-[var(--muted-foreground)] text-sm leading-relaxed">{tourDescripcion}</p>
+              <p className="text-slate-800 dark:text-slate-100/95 text-sm md:text-[14.5px] leading-relaxed font-normal antialiased tracking-wide">
+                {tourDescripcion}
+              </p>
             </div>
 
             {/* Multi-duration Toggle Tabs */}
@@ -308,20 +369,69 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
               </div>
             )}
 
-            {/* Itinerario del Tour */}
+            {/* Itinerario del Tour — Línea de Tiempo Profesional */}
             <div className="space-y-3">
-              <h3 className="text-sm font-bold text-[var(--foreground)] uppercase tracking-wider flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-[var(--foreground)]" />
-                {t('tour_details.itinerario')}
-              </h3>
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold text-[var(--foreground)] uppercase tracking-wider flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-[var(--accent)]" />
+                  {t('tour_details.itinerario')}
+                </h3>
+                {parsedItinerario.length > 1 && (
+                  <span className="text-[10px] font-bold text-[var(--muted-foreground)] bg-[var(--card)] px-2.5 py-0.5 rounded-full border border-[var(--border)]/40 flex items-center gap-1">
+                    <Milestone className="w-3 h-3 text-[var(--accent)]" />
+                    {parsedItinerario.length} {parsedItinerario.length === 1 ? 'hito' : 'hitos'}
+                  </span>
+                )}
+              </div>
 
-              {displayItinerario ? (
-                <div className="bg-[var(--card)] border border-[var(--border)]/40 p-4 rounded-2xl space-y-4 text-sm text-[var(--foreground)] leading-relaxed md:max-h-[260px] md:overflow-y-auto no-scrollbar">
-                  {displayItinerario.split('\n\n').map((parrafo, i) => (
-                    <p key={i} className="relative pl-4 border-l border-[var(--accent)]/30 hover:border-[var(--accent)] transition-colors py-0.5">
-                      {parrafo}
-                    </p>
-                  ))}
+              {parsedItinerario.length > 0 ? (
+                <div className="bg-[var(--card)]/60 border border-[var(--border)]/50 rounded-2xl p-3.5 sm:p-4 md:p-5 relative">
+                  {/* Contenedor con scroll vertical fluido y estilizado */}
+                  <div className="relative max-h-[290px] md:max-h-[350px] overflow-y-auto pr-1 sm:pr-2 space-y-4 scroll-smooth [scrollbar-width:thin] [scrollbar-color:var(--accent)_transparent]">
+                    {/* Línea vertical continua de la línea de tiempo */}
+                    <div
+                      className="absolute left-[17px] top-3 bottom-4 w-[2px] bg-gradient-to-b from-[var(--accent)] via-[var(--accent)]/40 to-transparent pointer-events-none"
+                      aria-hidden="true"
+                    />
+
+                    {parsedItinerario.map((item) => (
+                      <div key={item.id} className="relative flex items-start gap-3.5 group">
+                        {/* Nodo / Hito interactivo en la línea */}
+                        <div className="relative z-10 flex-shrink-0 w-9 h-9 rounded-full bg-[var(--card)] border-2 border-[var(--accent)] flex items-center justify-center shadow-[0_0_12px_rgba(233,69,96,0.25)] group-hover:shadow-[0_0_16px_rgba(233,69,96,0.55)] group-hover:scale-110 transition-all duration-300">
+                          {item.tagType === 'time' ? (
+                            <Clock className="w-4 h-4 text-[var(--accent)]" />
+                          ) : item.tagType === 'day' ? (
+                            <Calendar className="w-4 h-4 text-[var(--accent)]" />
+                          ) : (
+                            <div className="w-2.5 h-2.5 rounded-full bg-[var(--accent)] group-hover:scale-125 transition-transform" />
+                          )}
+                        </div>
+
+                        {/* Tarjeta del hito del itinerario */}
+                        <div className="flex-1 bg-[var(--card)]/90 hover:bg-[var(--card)] border border-[var(--border)]/40 hover:border-[var(--accent)]/40 p-3 sm:p-3.5 rounded-xl shadow-xs hover:shadow-md transition-all duration-300">
+                          {item.tag && (
+                            <div className="mb-1.5 flex items-center gap-1.5">
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-[var(--accent)]/15 text-[var(--accent)] border border-[var(--accent)]/25">
+                                {item.tagType === 'time' && <Clock className="w-2.5 h-2.5" />}
+                                {item.tagType === 'day' && <Calendar className="w-2.5 h-2.5" />}
+                                {item.tag}
+                              </span>
+                            </div>
+                          )}
+
+                          <h4 className="text-xs md:text-sm font-extrabold text-[var(--foreground)] leading-snug group-hover:text-[var(--accent)] transition-colors">
+                            {item.title}
+                          </h4>
+
+                          {item.description && (
+                            <p className="mt-1.5 text-xs text-slate-700 dark:text-slate-200/90 leading-relaxed font-normal whitespace-pre-line border-t border-[var(--border)]/30 pt-1.5">
+                              {item.description}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               ) : (
                 <div className="bg-[var(--card)] border border-[var(--border)]/40 p-5 rounded-2xl text-center text-xs text-[var(--muted-foreground)]/80 italic">

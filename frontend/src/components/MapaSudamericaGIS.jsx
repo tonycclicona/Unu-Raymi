@@ -221,14 +221,36 @@ export default function MapaSudamericaGIS({ attractions = [], selectedTourId, on
               TIENDA: t('gis_map.tienda'),
             }[att.category] || att.category;
             
-            const localizedAttr = att.traducciones?.[language] || {};
+            let localizedAttr = {};
+            if (att.traducciones) {
+              if (typeof att.traducciones === 'object') {
+                localizedAttr = att.traducciones[language] || {};
+              } else if (typeof att.traducciones === 'string') {
+                try {
+                  const parsed = JSON.parse(att.traducciones);
+                  localizedAttr = parsed[language] || {};
+                } catch (e) {}
+              }
+            }
             const attrName = localizedAttr.name || att.name || att.nombre;
             const attrDescription = localizedAttr.description || att.description;
-            const tourName = att.tour?.traducciones?.[language]?.nombre || att.tour?.nombre;
+
+            let tourLocalized = {};
+            if (att.tour?.traducciones) {
+              if (typeof att.tour.traducciones === 'object') {
+                tourLocalized = att.tour.traducciones[language] || {};
+              } else if (typeof att.tour.traducciones === 'string') {
+                try {
+                  const parsed = JSON.parse(att.tour.traducciones);
+                  tourLocalized = parsed[language] || {};
+                } catch (e) {}
+              }
+            }
+            const tourName = tourLocalized.nombre || att.tour?.nombre;
 
             return (
               <Marker
-                key={att.id}
+                key={att.id || `att-${lat}-${lng}`}
                 position={[lat, lng]}
                 icon={icon}
               eventHandlers={{
@@ -285,7 +307,7 @@ export default function MapaSudamericaGIS({ attractions = [], selectedTourId, on
                       {attrName}
                     </h4>
                     <span className="text-[9px] text-slate-500 font-mono block mt-0.5">
-                      OSM: {att.latitude?.toFixed(4)}, {att.longitude?.toFixed(4)}
+                      OSM: {lat.toFixed(4)}, {lng.toFixed(4)}
                     </span>
                   </div>
 
