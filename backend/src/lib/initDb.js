@@ -106,6 +106,7 @@ export async function ensureTablesExist() {
     await addColumnSafe('tour_variantes', 'servicios_incluidos', 'LONGTEXT NULL');
     await addColumnSafe('tour_variantes', 'servicios_excluidos', 'LONGTEXT NULL');
     await addColumnSafe('tour_variantes', 'fechas_disponibles', 'LONGTEXT NULL');
+    await addColumnSafe('tour_variantes', 'traducciones', 'LONGTEXT NULL');
 
     // 4. Tabla: guias
     await prisma.$executeRawUnsafe(`

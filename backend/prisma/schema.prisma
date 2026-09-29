@@ -109,6 +109,7 @@ model TourVariante {
   servicios_incluidos  String?   @db.LongText // Optional JSON array of inclusions for this specific variant
   servicios_excluidos  String?   @db.LongText // Optional JSON array of exclusions for this specific variant
   fechas_disponibles   String?   @db.LongText // Optional JSON array of dates for this specific variant
+  traducciones         String?   @db.LongText
 
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt

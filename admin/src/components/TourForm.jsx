@@ -26,7 +26,8 @@ import {
   MoveLeft,
   MoveRight,
   Sparkles,
-  Layers
+  Layers,
+  Clock
 } from 'lucide-react';
 
 // Diccionario geográfico dinámico para Sudamérica
@@ -165,6 +166,23 @@ export default function TourForm({ initialData }) {
     return base;
   };
 
+  const getInitialVariantEnItinerario = (v) => {
+    let tr = v.traducciones;
+    if (typeof tr === 'string') {
+      try { tr = JSON.parse(tr); } catch { tr = null; }
+    }
+    if (tr?.en?.itinerario) return tr.en.itinerario;
+    let tourTr = initialData?.traducciones;
+    if (typeof tourTr === 'string') {
+      try { tourTr = JSON.parse(tourTr); } catch { tourTr = null; }
+    }
+    if (tourTr?.en?.variantes && Array.isArray(tourTr.en.variantes)) {
+      const match = tourTr.en.variantes.find(item => item.duracion_dias === v.duracion_dias);
+      if (match?.itinerario) return match.itinerario;
+    }
+    return '';
+  };
+
   // ── VARIANTES COMPLETA CON LOGÍSTICA, CALENDARIO Y TAXONOMÍA INDEPENDIENTE ──
   const [variantes, setVariantes] = useState(() => {
     if (isEdit && initialData.variantes && Array.isArray(initialData.variantes)) {
@@ -176,7 +194,8 @@ export default function TourForm({ initialData }) {
         fechas_disponibles: Array.isArray(v.fechas_disponibles) ? v.fechas_disponibles : [],
         servicios_incluidos: normalizeServiciosIncluidos(v.servicios_incluidos),
         servicios_excluidos: Array.isArray(v.servicios_excluidos) ? v.servicios_excluidos : [],
-        itinerario: v.itinerario || ''
+        itinerario: v.itinerario || '',
+        itinerario_en: getInitialVariantEnItinerario(v),
       }));
     }
     return [];
@@ -193,7 +212,8 @@ export default function TourForm({ initialData }) {
         fechas_disponibles: [],
         servicios_incluidos: { guia: [], seguridad: [], equipamiento: [], alimentacion: [], transporte: [], actividades: [] },
         servicios_excluidos: [],
-        itinerario: ''
+        itinerario: '',
+        itinerario_en: '',
       }
     ]);
   };
@@ -333,16 +353,22 @@ export default function TourForm({ initialData }) {
   const handleAutoTranslate = async () => {
     const currentNombre = watch('nombre');
     const currentDescripcion = watch('descripcion');
+    const hasVariantItinerarios = variantes.some(v => v.itinerario && v.itinerario.trim());
 
-    if (!currentNombre && !currentDescripcion) {
-      setError('Por favor, ingresa el Nombre o la Descripción en Español antes de auto-traducir.');
+    if (!currentNombre && !currentDescripcion && !hasVariantItinerarios) {
+      setError('Por favor, ingresa el Nombre, la Descripción o Itinerarios de Variante en Español antes de auto-traducir.');
       return;
     }
 
     setIsTranslating(true);
     setError(null);
     try {
-      const textsToTranslate = [currentNombre || '', currentDescripcion || ''];
+      const textsToTranslate = [
+        currentNombre || '',
+        currentDescripcion || '',
+        ...variantes.map(v => v.itinerario || '')
+      ];
+
       const res = await mutateApi('/translate', {
         method: 'POST',
         body: {
@@ -354,13 +380,44 @@ export default function TourForm({ initialData }) {
       if (res && res.data && Array.isArray(res.data)) {
         if (res.data[0]) setEnNombre(res.data[0]);
         if (res.data[1]) setEnDescripcion(res.data[1]);
+
+        // Sincronizar itinerarios traducidos para cada variante
+        setVariantes(prev => prev.map((v, idx) => ({
+          ...v,
+          itinerario_en: res.data[2 + idx] || v.itinerario_en || v.itinerario || '',
+        })));
+
         setLangTab('en');
       }
     } catch (err) {
-      console.error('Error auto-traduciendo:', err);
+      console.error('Error auto-traduciendo tour completo:', err);
       setError('No se pudo completar la traducción automática: ' + (err.message || 'Error'));
     } finally {
       setIsTranslating(false);
+    }
+  };
+
+  const handleAutoTranslateVariantItinerary = async (vIdx) => {
+    const v = variantes[vIdx];
+    if (!v?.itinerario?.trim()) {
+      setError(`Ingresa el itinerario en español de la variante de ${v?.duracion_dias || ''} día(s) antes de traducirlo.`);
+      return;
+    }
+    setError(null);
+    try {
+      const res = await mutateApi('/translate', {
+        method: 'POST',
+        body: {
+          texts: [v.itinerario],
+          targetLang: 'en'
+        }
+      });
+      if (res && res.data && res.data[0]) {
+        handleUpdateVariantField(vIdx, 'itinerario_en', res.data[0]);
+        setLangTab('en');
+      }
+    } catch (err) {
+      setError('Error al traducir el itinerario de la variante: ' + (err.message || 'Error'));
     }
   };
 
@@ -445,7 +502,7 @@ export default function TourForm({ initialData }) {
           altText: img.altText || data.nombre,
           orden: index
         })),
-        // Las variantes ahora se envían con toda la lógica empaquetada de manera independiente
+        // Las variantes ahora se envían con toda la lógica empaquetada de manera independiente y bilingüe
         variantes: variantes.map(v => ({
           duracion_dias: parseInt(v.duracion_dias),
           precio_adulto: parseFloat(v.precio_adulto),
@@ -455,6 +512,14 @@ export default function TourForm({ initialData }) {
           servicios_incluidos: v.servicios_incluidos,
           servicios_excluidos: v.servicios_excluidos,
           itinerario: v.itinerario || null,
+          traducciones: {
+            es: {
+              itinerario: v.itinerario || null,
+            },
+            en: {
+              itinerario: v.itinerario_en?.trim() || v.itinerario || null,
+            },
+          },
         })),
       };
 
@@ -914,17 +979,87 @@ export default function TourForm({ initialData }) {
                   />
                 </div>
 
-                {/* Sub-Sección E: Itinerario Específico */}
-                <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-[#4a5759]">Itinerario Detallado para esta Duración ({v.duracion_dias} Día/s)</label>
-                  <textarea
-                    rows="4"
-                    value={v.itinerario}
-                    onChange={(e) => handleUpdateVariantField(vIdx, 'itinerario', e.target.value)}
-                    placeholder="Describe el itinerario día a día detalladamente para esta variante de tiempo..."
-                    className="w-full bg-[#dbeafe] border border-[#b0c4b1] rounded-xl px-3 py-2 text-[#4a5759] text-xs focus:border-[#4a5759] outline-none"
-                    required
-                  />
+                {/* Sub-Sección E: Itinerario Específico Bilingüe */}
+                <div className="space-y-2.5 bg-[#dbeafe]/20 p-4 rounded-xl border border-[#b0c4b1]/60">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#b0c4b1]/40 pb-2">
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-[#4a5759]" />
+                      <label className="text-xs font-bold text-[#4a5759]">
+                        Itinerario Detallado ({v.duracion_dias} Día{v.duracion_dias > 1 ? 's' : ''})
+                      </label>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center bg-[#f4f6f5] p-0.5 rounded-lg border border-[#b0c4b1]/60 text-xs">
+                        <button
+                          type="button"
+                          onClick={() => setLangTab('es')}
+                          className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all flex items-center gap-1 ${
+                            langTab === 'es' ? 'bg-[#4a5759] text-white shadow-xs' : 'text-[#4a5759] hover:bg-[#b0c4b1]/20'
+                          }`}
+                        >
+                          <span>🇪🇸</span>
+                          <span>Español</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setLangTab('en')}
+                          className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all flex items-center gap-1 ${
+                            langTab === 'en' ? 'bg-[#4a5759] text-white shadow-xs' : 'text-[#4a5759] hover:bg-[#b0c4b1]/20'
+                          }`}
+                        >
+                          <span>🇬🇧</span>
+                          <span>English</span>
+                          {v.itinerario_en ? (
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" title="Traducción lista" />
+                          ) : (
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-400" title="Sin traducción aún" />
+                          )}
+                        </button>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handleAutoTranslateVariantItinerary(vIdx)}
+                        className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition-all flex items-center gap-1 shadow-xs"
+                        title="Traducir solo el itinerario de esta variante al inglés"
+                      >
+                        <Sparkles className="w-3 h-3" />
+                        <span>Traducir</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {langTab === 'es' ? (
+                    <div>
+                      <span className="text-[10px] text-[#6c7a7c] font-semibold block mb-1">
+                        🇪🇸 Itinerario en Español (Requerido)
+                      </span>
+                      <textarea
+                        rows="4"
+                        value={v.itinerario || ''}
+                        onChange={(e) => handleUpdateVariantField(vIdx, 'itinerario', e.target.value)}
+                        placeholder="Día 1: Salida desde Cusco hacia el campamento base...&#10;Día 2: Ascenso por la mañana y retorno a la ciudad..."
+                        className="w-full bg-[#ffffff] border border-[#b0c4b1] rounded-xl px-3 py-2 text-[#4a5759] text-xs focus:border-[#4a5759] outline-none"
+                        required
+                      />
+                    </div>
+                  ) : (
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] text-emerald-800 font-semibold flex items-center gap-1">
+                          <span>🇬🇧</span> Itinerary in English (Traducción editable para clientes internacionales)
+                        </span>
+                      </div>
+                      <textarea
+                        rows="4"
+                        value={v.itinerario_en || ''}
+                        onChange={(e) => handleUpdateVariantField(vIdx, 'itinerario_en', e.target.value)}
+                        placeholder="Day 1: Departure from Cusco to basecamp...&#10;Day 2: Morning summit trek and return to the city..."
+                        className="w-full bg-[#ffffff] border border-emerald-500/40 rounded-xl px-3 py-2 text-[#4a5759] text-xs focus:border-emerald-600 outline-none"
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
             ))}

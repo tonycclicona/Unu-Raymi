@@ -115,7 +115,11 @@ export default function MapaSudamericaGIS({ attractions = [], selectedTourId, on
     attractions.forEach((att) => {
       if (att.tourId && att.latitude && att.longitude) {
         if (!groups[att.tourId]) {
-          const localizedTour = att.tour?.traducciones?.[language] || {};
+          let tourTr = att.tour?.traducciones;
+          if (typeof tourTr === 'string') {
+            try { tourTr = JSON.parse(tourTr); } catch { tourTr = null; }
+          }
+          const localizedTour = tourTr?.[language] || {};
           groups[att.tourId] = {
             tourId: att.tourId,
             tourName: localizedTour.nombre || att.tour?.nombre || `Tour #${att.tourId}`,

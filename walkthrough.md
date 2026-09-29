@@ -35,27 +35,35 @@ flowchart TD
    - Enmascaramiento mediante tokens (`__UNUTERM_i__`) antes del envío y restauración exacta tras la traducción.
    - Generación paralela de campos bilingües (`generateBilingualTour`, `generateBilingualAttraction`).
 2. **Base de Datos & Prisma**:
-   - [schema.prisma](file:///c:/Users/Tony/Documents/Trabajo%20Websites/Unuraymi/Unu-Raymi/backend/prisma/schema.prisma): Agregada columna `traducciones String? @db.LongText` a los modelos `Tour` y `Attraction`.
-   - [initDb.js](file:///c:/Users/Tony/Documents/Trabajo%20Websites/Unuraymi/Unu-Raymi/backend/src/lib/initDb.js): Migración segura automática `addColumnSafe` al iniciar el servidor.
+   - [schema.prisma](file:///c:/Users/Tony/Documents/Trabajo%20Websites/Unuraymi/Unu-Raymi/backend/prisma/schema.prisma) & [schema.sqlite.prisma](file:///c:/Users/Tony/Documents/Trabajo%20Websites/Unuraymi/Unu-Raymi/backend/prisma/schema.sqlite.prisma): Agregada columna `traducciones String? @db.LongText` a los modelos `Tour`, `Attraction` y `TourVariante`.
+   - [initDb.js](file:///c:/Users/Tony/Documents/Trabajo%20Websites/Unuraymi/Unu-Raymi/backend/src/lib/initDb.js): Migración segura automática `addColumnSafe` para `tours`, `attractions` y `tour_variantes`.
 3. **Controladores**:
    - [tourController.js](file:///c:/Users/Tony/Documents/Trabajo%20Websites/Unuraymi/Unu-Raymi/backend/src/controllers/tourController.js):
-     - `crearTour` y `actualizarTour` generan `traducciones` de forma automática.
-     - `formatearTour` deserializa `traducciones` y garantiza el objeto bilingüe `{ es: {...}, en: {...} }` incluso para registros históricos.
+     - `crearTour` y `actualizarTour` procesan las variantes mediante `procesarVariantesConTraduccion`, guardando o autotraduciendo el itinerario al inglés.
+     - `formatearTour` deserializa `traducciones` del tour y de cada variante, garantizando `{ es: {...}, en: {...} }` incluso para variantes preexistentes.
    - [attractionsController.js](file:///c:/Users/Tony/Documents/Trabajo%20Websites/Unuraymi/Unu-Raymi/backend/src/controllers/attractionsController.js):
-     - `createAttractionAdmin` y `updateAttractionAdmin` generan `traducciones` de forma automática.
-     - `getAttractionsPublic`, `getAttractionByIdAdmin` y `getAttractionsAdmin` retornan atracciones con `traducciones` formateadas.
+     - `createAttractionAdmin` y `updateAttractionAdmin` aceptan traducciones explícitas de pestañas admin o generan traducciones automáticas.
+     - Incluyen `tour.traducciones` en las consultas de atracciones públicas y admin.
+     - `formatearAttraction` garantiza la estructura bilingüe tanto para el punto GIS como para el tour vinculado.
+
+### Admin
+1. **[TourForm.jsx](file:///c:/Users/Tony/Documents/Trabajo%20Websites/Unuraymi/Unu-Raymi/admin/src/components/TourForm.jsx)**:
+   - Configuración completa de Variantes: Sub-Sección E de cada variante cuenta con selector bilingüe `[ 🇪🇸 ES ] [ 🇬🇧 EN ]` con indicador de estado (verde/ámbar) y botón individual de traducción.
+   - Botón maestro "⚡ Auto-traducir a Inglés" que traduce por lotes el nombre, descripción y el itinerario de todas las variantes registradas.
+   - Persistencia de `traducciones: { es: { itinerario }, en: { itinerario } }` por variante.
+2. **[page.jsx (Puntos GIS / Attractions)](file:///c:/Users/Tony/Documents/Trabajo%20Websites/Unuraymi/Unu-Raymi/admin/src/app/attractions/create/page.jsx)**:
+   - Estandarizado con la barra de pestañas de idioma `[ 🇪🇸 Español ] [ 🇬🇧 English ]` con indicador visual de estado.
+   - Botón "⚡ Auto-traducir a Inglés" con protección de nombres propios y quechuas.
+   - Campos de Nombre y Descripción dinámicos según la pestaña activa (español o inglés).
+   - Tabla de puntos registrados con badge visual bilingüe `[ EN ]` / `[ ES ]`.
 
 ### Frontend
-1. **[TourCard.jsx](file:///c:/Users/Tony/Documents/Trabajo%20Websites/Unuraymi/Unu-Raymi/frontend/src/components/TourCard.jsx)**:
-   - Muestra `tour.traducciones?.[language]?.nombre || tour.nombre` y descripción de forma reactiva al idioma activo.
-2. **[TourDetailsOverlay.jsx](file:///c:/Users/Tony/Documents/Trabajo%20Websites/Unuraymi/Unu-Raymi/frontend/src/components/TourDetailsOverlay.jsx)**:
-   - Localiza nombre, descripción, itinerario por días, inclusiones clasificadas por categorías 3D, exclusiones y qué llevar.
-3. **[MapaSudamericaGIS.jsx](file:///c:/Users/Tony/Documents/Trabajo%20Websites/Unuraymi/Unu-Raymi/frontend/src/components/MapaSudamericaGIS.jsx)**:
-   - Muestra el nombre y descripción del punto GIS en el idioma seleccionado, así como el nombre del tour asociado en las rutas y popups.
-4. **[CheckoutOverlay.jsx](file:///c:/Users/Tony/Documents/Trabajo%20Websites/Unuraymi/Unu-Raymi/frontend/src/components/CheckoutOverlay.jsx)**:
-   - Localiza el nombre del tour en el resumen de reserva y en la confirmación de pago.
-5. **[page.js](file:///c:/Users/Tony/Documents/Trabajo%20Websites/Unuraymi/Unu-Raymi/frontend/src/app/page.js)**:
-   - El buscador en tiempo real del catálogo filtra buscando coincidencias tanto en el idioma activo como en el idioma base.
+1. **[TourDetailsOverlay.jsx](file:///c:/Users/Tony/Documents/Trabajo%20Websites/Unuraymi/Unu-Raymi/frontend/src/components/TourDetailsOverlay.jsx)**:
+   - Resuelve de manera reactiva el itinerario de la variante activa (`activeVariant?.traducciones?.[language]?.itinerario`), mostrando el itinerario en inglés cuando el visitante cambia a English.
+2. **[MapaSudamericaGIS.jsx](file:///c:/Users/Tony/Documents/Trabajo%20Websites/Unuraymi/Unu-Raymi/frontend/src/components/MapaSudamericaGIS.jsx)**:
+   - Rutas y popups de marcadores muestran de forma reactiva el nombre y descripción del punto GIS en inglés, así como el nombre del tour asociado y la categoría traducida.
+3. **[page.js](file:///c:/Users/Tony/Documents/Trabajo%20Websites/Unuraymi/Unu-Raymi/frontend/src/app/page.js)**:
+   - Al seleccionar un punto en el mapa, el término de búsqueda se sincroniza en el idioma activo del usuario.
 
 ---
 

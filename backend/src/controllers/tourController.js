@@ -5,7 +5,7 @@
 // ============================================================
 
 import prisma from "../lib/prismaClient.js";
-import { generateBilingualTour } from "../services/translationService.js";
+import { generateBilingualTour, translateWithPreservation } from "../services/translationService.js";
 
 // ── Helpers de serialización ─────────────────────────────────
 const serializarArray = (arr) => JSON.stringify(arr ?? []);
@@ -22,6 +22,45 @@ const deserializarObjeto = (str) => {
   } catch {
     return null;
   }
+};
+
+/**
+ * Normaliza y traduce variantes asegurando que cada una tenga { es: {...}, en: {...} }
+ */
+const procesarVariantesConTraduccion = async (variantes) => {
+  if (!Array.isArray(variantes)) return [];
+  return Promise.all(
+    variantes.map(async (v) => {
+      let traduccionesJson = null;
+      if (v.traducciones && typeof v.traducciones === "object") {
+        traduccionesJson = JSON.stringify(v.traducciones);
+      } else if (typeof v.traducciones === "string" && v.traducciones.trim().startsWith("{")) {
+        traduccionesJson = v.traducciones;
+      } else if (v.itinerario && v.itinerario.trim()) {
+        try {
+          const transItin = await translateWithPreservation(v.itinerario, "en", "es");
+          traduccionesJson = JSON.stringify({
+            es: { itinerario: v.itinerario },
+            en: { itinerario: transItin },
+          });
+        } catch (err) {
+          console.warn("[tourController] Error auto-traduciendo itinerario de variante:", err.message);
+        }
+      }
+
+      return {
+        duracion_dias: parseInt(v.duracion_dias, 10),
+        precio_adulto: parseFloat(v.precio_adulto),
+        precio_nino: parseFloat(v.precio_nino),
+        cupos_disponibles: parseInt(v.cupos_disponibles, 10),
+        itinerario: v.itinerario ?? null,
+        servicios_incluidos: v.servicios_incluidos ? (typeof v.servicios_incluidos === "string" ? v.servicios_incluidos : JSON.stringify(v.servicios_incluidos)) : null,
+        servicios_excluidos: v.servicios_excluidos ? (typeof v.servicios_excluidos === "string" ? v.servicios_excluidos : JSON.stringify(v.servicios_excluidos)) : null,
+        fechas_disponibles: v.fechas_disponibles ? (typeof v.fechas_disponibles === "string" ? v.fechas_disponibles : JSON.stringify(v.fechas_disponibles)) : null,
+        traducciones: traduccionesJson,
+      };
+    })
+  );
 };
 
 /**
@@ -63,14 +102,26 @@ const formatearTour = (tour) => {
     que_llevar: queLlevar,
     fechas_disponibles: deserializarArray(tour.fechas_disponibles),
     traducciones: traduccionesFinal,
-    variantes: tour.variantes?.map(v => ({
-      ...v,
-      precio_adulto: parseFloat(v.precio_adulto),
-      precio_nino: parseFloat(v.precio_nino),
-      servicios_incluidos: deserializarArray(v.servicios_incluidos),
-      servicios_excluidos: deserializarArray(v.servicios_excluidos),
-      fechas_disponibles: deserializarArray(v.fechas_disponibles),
-    })) || [],
+    variantes: tour.variantes?.map(v => {
+      const vTraduccionesRaw = deserializarObjeto(v.traducciones);
+      const vTraduccionesFinal = {
+        es: {
+          itinerario: vTraduccionesRaw?.es?.itinerario || v.itinerario || null,
+        },
+        en: {
+          itinerario: vTraduccionesRaw?.en?.itinerario || v.itinerario || null,
+        },
+      };
+      return {
+        ...v,
+        precio_adulto: parseFloat(v.precio_adulto),
+        precio_nino: parseFloat(v.precio_nino),
+        servicios_incluidos: deserializarArray(v.servicios_incluidos),
+        servicios_excluidos: deserializarArray(v.servicios_excluidos),
+        fechas_disponibles: deserializarArray(v.fechas_disponibles),
+        traducciones: vTraduccionesFinal,
+      };
+    }) || [],
   };
 };
 
@@ -261,18 +312,9 @@ export const crearTour = async (req, res, next) => {
             orden: img.orden ?? 0,
           })) ?? [],
         },
-        // Crear variantes si se enviaron
+        // Crear variantes si se enviaron con soporte bilingüe
         variantes: {
-          create: variantes?.map((v) => ({
-            duracion_dias: parseInt(v.duracion_dias, 10),
-            precio_adulto: parseFloat(v.precio_adulto),
-            precio_nino: parseFloat(v.precio_nino),
-            cupos_disponibles: parseInt(v.cupos_disponibles, 10),
-            itinerario: v.itinerario ?? null,
-            servicios_incluidos: v.servicios_incluidos ? JSON.stringify(v.servicios_incluidos) : null,
-            servicios_excluidos: v.servicios_excluidos ? JSON.stringify(v.servicios_excluidos) : null,
-            fechas_disponibles: v.fechas_disponibles ? JSON.stringify(v.fechas_disponibles) : null,
-          })) ?? [],
+          create: await procesarVariantesConTraduccion(variantes),
         },
       },
       include: { imagenes: true, variantes: true },
@@ -374,17 +416,11 @@ export const actualizarTour = async (req, res, next) => {
     if (data.variantes !== undefined) {
       await prisma.tourVariante.deleteMany({ where: { tourId } });
       if (data.variantes.length > 0) {
+        const variantesData = await procesarVariantesConTraduccion(data.variantes);
         await prisma.tourVariante.createMany({
-          data: data.variantes.map((v) => ({
+          data: variantesData.map((v) => ({
+            ...v,
             tourId,
-            duracion_dias: parseInt(v.duracion_dias, 10),
-            precio_adulto: parseFloat(v.precio_adulto),
-            precio_nino: parseFloat(v.precio_nino),
-            cupos_disponibles: parseInt(v.cupos_disponibles, 10),
-            itinerario: v.itinerario ?? null,
-            servicios_incluidos: v.servicios_incluidos ? JSON.stringify(v.servicios_incluidos) : null,
-            servicios_excluidos: v.servicios_excluidos ? JSON.stringify(v.servicios_excluidos) : null,
-            fechas_disponibles: v.fechas_disponibles ? JSON.stringify(v.fechas_disponibles) : null,
           })),
         });
       }

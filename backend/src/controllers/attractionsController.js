@@ -12,20 +12,33 @@ const deserializarObjeto = (str) => {
 const formatearAttraction = (attr) => {
   if (!attr) return attr;
   const traduccionesParseadas = deserializarObjeto(attr.traducciones);
-  const traduccionesFinal = traduccionesParseadas || {
+  const traduccionesFinal = {
     es: {
-      name: attr.name,
-      description: attr.description,
+      name: traduccionesParseadas?.es?.name || attr.name,
+      description: traduccionesParseadas?.es?.description !== undefined ? traduccionesParseadas.es.description : attr.description,
     },
     en: {
-      name: attr.name,
-      description: attr.description,
+      name: traduccionesParseadas?.en?.name || attr.name,
+      description: traduccionesParseadas?.en?.description !== undefined ? traduccionesParseadas.en.description : attr.description,
     },
   };
+
+  let tourFormatted = attr.tour;
+  if (attr.tour) {
+    const tourTraduccionesParseadas = deserializarObjeto(attr.tour.traducciones);
+    tourFormatted = {
+      ...attr.tour,
+      traducciones: tourTraduccionesParseadas || {
+        es: { nombre: attr.tour.nombre },
+        en: { nombre: attr.tour.nombre },
+      },
+    };
+  }
 
   return {
     ...attr,
     traducciones: traduccionesFinal,
+    tour: tourFormatted,
   };
 };
 
@@ -35,18 +48,24 @@ const formatearAttraction = (attr) => {
  */
 export async function createAttractionAdmin(req, res) {
   try {
-    const { name, category, latitude, longitude, altitude, description, tourId, imageUrl, orden } = req.body;
+    const { name, category, latitude, longitude, altitude, description, tourId, imageUrl, orden, traducciones: rawTraducciones } = req.body;
 
     if (!name || latitude === undefined || longitude === undefined) {
       return res.status(400).json({ error: 'Nombre, latitud y longitud son campos obligatorios.' });
     }
 
     let traducciones = null;
-    try {
-      const bilingual = await generateBilingualAttraction({ name, description });
-      traducciones = JSON.stringify(bilingual);
-    } catch (transErr) {
-      console.warn('[Attractions] No se pudo autotraducir:', transErr.message);
+    if (rawTraducciones && typeof rawTraducciones === 'object') {
+      traducciones = JSON.stringify(rawTraducciones);
+    } else if (typeof rawTraducciones === 'string' && rawTraducciones.trim().startsWith('{')) {
+      traducciones = rawTraducciones;
+    } else {
+      try {
+        const bilingual = await generateBilingualAttraction({ name, description });
+        traducciones = JSON.stringify(bilingual);
+      } catch (transErr) {
+        console.warn('[Attractions] No se pudo autotraducir:', transErr.message);
+      }
     }
 
     const attraction = await prisma.attraction.create({
@@ -64,7 +83,7 @@ export async function createAttractionAdmin(req, res) {
       },
       include: {
         tour: {
-          select: { id: true, nombre: true },
+          select: { id: true, nombre: true, traducciones: true },
         },
       },
     });
@@ -83,18 +102,24 @@ export async function createAttractionAdmin(req, res) {
 export async function updateAttractionAdmin(req, res) {
   try {
     const { id } = req.params;
-    const { name, category, latitude, longitude, altitude, description, tourId, imageUrl, orden } = req.body;
+    const { name, category, latitude, longitude, altitude, description, tourId, imageUrl, orden, traducciones: rawTraducciones } = req.body;
 
     if (!name || latitude === undefined || longitude === undefined) {
       return res.status(400).json({ error: 'Nombre, latitud y longitud son obligatorios.' });
     }
 
     let traducciones = undefined;
-    try {
-      const bilingual = await generateBilingualAttraction({ name, description });
-      traducciones = JSON.stringify(bilingual);
-    } catch (transErr) {
-      console.warn('[Attractions] No se pudo autotraducir en update:', transErr.message);
+    if (rawTraducciones && typeof rawTraducciones === 'object') {
+      traducciones = JSON.stringify(rawTraducciones);
+    } else if (typeof rawTraducciones === 'string' && rawTraducciones.trim().startsWith('{')) {
+      traducciones = rawTraducciones;
+    } else if (name !== undefined || description !== undefined) {
+      try {
+        const bilingual = await generateBilingualAttraction({ name, description });
+        traducciones = JSON.stringify(bilingual);
+      } catch (transErr) {
+        console.warn('[Attractions] No se pudo autotraducir en update:', transErr.message);
+      }
     }
 
     const attraction = await prisma.attraction.update({
@@ -113,7 +138,7 @@ export async function updateAttractionAdmin(req, res) {
       },
       include: {
         tour: {
-          select: { id: true, nombre: true },
+          select: { id: true, nombre: true, traducciones: true },
         },
       },
     });
@@ -136,7 +161,7 @@ export async function getAttractionByIdAdmin(req, res) {
       where: { id },
       include: {
         tour: {
-          select: { id: true, nombre: true, pais: true },
+          select: { id: true, nombre: true, pais: true, traducciones: true },
         },
       },
     });
@@ -161,7 +186,7 @@ export async function getAttractionsAdmin(req, res) {
     const attractions = await prisma.attraction.findMany({
       include: {
         tour: {
-          select: { id: true, nombre: true, pais: true },
+          select: { id: true, nombre: true, pais: true, traducciones: true },
         },
       },
       orderBy: { createdAt: 'desc' },
@@ -214,7 +239,7 @@ export async function getAttractionsPublic(req, res) {
       where,
       include: {
         tour: {
-          select: { id: true, nombre: true, slug: true, pais: true, nivel_dificultad: true },
+          select: { id: true, nombre: true, slug: true, pais: true, nivel_dificultad: true, traducciones: true },
         },
       },
       orderBy: [

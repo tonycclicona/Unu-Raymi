@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import useSWR from 'swr';
-import { MapPin, Search, Plus, Trash2, CheckCircle2, AlertCircle, Loader2, Navigation, Edit2, Upload, X, ArrowUpDown, Image as ImageIcon } from 'lucide-react';
+import { MapPin, Search, Plus, Trash2, CheckCircle2, AlertCircle, Loader2, Navigation, Edit2, Upload, X, ArrowUpDown, Image as ImageIcon, Sparkles } from 'lucide-react';
 import { API_BASE_URL, API_ASSETS_URL, uploadApi, fetcher, mutateApi, getImageUrl, handleImageFallback } from '@/lib/api';
 
 // Carga dinámica de Leaflet para evitar errores con window durante SSR
@@ -23,6 +23,12 @@ export default function CreateAttractionPage() {
   const [imageUrl, setImageUrl] = useState('');
   const [uploadingImage, setUploadingImage] = useState(false);
   const fileInputRef = useRef(null);
+
+  // ── Pestañas Bilingües y Traducción para Puntos GIS ──
+  const [langTab, setLangTab] = useState('es'); // 'es' | 'en'
+  const [enName, setEnName] = useState('');
+  const [enDescription, setEnDescription] = useState('');
+  const [isTranslating, setIsTranslating] = useState(false);
 
   // Coordenadas iniciales (Cusco, Perú)
   const [position, setPosition] = useState([-13.5319, -71.9675]);
@@ -114,9 +120,49 @@ export default function CreateAttractionPage() {
     }
   };
 
+  const handleAutoTranslate = async () => {
+    if (!name && !description) {
+      setMessage({ type: 'error', text: 'Por favor, ingresa el Nombre o la Descripción en Español antes de auto-traducir.' });
+      return;
+    }
+
+    setIsTranslating(true);
+    setMessage(null);
+    try {
+      const textsToTranslate = [name || '', description || ''];
+      const res = await mutateApi('/translate', {
+        method: 'POST',
+        body: {
+          texts: textsToTranslate,
+          targetLang: 'en'
+        }
+      });
+
+      if (res && res.data && Array.isArray(res.data)) {
+        if (res.data[0]) setEnName(res.data[0]);
+        if (res.data[1]) setEnDescription(res.data[1]);
+        setLangTab('en');
+      }
+    } catch (err) {
+      console.error('Error auto-traduciendo atracción:', err);
+      setMessage({ type: 'error', text: 'No se pudo completar la traducción automática: ' + (err.message || 'Error') });
+    } finally {
+      setIsTranslating(false);
+    }
+  };
+
   const handleStartEdit = (attr) => {
     setEditingId(attr.id);
     setName(attr.name || '');
+
+    let tr = attr.traducciones;
+    if (typeof tr === 'string') {
+      try { tr = JSON.parse(tr); } catch { tr = null; }
+    }
+    setEnName(tr?.en?.name || '');
+    setEnDescription(tr?.en?.description || '');
+    setLangTab('es');
+
     setCategory(attr.category || 'ATRACTIVO');
     setAltitude(attr.altitude ? String(attr.altitude) : '');
     setDescription(attr.description || '');
@@ -130,6 +176,9 @@ export default function CreateAttractionPage() {
   const handleCancelEdit = () => {
     setEditingId(null);
     setName('');
+    setEnName('');
+    setEnDescription('');
+    setLangTab('es');
     setCategory('ATRACTIVO');
     setAltitude('');
     setDescription('');
@@ -156,6 +205,16 @@ export default function CreateAttractionPage() {
         tourId: tourId ? parseInt(tourId, 10) : null,
         orden: orden ? parseInt(orden, 10) : 0,
         imageUrl: imageUrl || null,
+        traducciones: {
+          es: {
+            name,
+            description,
+          },
+          en: {
+            name: enName?.trim() || name,
+            description: enDescription?.trim() || description,
+          },
+        },
       };
 
       const url = editingId
@@ -270,19 +329,91 @@ export default function CreateAttractionPage() {
                   )}
                 </div>
 
+                {/* Selector Bilingüe y Auto-traducción */}
+                <div className="bg-[#f5f4f0] p-2.5 rounded-2xl border border-[#b0c4b1]/60 flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center bg-white p-1 rounded-xl border border-[#b0c4b1]/60">
+                    <button
+                      type="button"
+                      onClick={() => setLangTab('es')}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                        langTab === 'es'
+                          ? 'bg-[#4a5759] text-white shadow-xs'
+                          : 'text-[#4a5759] hover:bg-[#b0c4b1]/20'
+                      }`}
+                    >
+                      <span>🇪🇸</span>
+                      <span>Español</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setLangTab('en')}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                        langTab === 'en'
+                          ? 'bg-[#4a5759] text-white shadow-xs'
+                          : 'text-[#4a5759] hover:bg-[#b0c4b1]/20'
+                      }`}
+                    >
+                      <span>🇬🇧</span>
+                      <span>English</span>
+                      {enName ? (
+                        <span className="w-2 h-2 rounded-full bg-emerald-500" title="Traducción lista" />
+                      ) : (
+                        <span className="w-2 h-2 rounded-full bg-amber-400" title="Sin traducción aún" />
+                      )}
+                    </button>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleAutoTranslate}
+                    disabled={isTranslating}
+                    className="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition-all flex items-center gap-1.5 shadow-xs disabled:opacity-50"
+                    title="Traduce automáticamente nombre y descripción al inglés respetando términos quechua y nombres propios"
+                  >
+                    <Sparkles className={`w-3.5 h-3.5 ${isTranslating ? 'animate-spin' : ''}`} />
+                    <span>{isTranslating ? 'Traduciendo...' : '⚡ Auto-traducir a Inglés'}</span>
+                  </button>
+                </div>
+
+                {/* Banner de modo inglés */}
+                {langTab === 'en' && (
+                  <div className="p-2.5 rounded-xl bg-emerald-500/[0.08] border border-emerald-500/30 flex items-center justify-between text-xs text-emerald-800">
+                    <span className="font-bold flex items-center gap-1.5">
+                      <span>🇬🇧</span> Contenido en Inglés (Editable)
+                    </span>
+                    <span className="text-[11px] text-[#6c7a7c]">
+                      Visible en mapa y rutas en versión inglés
+                    </span>
+                  </div>
+                )}
+
                 {/* Campo Nombre */}
                 <div>
                   <label className="block text-xs font-bold text-[#6c7a7c] uppercase tracking-wider mb-1">
-                    Nombre del Punto <span className="text-red-500">*</span>
+                    {langTab === 'es' ? (
+                      <>Nombre del Punto (Español) <span className="text-red-500">*</span></>
+                    ) : (
+                      <>Point Name (English)</>
+                    )}
                   </label>
-                  <input
-                    type="text"
-                    required
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Ej. Laguna Humantay"
-                    className="w-full bg-[#f5f4f0] border border-[#b0c4b1] p-2.5 rounded-xl text-xs text-[#4a5759] font-semibold focus:outline-none focus:border-[#4a5759]"
-                  />
+                  {langTab === 'es' ? (
+                    <input
+                      type="text"
+                      required
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="Ej. Laguna Humantay"
+                      className="w-full bg-[#f5f4f0] border border-[#b0c4b1] p-2.5 rounded-xl text-xs text-[#4a5759] font-semibold focus:outline-none focus:border-[#4a5759]"
+                    />
+                  ) : (
+                    <input
+                      type="text"
+                      value={enName}
+                      onChange={(e) => setEnName(e.target.value)}
+                      placeholder="e.g. Humantay Lake"
+                      className="w-full bg-[#ffffff] border border-emerald-500/40 p-2.5 rounded-xl text-xs text-[#4a5759] font-semibold focus:outline-none focus:border-emerald-600"
+                    />
+                  )}
                 </div>
 
                 {/* Categoría Dropdown */}
@@ -446,18 +577,28 @@ export default function CreateAttractionPage() {
                   />
                 </div>
 
-                {/* Descripción */}
+                {/* Descripción Bilingüe */}
                 <div>
                   <label className="block text-xs font-bold text-[#6c7a7c] uppercase tracking-wider mb-1">
-                    Descripción / Detalles
+                    {langTab === 'es' ? 'Descripción / Detalles (Español)' : 'Description / Details (English)'}
                   </label>
-                  <textarea
-                    rows={3}
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Descripción o recomendaciones de llegada..."
-                    className="w-full bg-[#f5f4f0] border border-[#b0c4b1] p-2.5 rounded-xl text-xs text-[#4a5759] focus:outline-none"
-                  />
+                  {langTab === 'es' ? (
+                    <textarea
+                      rows={3}
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder="Descripción o recomendaciones de llegada en español..."
+                      className="w-full bg-[#f5f4f0] border border-[#b0c4b1] p-2.5 rounded-xl text-xs text-[#4a5759] focus:outline-none"
+                    />
+                  ) : (
+                    <textarea
+                      rows={3}
+                      value={enDescription}
+                      onChange={(e) => setEnDescription(e.target.value)}
+                      placeholder="Description or arrival recommendations in English..."
+                      className="w-full bg-[#ffffff] border border-emerald-500/40 p-2.5 rounded-xl text-xs text-[#4a5759] focus:outline-none focus:border-emerald-600"
+                    />
+                  )}
                 </div>
 
                 {/* Botón Guardar / Actualizar y Cancelar */}
@@ -571,7 +712,27 @@ export default function CreateAttractionPage() {
                             #{attr.orden ?? 0}
                           </span>
                         </td>
-                        <td className="p-3 font-bold text-[#4a5759]">{attr.name}</td>
+                        <td className="p-3">
+                          <div className="font-bold text-[#4a5759]">{attr.name}</div>
+                          {(() => {
+                            let tr = attr.traducciones;
+                            if (typeof tr === 'string') {
+                              try { tr = JSON.parse(tr); } catch { tr = null; }
+                            }
+                            const enTitle = tr?.en?.name;
+                            return enTitle ? (
+                              <div className="text-[10px] text-emerald-700 flex items-center gap-1 font-medium mt-0.5">
+                                <span className="px-1 rounded bg-emerald-100 text-[9px] font-extrabold">EN</span>
+                                <span>{enTitle}</span>
+                              </div>
+                            ) : (
+                              <div className="text-[10px] text-amber-600 flex items-center gap-1 font-medium mt-0.5">
+                                <span className="px-1 rounded bg-amber-100 text-[9px] font-extrabold">ES</span>
+                                <span>Sin inglés</span>
+                              </div>
+                            );
+                          })()}
+                        </td>
                         <td className="p-3">
                           <span className="bg-[#dedbd2] text-[#4a5759] px-2 py-0.5 rounded-full text-[10px] font-bold uppercase">
                             {attr.category}

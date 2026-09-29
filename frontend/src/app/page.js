@@ -115,7 +115,17 @@ export default function Home() {
                   setFiltroPais('Todos');
                 }
                 setFiltroCategoria('*');
-                const term = attr?.tour?.nombre || attr?.name || attr?.nombre;
+                let attrTr = attr?.traducciones;
+                if (typeof attrTr === 'string') {
+                  try { attrTr = JSON.parse(attrTr); } catch { attrTr = null; }
+                }
+                let tourTr = attr?.tour?.traducciones;
+                if (typeof tourTr === 'string') {
+                  try { tourTr = JSON.parse(tourTr); } catch { tourTr = null; }
+                }
+                const localizedTour = tourTr?.[language] || {};
+                const localizedAttr = attrTr?.[language] || {};
+                const term = localizedTour.nombre || attr?.tour?.nombre || localizedAttr.name || attr?.name || attr?.nombre;
                 if (term) {
                   setBusqueda(term);
                   setVisibleCount(6);
@@ -240,7 +250,17 @@ export default function Home() {
                   setFiltroPais('Todos');
                 }
                 setFiltroCategoria('*');
-                const term = attr?.tour?.nombre || attr?.name || attr?.nombre;
+                let attrTr = attr?.traducciones;
+                if (typeof attrTr === 'string') {
+                  try { attrTr = JSON.parse(attrTr); } catch { attrTr = null; }
+                }
+                let tourTr = attr?.tour?.traducciones;
+                if (typeof tourTr === 'string') {
+                  try { tourTr = JSON.parse(tourTr); } catch { tourTr = null; }
+                }
+                const localizedTour = tourTr?.[language] || {};
+                const localizedAttr = attrTr?.[language] || {};
+                const term = localizedTour.nombre || attr?.tour?.nombre || localizedAttr.name || attr?.name || attr?.nombre;
                 if (term) {
                   setBusqueda(term);
                   setVisibleCount(6);

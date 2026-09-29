@@ -55,7 +55,15 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
   const displayDuration = activeVariant ? activeVariant.duracion_dias : tour.duracion_dias;
   const displayPrecioAdulto = activeVariant ? activeVariant.precio_adulto : tour.precio_adulto;
   const displayCupos = activeVariant ? activeVariant.cupos_disponibles : tour.cupos_disponibles;
-  const displayItinerario = (activeVariant && activeVariant.itinerario) ? activeVariant.itinerario : tourItinerario;
+
+  // Localización reactiva completa del itinerario de la variante activa
+  let activeVariantTr = activeVariant?.traducciones;
+  if (typeof activeVariantTr === 'string') {
+    try { activeVariantTr = JSON.parse(activeVariantTr); } catch { activeVariantTr = null; }
+  }
+  const variantLocalized = activeVariantTr?.[language] || {};
+  const variantItinerario = variantLocalized.itinerario || activeVariant?.itinerario;
+  const displayItinerario = variantItinerario || tourItinerario;
 
   // Parser inteligente para estructurar el itinerario en una Línea de Tiempo interactiva
   const parsedItinerario = useMemo(() => {
