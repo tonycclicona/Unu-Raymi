@@ -103,11 +103,14 @@ export const translations = {
       categorias: {
         guia: "Guías y Dirección",
         seguridad: "Seguridad y Asistencia",
-        equipamiento: "Equipamiento Requerido",
+        equipamiento: "Recomendaciones",
         alimentacion: "Alimentación y Bebidas",
         transporte: "Transporte y Logística",
         actividades: "Tickets y Actividades",
       },
+      recomendaciones: "Recomendaciones",
+      recomendaciones_sub: "Qué llevar y equipo sugerido",
+      sin_recomendaciones: "No se registraron recomendaciones para esta aventura.",
     },
     checkout: {
       confirmar: "Confirmar Reserva",
@@ -353,11 +356,14 @@ export const translations = {
       categorias: {
         guia: "Guides & Direction",
         seguridad: "Safety & Assistance",
-        equipamiento: "Required Equipment",
+        equipamiento: "Recommendations",
         alimentacion: "Food & Drinks",
         transporte: "Transport & Logistics",
         actividades: "Tickets & Activities",
       },
+      recomendaciones: "Recommendations",
+      recomendaciones_sub: "What to bring & suggested gear",
+      sin_recomendaciones: "No additional recommendations registered.",
     },
     checkout: {
       confirmar: "Confirm Booking",

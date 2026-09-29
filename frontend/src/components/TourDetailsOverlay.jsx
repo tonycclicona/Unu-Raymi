@@ -242,14 +242,15 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
 
   const categorias = getCategorias();
 
-  const itemsCategorias = [
+  const serviciosIncluidosList = [
     { id: 'guia', label: t('tour_details.categorias.guia'), Icon3D: Compass3D, list: categorias.guia, color: 'border-amber-500/30 bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent shadow-[4px_6px_16px_rgba(255,167,81,0.15)]' },
     { id: 'seguridad', label: t('tour_details.categorias.seguridad'), Icon3D: Shield3D, list: categorias.seguridad, color: 'border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent shadow-[4px_6px_16px_rgba(16,185,129,0.15)]' },
-    { id: 'equipamiento', label: t('tour_details.categorias.equipamiento'), Icon3D: Backpack3D, list: categorias.equipamiento, color: 'border-orange-500/30 bg-gradient-to-br from-orange-500/10 via-orange-500/5 to-transparent shadow-[4px_6px_16px_rgba(242,153,74,0.15)]' },
     { id: 'alimentacion', label: t('tour_details.categorias.alimentacion'), Icon3D: GourmetPlate3D, list: categorias.alimentacion, color: 'border-rose-500/30 bg-gradient-to-br from-rose-500/10 via-rose-500/5 to-transparent shadow-[4px_6px_16px_rgba(225,29,72,0.15)]' },
     { id: 'transporte', label: t('tour_details.categorias.transporte'), Icon3D: Sprinter3D, list: categorias.transporte, color: 'border-blue-500/30 bg-gradient-to-br from-blue-500/10 via-blue-500/5 to-transparent shadow-[4px_6px_16px_rgba(47,128,237,0.15)]' },
     { id: 'actividades', label: t('tour_details.categorias.actividades'), Icon3D: Camera3D, list: categorias.actividades, color: 'border-purple-500/30 bg-gradient-to-br from-purple-500/10 via-purple-500/5 to-transparent shadow-[4px_6px_16px_rgba(139,92,246,0.15)]' },
   ];
+
+  const recomendacionesList = categorias.equipamiento || [];
 
   const displayExclusiones = (activeVariant && activeVariant.servicios_excluidos && activeVariant.servicios_excluidos.length > 0)
     ? activeVariant.servicios_excluidos
@@ -387,31 +388,31 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
               {parsedItinerario.length > 0 ? (
                 <div className="bg-[var(--card)]/60 border border-[var(--border)]/50 rounded-2xl p-3.5 sm:p-4 md:p-5 relative">
                   {/* Contenedor con scroll vertical fluido y estilizado */}
-                  <div className="relative max-h-[290px] md:max-h-[350px] overflow-y-auto pr-1 sm:pr-2 space-y-4 scroll-smooth [scrollbar-width:thin] [scrollbar-color:var(--accent)_transparent]">
+                  <div className="relative max-h-[290px] md:max-h-[350px] overflow-y-auto p-2 pl-3.5 pr-2 space-y-3.5 scroll-smooth [scrollbar-width:thin] [scrollbar-color:var(--accent)_transparent]">
                     {/* Línea vertical continua de la línea de tiempo */}
                     <div
-                      className="absolute left-[17px] top-3 bottom-4 w-[2px] bg-gradient-to-b from-[var(--accent)] via-[var(--accent)]/40 to-transparent pointer-events-none"
+                      className="absolute left-[26px] top-4 bottom-5 w-[2px] bg-gradient-to-b from-[var(--accent)] via-[var(--accent)]/40 to-transparent pointer-events-none"
                       aria-hidden="true"
                     />
 
                     {parsedItinerario.map((item) => (
-                      <div key={item.id} className="relative flex items-start gap-3.5 group">
-                        {/* Nodo / Hito interactivo en la línea */}
-                        <div className="relative z-10 flex-shrink-0 w-9 h-9 rounded-full bg-[var(--card)] border-2 border-[var(--accent)] flex items-center justify-center shadow-[0_0_12px_rgba(233,69,96,0.25)] group-hover:shadow-[0_0_16px_rgba(233,69,96,0.55)] group-hover:scale-110 transition-all duration-300">
+                      <div key={item.id} className="relative flex items-start gap-3 group">
+                        {/* Nodo / Hito compacto refinado que no se recorta al hacer scroll */}
+                        <div className="relative z-10 flex-shrink-0 w-6.5 h-6.5 rounded-full bg-[var(--card)] border-[1.5px] border-[var(--accent)] flex items-center justify-center mt-1 shadow-sm group-hover:border-[var(--accent)] group-hover:bg-[var(--accent)]/20 transition-colors duration-200">
                           {item.tagType === 'time' ? (
-                            <Clock className="w-4 h-4 text-[var(--accent)]" />
+                            <Clock className="w-3 h-3 text-[var(--accent)]" />
                           ) : item.tagType === 'day' ? (
-                            <Calendar className="w-4 h-4 text-[var(--accent)]" />
+                            <Calendar className="w-3 h-3 text-[var(--accent)]" />
                           ) : (
-                            <div className="w-2.5 h-2.5 rounded-full bg-[var(--accent)] group-hover:scale-125 transition-transform" />
+                            <div className="w-1.5 h-1.5 rounded-full bg-[var(--accent)]" />
                           )}
                         </div>
 
                         {/* Tarjeta del hito del itinerario */}
-                        <div className="flex-1 bg-[var(--card)]/90 hover:bg-[var(--card)] border border-[var(--border)]/40 hover:border-[var(--accent)]/40 p-3 sm:p-3.5 rounded-xl shadow-xs hover:shadow-md transition-all duration-300">
+                        <div className="flex-1 bg-[var(--card)]/90 hover:bg-[var(--card)] border border-[var(--border)]/40 hover:border-[var(--accent)]/40 p-3 sm:p-3.5 rounded-xl shadow-xs transition-all duration-200 group-hover:translate-x-0.5">
                           {item.tag && (
-                            <div className="mb-1.5 flex items-center gap-1.5">
-                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-[var(--accent)]/15 text-[var(--accent)] border border-[var(--accent)]/25">
+                            <div className="mb-1 flex items-center gap-1.5">
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[10px] font-mono font-extrabold uppercase tracking-wider bg-[var(--accent)]/15 text-[var(--accent)] border border-[var(--accent)]/25">
                                 {item.tagType === 'time' && <Clock className="w-2.5 h-2.5" />}
                                 {item.tagType === 'day' && <Calendar className="w-2.5 h-2.5" />}
                                 {item.tag}
@@ -424,7 +425,7 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
                           </h4>
 
                           {item.description && (
-                            <p className="mt-1.5 text-xs text-slate-700 dark:text-slate-200/90 leading-relaxed font-normal whitespace-pre-line border-t border-[var(--border)]/30 pt-1.5">
+                            <p className="mt-1 text-xs text-slate-700 dark:text-slate-200/90 leading-relaxed font-normal whitespace-pre-line border-t border-[var(--border)]/30 pt-1">
                               {item.description}
                             </p>
                           )}
@@ -484,12 +485,13 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
               </p>
             </div>
 
-            {/* Grid de 6 Categorías */}
-            <div className="grid grid-cols-2 gap-3.5 relative">
-              {itemsCategorias.map((cat) => {
+            {/* Grid de 5 Categorías de Servicios Incluidos */}
+            <div className="grid grid-cols-2 gap-3 relative">
+              {serviciosIncluidosList.map((cat, idx) => {
                 const Icon3DComponent = cat.Icon3D;
                 const isActive = activeTooltip === cat.id;
                 const hasItems = cat.list && cat.list.length > 0;
+                const isLastFull = idx === serviciosIncluidosList.length - 1;
 
                 return (
                   <div
@@ -497,16 +499,18 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
                     onMouseEnter={() => setActiveTooltip(cat.id)}
                     onMouseLeave={() => setActiveTooltip(null)}
                     onClick={() => setActiveTooltip(isActive ? null : cat.id)}
-                    className={`relative p-3.5 md:p-4 rounded-2xl border backdrop-blur-md flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300 ${
-                      isActive ? 'border-[var(--accent)] scale-[1.03] z-20 shadow-lg' : 'hover:scale-[1.02]'
+                    className={`relative p-3 rounded-2xl border backdrop-blur-md flex ${
+                      isLastFull ? 'col-span-2 flex-row items-center justify-center gap-3 py-2.5' : 'flex-col items-center justify-center text-center py-3.5'
+                    } cursor-pointer transition-all duration-300 ${
+                      isActive ? 'border-[var(--accent)] scale-[1.02] z-20 shadow-lg' : 'hover:scale-[1.01]'
                     } ${
                       hasItems
                         ? cat.color
                         : 'border-[var(--border)]/40 bg-[var(--sidebar)]/40 opacity-60 hover:opacity-100'
                     } group`}
                   >
-                    <div className="mb-2 transition-transform duration-300 group-hover:scale-110 group-hover:-translate-y-1">
-                      <Icon3DComponent className={`w-9 h-9 md:w-11 md:h-11 ${hasItems ? '' : 'grayscale opacity-70'}`} />
+                    <div className={`${isLastFull ? '' : 'mb-1.5'} transition-transform duration-300 group-hover:scale-105`}>
+                      <Icon3DComponent className={`w-8 h-8 md:w-9 md:h-9 ${hasItems ? '' : 'grayscale opacity-70'}`} />
                     </div>
                     <span className="text-[10px] md:text-xs font-extrabold text-[var(--foreground)] leading-tight flex items-center gap-1">
                       {cat.label}
@@ -545,6 +549,45 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
                   </div>
                 );
               })}
+            </div>
+
+            {/* Apartado Recomendaciones con Resalte Distinto */}
+            <div className="rounded-2xl border border-amber-500/40 bg-gradient-to-br from-amber-500/15 via-orange-500/5 to-transparent p-3.5 space-y-2.5 shadow-md shadow-amber-500/5 transition-all duration-300">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center flex-shrink-0 shadow-inner">
+                  <Backpack3D className="w-5 h-5" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-1">
+                    <span className="text-xs font-black uppercase tracking-wider text-amber-500 dark:text-amber-400">
+                      {t('tour_details.recomendaciones')}
+                    </span>
+                    {recomendacionesList.length > 0 && (
+                      <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-amber-500 text-slate-950">
+                        {recomendacionesList.length}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-[10px] text-[var(--muted-foreground)] block truncate">
+                    {t('tour_details.recomendaciones_sub')}
+                  </span>
+                </div>
+              </div>
+
+              {recomendacionesList.length > 0 ? (
+                <ul className="space-y-1 pt-1.5 border-t border-amber-500/20 max-h-28 overflow-y-auto no-scrollbar">
+                  {recomendacionesList.map((item, index) => (
+                    <li key={index} className="text-xs text-[var(--foreground)] flex items-start gap-1.5 leading-snug">
+                      <span className="text-amber-500 font-bold mt-0.5">•</span>
+                      <span className="text-slate-800 dark:text-slate-200">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-[11px] text-[var(--muted-foreground)] italic pt-1 border-t border-amber-500/20">
+                  {t('tour_details.sin_recomendaciones')}
+                </p>
+              )}
             </div>
           </div>
 
