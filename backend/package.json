@@ -10,9 +10,7 @@
     "build": "npx prisma generate",
     "db:generate": "npx prisma generate",
     "db:push": "npx prisma db push",
-    "db:studio": "npx prisma studio",
-    "db:local:generate": "npx prisma generate --schema=prisma/schema.sqlite.prisma",
-    "db:local:push": "npx prisma db push --schema=prisma/schema.sqlite.prisma"
+    "db:studio": "npx prisma studio"
   },
   "keywords": [
     "tours",

@@ -27,7 +27,10 @@ import {
   MoveRight,
   Sparkles,
   Layers,
-  Clock
+  Clock,
+  Sun,
+  Sunset,
+  Info
 } from 'lucide-react';
 
 // Diccionario geográfico dinámico para Sudamérica
@@ -186,26 +189,43 @@ export default function TourForm({ initialData }) {
   // ── VARIANTES COMPLETA CON LOGÍSTICA, CALENDARIO Y TAXONOMÍA INDEPENDIENTE ──
   const [variantes, setVariantes] = useState(() => {
     if (isEdit && initialData.variantes && Array.isArray(initialData.variantes)) {
-      return initialData.variantes.map(v => ({
-        duracion_dias: v.duracion_dias || 1,
-        precio_adulto: v.precio_adulto || 0,
-        precio_nino: v.precio_nino || 0,
-        cupos_disponibles: v.cupos_disponibles !== undefined ? v.cupos_disponibles : 10,
-        fechas_disponibles: Array.isArray(v.fechas_disponibles) ? v.fechas_disponibles : [],
-        servicios_incluidos: normalizeServiciosIncluidos(v.servicios_incluidos),
-        servicios_excluidos: Array.isArray(v.servicios_excluidos) ? v.servicios_excluidos : [],
-        itinerario: v.itinerario || '',
-        itinerario_en: getInitialVariantEnItinerario(v),
-      }));
+      return initialData.variantes.map(v => {
+        let parsedHorarios = null;
+        if (v.horarios && typeof v.horarios === 'object') {
+          parsedHorarios = v.horarios;
+        } else if (typeof v.horarios === 'string' && v.horarios.trim().startsWith('{')) {
+          try {
+            parsedHorarios = JSON.parse(v.horarios);
+          } catch (e) {}
+        }
+        return {
+          duracion_dias: v.duracion_dias || 1,
+          precio_adulto: v.precio_adulto || 0,
+          precio_nino: v.precio_nino || 0,
+          cupos_disponibles: v.cupos_disponibles !== undefined ? v.cupos_disponibles : 10,
+          fechas_disponibles: Array.isArray(v.fechas_disponibles) ? v.fechas_disponibles : [],
+          servicios_incluidos: normalizeServiciosIncluidos(v.servicios_incluidos),
+          servicios_excluidos: Array.isArray(v.servicios_excluidos) ? v.servicios_excluidos : [],
+          itinerario: v.itinerario || '',
+          itinerario_en: getInitialVariantEnItinerario(v),
+          horarios_activo: Boolean(parsedHorarios?.activo || v.horarios_activo),
+          horario_manana: parsedHorarios?.horario_manana || v.horario_manana || '',
+          horario_tarde: parsedHorarios?.horario_tarde || v.horario_tarde || '',
+        };
+      });
     }
     return [];
   });
 
   const handleAddVariant = () => {
+    // Calculamos el siguiente valor por defecto de días para evitar duplicar variantes accidentales
+    const existingDays = variantes.map(v => parseInt(v.duracion_dias) || 1);
+    const nextDuration = existingDays.length > 0 ? Math.max(...existingDays) + 1 : 1;
+
     setVariantes(prev => [
       ...prev,
       {
-        duracion_dias: 1,
+        duracion_dias: nextDuration,
         precio_adulto: 0,
         precio_nino: 0,
         cupos_disponibles: 10,
@@ -214,6 +234,9 @@ export default function TourForm({ initialData }) {
         servicios_excluidos: [],
         itinerario: '',
         itinerario_en: '',
+        horarios_activo: false,
+        horario_manana: '',
+        horario_tarde: '',
       }
     ]);
   };
@@ -473,6 +496,18 @@ export default function TourForm({ initialData }) {
       return;
     }
 
+    // Validar que no existan duraciones duplicadas
+    const duraciones = variantes.map(v => parseInt(v.duracion_dias));
+    const duplicados = duraciones.filter((item, index) => duraciones.indexOf(item) !== index);
+    if (duplicados.length > 0) {
+      if (duplicados.includes(1)) {
+        setError('Tienes variantes duplicadas con 1 Día de duración. Para tours de 1 día con turnos de mañana y tarde, no dupliques la variante: activa la opción "Horarios de Salida (Turno Mañana / Tarde)" dentro de una única variante de 1 día para prevenir errores.');
+      } else {
+        setError(`Tienes variantes duplicadas con la misma duración (${[...new Set(duplicados)].join(', ')} días). Cada variante debe tener una cantidad de días distinta.`);
+      }
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -503,24 +538,35 @@ export default function TourForm({ initialData }) {
           orden: index
         })),
         // Las variantes ahora se envían con toda la lógica empaquetada de manera independiente y bilingüe
-        variantes: variantes.map(v => ({
-          duracion_dias: parseInt(v.duracion_dias),
-          precio_adulto: parseFloat(v.precio_adulto),
-          precio_nino: parseFloat(v.precio_nino),
-          cupos_disponibles: parseInt(v.cupos_disponibles),
-          fechas_disponibles: v.fechas_disponibles,
-          servicios_incluidos: v.servicios_incluidos,
-          servicios_excluidos: v.servicios_excluidos,
-          itinerario: v.itinerario || null,
-          traducciones: {
-            es: {
-              itinerario: v.itinerario || null,
+        variantes: variantes.map(v => {
+          const isOneDay = parseInt(v.duracion_dias) === 1;
+          const horariosActivo = isOneDay && Boolean(v.horarios_activo);
+          const horariosData = horariosActivo ? {
+            activo: true,
+            horario_manana: v.horario_manana?.trim() || null,
+            horario_tarde: v.horario_tarde?.trim() || null,
+          } : null;
+
+          return {
+            duracion_dias: parseInt(v.duracion_dias),
+            precio_adulto: parseFloat(v.precio_adulto),
+            precio_nino: parseFloat(v.precio_nino),
+            cupos_disponibles: parseInt(v.cupos_disponibles),
+            fechas_disponibles: v.fechas_disponibles,
+            servicios_incluidos: v.servicios_incluidos,
+            servicios_excluidos: v.servicios_excluidos,
+            itinerario: v.itinerario || null,
+            horarios: horariosData,
+            traducciones: {
+              es: {
+                itinerario: v.itinerario || null,
+              },
+              en: {
+                itinerario: v.itinerario_en?.trim() || v.itinerario || null,
+              },
             },
-            en: {
-              itinerario: v.itinerario_en?.trim() || v.itinerario || null,
-            },
-          },
-        })),
+          };
+        }),
       };
 
       if (isEdit) {
@@ -849,6 +895,119 @@ export default function TourForm({ initialData }) {
                     </div>
                   </div>
                 </div>
+
+                {/* Sub-Sección A.1: Horarios de Salida (Exclusivo para Variante de 1 Día) */}
+                {parseInt(v.duracion_dias) === 1 && (
+                  <div className="bg-gradient-to-r from-amber-500/10 via-[#dbeafe]/20 to-orange-500/10 p-4 rounded-xl border border-amber-500/30 space-y-3 transition-all duration-300">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-amber-500/20 pb-2.5">
+                      <div className="flex items-center gap-2">
+                        <Clock className="w-4 h-4 text-amber-600" />
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold text-[#4a5759]">
+                              Horarios de Salida (Tour de 1 Día / Excursión)
+                            </span>
+                            <span className="bg-amber-100 text-amber-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full border border-amber-300">
+                              Solo 1 Día
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-[#6c7a7c]">
+                            Activa esta opción para configurar turnos de mañana y tarde dentro de esta variante y evitar duplicar variantes.
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Switch toggle para activar la opción */}
+                      <label className="inline-flex items-center cursor-pointer gap-2 select-none self-start sm:self-auto bg-white/80 px-3 py-1.5 rounded-xl border border-[#b0c4b1] shadow-2xs">
+                        <input
+                          type="checkbox"
+                          checked={Boolean(v.horarios_activo)}
+                          onChange={(e) => handleUpdateVariantField(vIdx, 'horarios_activo', e.target.checked)}
+                          className="sr-only peer"
+                        />
+                        <div className="relative w-8 h-4.5 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-amber-600"></div>
+                        <span className="text-xs font-bold text-[#4a5759]">
+                          {v.horarios_activo ? 'Horarios Activados' : 'Activar Horarios'}
+                        </span>
+                      </label>
+                    </div>
+
+                    {v.horarios_activo ? (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                        {/* Morning time */}
+                        <div className="bg-[#ffffff] p-3.5 rounded-xl border border-amber-300/80 space-y-2 shadow-xs">
+                          <div className="flex items-center justify-between">
+                            <label className="text-[11px] font-bold text-[#4a5759] flex items-center gap-1.5">
+                              <Sun className="w-3.5 h-3.5 text-amber-500" />
+                              <span>Turno Mañana / Morning Time</span>
+                            </label>
+                            <span className="text-[10px] text-amber-700 font-extrabold bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
+                              AM
+                            </span>
+                          </div>
+                          <input
+                            type="text"
+                            value={v.horario_manana || ''}
+                            onChange={(e) => handleUpdateVariantField(vIdx, 'horario_manana', e.target.value)}
+                            placeholder="Ej. 08:30 AM (o 08:00 - 13:00)"
+                            className="w-full bg-[#f8fafc] border border-[#b0c4b1] rounded-lg px-3 py-1.5 text-xs text-[#4a5759] outline-none focus:border-amber-600 focus:bg-white font-medium"
+                          />
+                          <div className="flex items-center gap-1.5 text-[10px] text-[#6c7a7c] flex-wrap">
+                            <span className="font-semibold">Atajos:</span>
+                            {['08:00 AM', '08:30 AM', '09:00 AM'].map(preset => (
+                              <button
+                                type="button"
+                                key={preset}
+                                onClick={() => handleUpdateVariantField(vIdx, 'horario_manana', preset)}
+                                className="bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200/60 px-2 py-0.5 rounded-md text-[10px] font-semibold transition-all"
+                              >
+                                {preset}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Afternoon time */}
+                        <div className="bg-[#ffffff] p-3.5 rounded-xl border border-orange-300/80 space-y-2 shadow-xs">
+                          <div className="flex items-center justify-between">
+                            <label className="text-[11px] font-bold text-[#4a5759] flex items-center gap-1.5">
+                              <Sunset className="w-3.5 h-3.5 text-orange-500" />
+                              <span>Turno Tarde / Afternoon Time</span>
+                            </label>
+                            <span className="text-[10px] text-orange-700 font-extrabold bg-orange-50 px-2 py-0.5 rounded-md border border-orange-200">
+                              PM
+                            </span>
+                          </div>
+                          <input
+                            type="text"
+                            value={v.horario_tarde || ''}
+                            onChange={(e) => handleUpdateVariantField(vIdx, 'horario_tarde', e.target.value)}
+                            placeholder="Ej. 01:30 PM (o 13:30 - 18:30)"
+                            className="w-full bg-[#f8fafc] border border-[#b0c4b1] rounded-lg px-3 py-1.5 text-xs text-[#4a5759] outline-none focus:border-orange-600 focus:bg-white font-medium"
+                          />
+                          <div className="flex items-center gap-1.5 text-[10px] text-[#6c7a7c] flex-wrap">
+                            <span className="font-semibold">Atajos:</span>
+                            {['01:00 PM', '01:30 PM', '02:00 PM'].map(preset => (
+                              <button
+                                type="button"
+                                key={preset}
+                                onClick={() => handleUpdateVariantField(vIdx, 'horario_tarde', preset)}
+                                className="bg-orange-50 hover:bg-orange-100 text-orange-900 border border-orange-200/60 px-2 py-0.5 rounded-md text-[10px] font-semibold transition-all"
+                              >
+                                {preset}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-[11px] text-[#6c7a7c] bg-white/70 p-2.5 rounded-lg border border-amber-200/60 flex items-center gap-2">
+                        <Info className="w-4 h-4 text-amber-600 shrink-0" />
+                        <span>Los turnos de mañana y tarde están actualmente desactivados. Activa el interruptor arriba para definir los horarios específicos de salida sin tener que crear múltiples variantes.</span>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Sub-Sección B: Calendario de Fechas Disponibles para ESTA variante */}
                 <div className="space-y-3 bg-[#dbeafe]/40 p-4 rounded-xl border border-[#b0c4b1]">

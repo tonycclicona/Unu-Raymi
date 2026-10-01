@@ -48,6 +48,20 @@ const procesarVariantesConTraduccion = async (variantes) => {
         }
       }
 
+      // Horarios de salida (solo aplica a variantes de 1 día)
+      let horariosJson = null;
+      if (v.horarios && typeof v.horarios === "object") {
+        horariosJson = JSON.stringify(v.horarios);
+      } else if (typeof v.horarios === "string" && v.horarios.trim().startsWith("{")) {
+        horariosJson = v.horarios;
+      } else if (v.horarios_activo) {
+        horariosJson = JSON.stringify({
+          activo: true,
+          horario_manana: v.horario_manana || null,
+          horario_tarde: v.horario_tarde || null,
+        });
+      }
+
       return {
         duracion_dias: parseInt(v.duracion_dias, 10),
         precio_adulto: parseFloat(v.precio_adulto),
@@ -58,6 +72,7 @@ const procesarVariantesConTraduccion = async (variantes) => {
         servicios_excluidos: v.servicios_excluidos ? (typeof v.servicios_excluidos === "string" ? v.servicios_excluidos : JSON.stringify(v.servicios_excluidos)) : null,
         fechas_disponibles: v.fechas_disponibles ? (typeof v.fechas_disponibles === "string" ? v.fechas_disponibles : JSON.stringify(v.fechas_disponibles)) : null,
         traducciones: traduccionesJson,
+        horarios: horariosJson,
       };
     })
   );
@@ -104,6 +119,7 @@ const formatearTour = (tour) => {
     traducciones: traduccionesFinal,
     variantes: tour.variantes?.map(v => {
       const vTraduccionesRaw = deserializarObjeto(v.traducciones);
+      const vHorariosRaw = deserializarObjeto(v.horarios);
       const vTraduccionesFinal = {
         es: {
           itinerario: vTraduccionesRaw?.es?.itinerario || v.itinerario || null,
@@ -120,6 +136,7 @@ const formatearTour = (tour) => {
         servicios_excluidos: deserializarArray(v.servicios_excluidos),
         fechas_disponibles: deserializarArray(v.fechas_disponibles),
         traducciones: vTraduccionesFinal,
+        horarios: vHorariosRaw,
       };
     }) || [],
   };

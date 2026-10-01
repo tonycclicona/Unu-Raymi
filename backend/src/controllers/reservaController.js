@@ -37,6 +37,7 @@ export const checkout = async (req, res, next) => {
       titularTelefono,
       pasajeros,
       duracion_dias,
+      turno,
     } = req.body;
 
     // ── 1. Buscar y validar el Tour en la BD ─────────────────
@@ -103,6 +104,7 @@ export const checkout = async (req, res, next) => {
         cantNinos,
         precioTotal,
         duracion_dias: duracionFinal,
+        turno: turno ?? null,
         estado: "PENDING",
         tokenSeguridad,
         titularNombre,

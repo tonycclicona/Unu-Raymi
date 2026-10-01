@@ -35,6 +35,11 @@ const varianteSchema = z.object({
   servicios_excluidos: z.array(z.string()).optional().nullable().default([]),
 
   fechas_disponibles: z.array(z.string()).optional().nullable().default([]),
+  traducciones: z.any().optional().nullable(),
+  horarios: z.any().optional().nullable(),
+  horarios_activo: z.boolean().optional().nullable(),
+  horario_manana: z.string().optional().nullable(),
+  horario_tarde: z.string().optional().nullable(),
 });
 
 // ── Schema base del Tour ─────────────────────────────────────

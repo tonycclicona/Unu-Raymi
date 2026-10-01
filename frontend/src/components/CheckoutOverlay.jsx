@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Users, DollarSign, Calendar, ShieldCheck, Mail, Phone, User, CheckCircle, CreditCard, ArrowLeft, ExternalLink } from 'lucide-react';
+import { X, Users, DollarSign, Calendar, ShieldCheck, Mail, Phone, User, CheckCircle, CreditCard, ArrowLeft, ExternalLink, Clock } from 'lucide-react';
 import { mutateApi, API_BASE_URL } from '@/lib/api';
 import { useLanguage } from '@/context/LanguageContext';
 import { useCurrency } from '@/context/CurrencyContext';
@@ -54,6 +54,26 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
   const [fechaViaje, setFechaViaje] = useState(() => {
     return fechasDisponibles.length > 0 ? fechasDisponibles[0] : getTomorrowDateString();
   });
+
+  // Horarios de salida (solo si la variante es de 1 día y tiene horarios activos)
+  const hasHorarios = activeVariant?.duracion_dias === 1 && activeVariant?.horarios?.activo && (activeVariant?.horarios?.horario_manana || activeVariant?.horarios?.horario_tarde);
+  const [turnoSeleccionado, setTurnoSeleccionado] = useState(() => {
+    if (activeVariant?.horarios?.horario_manana) return 'manana';
+    if (activeVariant?.horarios?.horario_tarde) return 'tarde';
+    return '';
+  });
+
+  useEffect(() => {
+    if (hasHorarios) {
+      if (activeVariant?.horarios?.horario_manana) {
+        setTurnoSeleccionado('manana');
+      } else if (activeVariant?.horarios?.horario_tarde) {
+        setTurnoSeleccionado('tarde');
+      }
+    } else {
+      setTurnoSeleccionado('');
+    }
+  }, [selectedDuration, activeVariant]);
 
   // Sincronizar fechas al cambiar variante
   useEffect(() => {
@@ -148,6 +168,7 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
           cantAdultos: parseInt(cantAdultos, 10),
           cantNinos: parseInt(cantNinos, 10),
           duracion_dias: selectedDuration || tour.duracion_dias || 1,
+          turno: hasHorarios ? (turnoSeleccionado === 'manana' ? `Mañana (${activeVariant?.horarios?.horario_manana || ''})` : `Tarde (${activeVariant?.horarios?.horario_tarde || ''})`) : undefined,
           titularNombre: `${titularNombre.trim()} ${titularApellido.trim()}`,
           titularEmail: titularEmail.trim(),
           titularTelefono: titularTelefono ? titularTelefono.trim() : null,
@@ -373,6 +394,60 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
                   className="w-full bg-[var(--background)] border border-[var(--border)] rounded-xl px-3 py-2 text-[var(--foreground)] text-xs focus:outline-none"
                 />
               </div>
+
+              {hasHorarios && (
+                <div className="space-y-2 sm:col-span-3 bg-amber-500/10 border border-amber-500/30 p-3.5 rounded-xl">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[10px] font-extrabold text-[var(--foreground)] uppercase flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5 text-amber-500" />
+                      {t('checkout.turno_salida')}
+                    </label>
+                    <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md">
+                      1 Día
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    {activeVariant.horarios.horario_manana && (
+                      <button
+                        type="button"
+                        onClick={() => setTurnoSeleccionado('manana')}
+                        className={`flex items-center justify-between p-3 rounded-xl border text-xs font-bold transition-all text-left ${
+                          turnoSeleccionado === 'manana'
+                            ? 'bg-[var(--accent)] text-white border-[var(--accent)] shadow-xs'
+                            : 'bg-[var(--card)] hover:bg-[var(--border)]/40 text-[var(--foreground)] border-[var(--border)]'
+                        }`}
+                      >
+                        <span className="flex items-center gap-2">
+                          <span className="text-base">🌅</span>
+                          <span>{t('checkout.turno_manana_desc')}</span>
+                        </span>
+                        <span className={`text-[11px] font-mono font-bold ${turnoSeleccionado === 'manana' ? 'text-white' : 'text-amber-600 dark:text-amber-400'}`}>
+                          {activeVariant.horarios.horario_manana}
+                        </span>
+                      </button>
+                    )}
+                    {activeVariant.horarios.horario_tarde && (
+                      <button
+                        type="button"
+                        onClick={() => setTurnoSeleccionado('tarde')}
+                        className={`flex items-center justify-between p-3 rounded-xl border text-xs font-bold transition-all text-left ${
+                          turnoSeleccionado === 'tarde'
+                            ? 'bg-[var(--accent)] text-white border-[var(--accent)] shadow-xs'
+                            : 'bg-[var(--card)] hover:bg-[var(--border)]/40 text-[var(--foreground)] border-[var(--border)]'
+                        }`}
+                      >
+                        <span className="flex items-center gap-2">
+                          <span className="text-base">🌇</span>
+                          <span>{t('checkout.turno_tarde_desc')}</span>
+                        </span>
+                        <span className={`text-[11px] font-mono font-bold ${turnoSeleccionado === 'tarde' ? 'text-white' : 'text-orange-600 dark:text-orange-400'}`}>
+                          {activeVariant.horarios.horario_tarde}
+                        </span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
