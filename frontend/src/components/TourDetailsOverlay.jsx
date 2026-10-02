@@ -456,42 +456,6 @@ export default function TourDetailsOverlay({ tour, initialDuration, initialVaria
               </div>
             )}
 
-            {/* Horarios de Salida (Tour de 1 Día) */}
-            {activeVariant?.duracion_dias === 1 && activeVariant?.horarios?.activo && (activeVariant?.horarios?.horario_manana || activeVariant?.horarios?.horario_tarde) && (
-              <div className="bg-gradient-to-r from-amber-500/10 via-[var(--card)] to-orange-500/10 border border-amber-500/30 p-4 rounded-2xl space-y-2.5">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-amber-500/20 pb-2">
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-amber-500" />
-                    <div>
-                      <span className="text-[11px] font-extrabold uppercase tracking-wider text-[var(--foreground)]">
-                        {t('tour_details.horarios_salida')}
-                      </span>
-                      <p className="text-[10px] text-[var(--muted-foreground)]">
-                        {t('tour_details.horarios_nota')}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap gap-2.5 pt-0.5">
-                  {activeVariant.horarios.horario_manana && (
-                    <div className="inline-flex items-center gap-2 bg-[var(--card)] border border-amber-500/40 px-3.5 py-1.5 rounded-xl shadow-xs">
-                      <Sun className="w-3.5 h-3.5 text-amber-500" />
-                      <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400">{t('tour_details.turno_manana')}:</span>
-                      <span className="text-xs font-black text-[var(--foreground)]">{activeVariant.horarios.horario_manana}</span>
-                    </div>
-                  )}
-                  {activeVariant.horarios.horario_tarde && (
-                    <div className="inline-flex items-center gap-2 bg-[var(--card)] border border-orange-500/40 px-3.5 py-1.5 rounded-xl shadow-xs">
-                      <Sunset className="w-3.5 h-3.5 text-orange-500" />
-                      <span className="text-[11px] font-bold text-orange-600 dark:text-orange-400">{t('tour_details.turno_tarde')}:</span>
-                      <span className="text-xs font-black text-[var(--foreground)]">{activeVariant.horarios.horario_tarde}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
             {/* Itinerario del Tour — Línea de Tiempo Profesional */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
