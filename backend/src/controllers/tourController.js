@@ -64,6 +64,7 @@ const procesarVariantesConTraduccion = async (variantes) => {
 
       return {
         duracion_dias: parseInt(v.duracion_dias, 10),
+        tipo_duracion: v.tipo_duracion || "dias",
         precio_adulto: parseFloat(v.precio_adulto),
         precio_nino: parseFloat(v.precio_nino),
         cupos_disponibles: parseInt(v.cupos_disponibles, 10),
@@ -137,6 +138,7 @@ const formatearTour = (tour) => {
         fechas_disponibles: deserializarArray(v.fechas_disponibles),
         traducciones: vTraduccionesFinal,
         horarios: vHorariosRaw,
+        tipo_duracion: v.tipo_duracion || "dias",
       };
     }) || [],
   };

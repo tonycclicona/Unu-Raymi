@@ -102,6 +102,7 @@ model TourVariante {
   tour                 Tour      @relation(fields: [tourId], references: [id], onDelete: Cascade)
 
   duracion_dias        Int
+  tipo_duracion        String?   @default("dias") @db.VarChar(50) // "medio_dia_manana" | "medio_dia_tarde" | "dias"
   precio_adulto        Decimal   @db.Decimal(10, 2)
   precio_nino          Decimal   @db.Decimal(10, 2)
   cupos_disponibles    Int
@@ -144,6 +145,7 @@ model Reserva {
   cantNinos       Int
   precioTotal     Decimal       @db.Decimal(10, 2)
   duracion_dias   Int           @default(1)
+  tipo_duracion   String?       @db.VarChar(50)
   turno           String?       @db.VarChar(100)
 
   estado          EstadoReserva @default(PENDING)

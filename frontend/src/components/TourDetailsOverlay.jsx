@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { X, Shield, Backpack, Utensils, Bus, Camera, ArrowRight, Calendar, MapPin, Sparkles, ChevronLeft, ChevronRight, Clock, Milestone, Sun, Sunset } from 'lucide-react';
 import { API_ASSETS_URL } from '../lib/api';
 import { useLanguage } from '@/context/LanguageContext';
-import { formatDifficulty } from '@/lib/translations';
+import { formatDifficulty, getVariantLabel, getVariantKey } from '@/lib/translations';
 import {
   Compass3D,
   Backpack3D,
@@ -14,7 +14,7 @@ import {
   Camera3D,
 } from './illustrations/Neomorphic3DIcons';
 
-export default function TourDetailsOverlay({ tour, initialDuration, onClose, onProceed, isShifted }) {
+export default function TourDetailsOverlay({ tour, initialDuration, initialVariant, onClose, onProceed, isShifted }) {
   const [activeTooltip, setActiveTooltip] = useState(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [lightboxIndex, setLightboxIndex] = useState(null);
@@ -34,10 +34,16 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
   }, [lightboxIndex, imagenes.length]);
 
   const hasVariants = tour.variantes && tour.variantes.length > 0;
-  const [selectedDuration, setSelectedDuration] = useState(() => {
-    if (initialDuration) return initialDuration;
-    if (hasVariants) return tour.variantes[0].duracion_dias;
-    return tour.duracion_dias;
+  const [selectedVariantKey, setSelectedVariantKey] = useState(() => {
+    if (initialVariant) return getVariantKey(initialVariant);
+    if (hasVariants) {
+      if (initialDuration) {
+        const match = tour.variantes.find(v => v.duracion_dias === initialDuration);
+        if (match) return getVariantKey(match);
+      }
+      return getVariantKey(tour.variantes[0]);
+    }
+    return 'default';
   });
 
   const localized = tour.traducciones?.[language] || {};
@@ -49,7 +55,7 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
   const tourQueLlevar = localized.que_llevar || tour.que_llevar;
 
   const activeVariant = hasVariants
-    ? tour.variantes.find(v => v.duracion_dias === selectedDuration) || tour.variantes[0]
+    ? tour.variantes.find(v => getVariantKey(v) === selectedVariantKey) || tour.variantes[0]
     : null;
 
   const displayDuration = activeVariant ? activeVariant.duracion_dias : tour.duracion_dias;
@@ -66,20 +72,90 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
   const displayItinerario = variantItinerario || tourItinerario;
 
   // Parser inteligente para estructurar el itinerario en una Línea de Tiempo interactiva
+  // Formato requerido:
+  // 1ra línea: Hora (ej. 08:00 AM)
+  // 2da línea: Título
+  // 3ra línea: Descripción
+  // Doble salto de línea (\n\n) para el siguiente hito/horario
   const parsedItinerario = useMemo(() => {
     if (!displayItinerario || typeof displayItinerario !== 'string') return [];
 
     let blocks = displayItinerario.split(/\n\s*\n/).map(b => b.trim()).filter(Boolean);
 
     if (blocks.length <= 1 && displayItinerario.includes('\n')) {
-      blocks = displayItinerario.split(/\n+/).map(b => b.trim()).filter(Boolean);
+      const rawLines = displayItinerario.split(/\n+/).map(l => l.trim()).filter(Boolean);
+      const horaRegex = /^(\d{1,2}:\d{2}(?:\s*(?:AM|PM|am|pm|Hrs|hrs))?)/i;
+      const tieneHorasAisladas = rawLines.some(l => horaRegex.test(l) && l.length <= 25);
+      if (!tieneHorasAisladas && blocks.length <= 1) {
+        blocks = rawLines;
+      }
     }
 
     return blocks.map((block, idx) => {
       const lines = block.split(/\n+/).map(l => l.trim()).filter(Boolean);
-      const firstLine = lines[0] || '';
-      const details = lines.slice(1).join('\n');
+      if (lines.length === 0) return null;
 
+      const firstLine = lines[0];
+      const secondLine = lines[1] || '';
+      const thirdLineAndBeyond = lines.slice(2).join('\n');
+
+      const timeOnlyMatch = firstLine.match(/^(\d{1,2}:\d{2}(?:\s*(?:AM|PM|am|pm|Hrs|hrs))?(?:\s*[-–]\s*\d{1,2}:\d{2}(?:\s*(?:AM|PM|am|pm|Hrs|hrs))?)?)$/i);
+      const dayOnlyMatch = firstLine.match(/^(D[ií]a\s+\d+|Day\s+\d+)$/i);
+
+      // 1. Caso Formato Estructurado Estándar (Línea 1: Hora, Línea 2: Título, Línea 3+: Descripción)
+      if (lines.length >= 3) {
+        if (timeOnlyMatch) {
+          return {
+            id: `step-${idx}`,
+            tag: firstLine,
+            tagType: 'time',
+            title: secondLine,
+            description: thirdLineAndBeyond,
+          };
+        }
+        if (dayOnlyMatch) {
+          return {
+            id: `step-${idx}`,
+            tag: firstLine,
+            tagType: 'day',
+            title: secondLine,
+            description: thirdLineAndBeyond,
+          };
+        }
+        if (firstLine.length <= 30 && !firstLine.includes('.')) {
+          return {
+            id: `step-${idx}`,
+            tag: firstLine,
+            tagType: 'time',
+            title: secondLine,
+            description: thirdLineAndBeyond,
+          };
+        }
+      }
+
+      // 2. Caso de 2 líneas (Línea 1: Hora, Línea 2: Título)
+      if (lines.length === 2) {
+        if (timeOnlyMatch) {
+          return {
+            id: `step-${idx}`,
+            tag: firstLine,
+            tagType: 'time',
+            title: secondLine,
+            description: '',
+          };
+        }
+        if (dayOnlyMatch) {
+          return {
+            id: `step-${idx}`,
+            tag: firstLine,
+            tagType: 'day',
+            title: secondLine,
+            description: '',
+          };
+        }
+      }
+
+      // 3. Compatibilidad con formato anterior donde la hora y el título estaban juntos en la primera línea
       const timeMatch = firstLine.match(/^(\d{1,2}:\d{2}(?:\s*(?:AM|PM|am|pm|Hrs|hrs))?)(?:\s*[-–:]\s*|\s+)(.*)$/i);
       const dayMatch = firstLine.match(/^(D[ií]a\s+\d+|Day\s+\d+)(?:\s*[:–-]\s*|\s+)(.*)$/i);
 
@@ -89,7 +165,7 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
           tag: timeMatch[1].trim(),
           tagType: 'time',
           title: timeMatch[2].trim() || timeMatch[1].trim(),
-          description: details,
+          description: lines.slice(1).join('\n'),
         };
       }
 
@@ -99,7 +175,7 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
           tag: dayMatch[1].trim(),
           tagType: 'day',
           title: dayMatch[2].trim() || dayMatch[1].trim(),
-          description: details,
+          description: lines.slice(1).join('\n'),
         };
       }
 
@@ -110,7 +186,7 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
           tag: colonMatch[1].trim(),
           tagType: 'custom',
           title: colonMatch[2].trim(),
-          description: details,
+          description: lines.slice(1).join('\n'),
         };
       }
 
@@ -119,9 +195,9 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
         tag: null,
         tagType: 'step',
         title: firstLine,
-        description: details,
+        description: lines.slice(1).join('\n'),
       };
-    });
+    }).filter(Boolean);
   }, [displayItinerario]);
 
   useEffect(() => {
@@ -360,17 +436,19 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
                 <span className="text-[10px] text-[var(--muted-foreground)] block uppercase font-bold tracking-wider">{t('tour_details.seleccionar_duracion')}</span>
                 <div className="flex flex-wrap gap-2">
                   {tour.variantes.map((v) => {
-                    const isSelected = selectedDuration === v.duracion_dias;
+                    const vKey = getVariantKey(v);
+                    const isSelected = selectedVariantKey === vKey;
+                    const label = getVariantLabel(v, language);
                     return (
                       <button
-                        key={v.duracion_dias}
-                        onClick={() => setSelectedDuration(v.duracion_dias)}
+                        key={vKey}
+                        onClick={() => setSelectedVariantKey(vKey)}
                         className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${isSelected
                           ? 'bg-[var(--accent)] text-white shadow-md shadow-[var(--accent)]/20'
                           : 'bg-[var(--card)] hover:bg-[var(--border)]/50 text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)]'
                           }`}
                       >
-                        {v.duracion_dias} {v.duracion_dias === 1 ? t('tour_card.dia') : t('tour_card.dias')}
+                        {label}
                       </button>
                     );
                   })}
@@ -651,7 +729,7 @@ export default function TourDetailsOverlay({ tour, initialDuration, onClose, onP
             </div>
 
             <button
-              onClick={() => onProceed(selectedDuration)}
+              onClick={() => onProceed(displayDuration, activeVariant)}
               className="w-full flex items-center justify-center gap-2 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white py-4 rounded-xl font-bold shadow-lg shadow-[var(--accent)]/20 hover:shadow-[var(--accent)]/30 transition-all duration-300 text-sm"
             >
               {t('tour_details.proceder_registro')}

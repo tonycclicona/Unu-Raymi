@@ -37,7 +37,9 @@ export const checkout = async (req, res, next) => {
       titularTelefono,
       pasajeros,
       duracion_dias,
+      tipo_duracion,
       turno,
+      varianteId,
     } = req.body;
 
     // ── 1. Buscar y validar el Tour en la BD ─────────────────
@@ -63,20 +65,48 @@ export const checkout = async (req, res, next) => {
     let precioAdulto = parseFloat(tour.precio_adulto);
     let precioNino = parseFloat(tour.precio_nino);
     let cuposDisponibles = tour.cupos_disponibles;
-    const duracionFinal = duracion_dias ? parseInt(duracion_dias, 10) : tour.duracion_dias;
+    let duracionFinal = duracion_dias ? parseInt(duracion_dias, 10) : tour.duracion_dias;
+    let tipoDuracionFinal = tipo_duracion || null;
+    let turnoFinal = turno || null;
 
-    if (duracion_dias) {
-      const variante = await prisma.tourVariante.findFirst({
+    let variante = null;
+    if (varianteId) {
+      variante = await prisma.tourVariante.findFirst({
         where: {
+          id: parseInt(varianteId, 10),
           tourId,
-          duracion_dias: parseInt(duracion_dias, 10),
         },
       });
+    }
 
-      if (variante) {
-        precioAdulto = parseFloat(variante.precio_adulto);
-        precioNino = parseFloat(variante.precio_nino);
-        cuposDisponibles = variante.cupos_disponibles;
+    if (!variante && (tipo_duracion || duracion_dias)) {
+      const whereClause = { tourId };
+      if (duracion_dias) whereClause.duracion_dias = parseInt(duracion_dias, 10);
+      if (tipo_duracion) whereClause.tipo_duracion = tipo_duracion;
+
+      variante = await prisma.tourVariante.findFirst({
+        where: whereClause,
+      });
+    }
+
+    if (variante) {
+      precioAdulto = parseFloat(variante.precio_adulto);
+      precioNino = parseFloat(variante.precio_nino);
+      cuposDisponibles = variante.cupos_disponibles;
+      duracionFinal = variante.duracion_dias;
+      tipoDuracionFinal = variante.tipo_duracion || tipoDuracionFinal;
+      if (!turnoFinal) {
+        if (variante.tipo_duracion === "medio_dia_manana") {
+          turnoFinal = "Turno Mañana";
+        } else if (variante.tipo_duracion === "medio_dia_tarde") {
+          turnoFinal = "Turno Tarde";
+        }
+      }
+    } else if (!turnoFinal && tipoDuracionFinal) {
+      if (tipoDuracionFinal === "medio_dia_manana") {
+        turnoFinal = "Turno Mañana";
+      } else if (tipoDuracionFinal === "medio_dia_tarde") {
+        turnoFinal = "Turno Tarde";
       }
     }
 
@@ -104,7 +134,8 @@ export const checkout = async (req, res, next) => {
         cantNinos,
         precioTotal,
         duracion_dias: duracionFinal,
-        turno: turno ?? null,
+        tipo_duracion: tipoDuracionFinal,
+        turno: turnoFinal ?? null,
         estado: "PENDING",
         tokenSeguridad,
         titularNombre,

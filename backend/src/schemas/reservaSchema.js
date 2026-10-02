@@ -63,6 +63,25 @@ export const checkoutReservaSchema = z
       .min(1)
       .optional(),
 
+    tipo_duracion: z
+      .string()
+      .max(50)
+      .optional()
+      .nullable(),
+
+    turno: z
+      .string()
+      .max(100)
+      .optional()
+      .nullable(),
+
+    varianteId: z
+      .number()
+      .int()
+      .positive()
+      .optional()
+      .nullable(),
+
     // ── Datos del Titular (OBLIGATORIOS) ──
     titularNombre: z
       .string({ required_error: "El nombre del titular es obligatorio." })

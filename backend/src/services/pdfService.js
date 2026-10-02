@@ -192,11 +192,20 @@ const dibujarDatosReserva = (doc, reserva) => {
     year: "numeric",
   });
 
+  let duracionTexto = `${reserva.duracion_dias ?? reserva.tour?.duracion_dias ?? 1} día(s)`;
+  if (reserva.tipo_duracion === "medio_dia_manana") {
+    duracionTexto = "Medio Día (Mañana)";
+  } else if (reserva.tipo_duracion === "medio_dia_tarde") {
+    duracionTexto = "Medio Día (Tarde)";
+  } else if (reserva.turno) {
+    duracionTexto += ` (${reserva.turno})`;
+  }
+
   const campos = [
     ["Nº de Reserva", `#${String(reserva.id).padStart(6, "0")}`],
     ["Tour", reserva.tour?.nombre ?? "—"],
     ["Fecha del Viaje", fechaViaje],
-    ["Duración", `${reserva.tour?.duracion_dias ?? "—"} día(s)`],
+    ["Duración / Modalidad", duracionTexto],
     ["Adultos", String(reserva.cantAdultos)],
     ["Niños", String(reserva.cantNinos)],
     ["Referencia Pago", reserva.referenciaPago ?? "—"],

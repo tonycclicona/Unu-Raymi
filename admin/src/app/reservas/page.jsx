@@ -93,10 +93,30 @@ export default function ReservasPage() {
                       <div className="text-xs text-[#6c7a7c]/80">{reserva.titularEmail || ''}</div>
                     </td>
                     <td className="py-4 px-4">
-                      <div className="text-[#4a5759]">{reserva.tour?.nombre || 'Tour General'}</div>
+                      <div className="font-medium text-[#4a5759]">{reserva.tour?.nombre || 'Tour General'}</div>
                       <div className="text-xs text-[#6c7a7c]/80 flex items-center gap-1 mt-0.5">
                         <Calendar className="w-3.5 h-3.5 text-[#4a5759]" />
                         {reserva.fechaViaje ? new Date(reserva.fechaViaje).toLocaleDateString('es-PE') : 'Pendiente'}
+                      </div>
+                      <div className="mt-1 flex flex-wrap items-center gap-1">
+                        {reserva.tipo_duracion === 'medio_dia_manana' ? (
+                          <span className="bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-extrabold px-2 py-0.5 rounded-md">
+                            ½ Día (Mañana)
+                          </span>
+                        ) : reserva.tipo_duracion === 'medio_dia_tarde' ? (
+                          <span className="bg-orange-100 text-orange-900 border border-orange-300 text-[10px] font-extrabold px-2 py-0.5 rounded-md">
+                            ½ Día (Tarde)
+                          </span>
+                        ) : (
+                          <span className="bg-[#b0c4b1]/30 text-[#4a5759] border border-[#b0c4b1] text-[10px] font-bold px-2 py-0.5 rounded-md">
+                            {reserva.duracion_dias || 1} Día{(reserva.duracion_dias || 1) > 1 ? 's' : ''}
+                          </span>
+                        )}
+                        {reserva.turno && (
+                          <span className="bg-blue-100 text-blue-900 border border-blue-300 text-[10px] font-medium px-1.5 py-0.5 rounded-md">
+                            {reserva.turno}
+                          </span>
+                        )}
                       </div>
                     </td>
                     <td className="py-4 px-4">

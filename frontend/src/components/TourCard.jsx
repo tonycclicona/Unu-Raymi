@@ -6,7 +6,7 @@ import { Calendar, Users, DollarSign, ArrowRight } from 'lucide-react';
 import { API_ASSETS_URL, getImageUrl, handleImageFallback } from '../lib/api';
 import { useLanguage } from '@/context/LanguageContext';
 import { useCurrency } from '@/context/CurrencyContext';
-import { formatDifficulty } from '@/lib/translations';
+import { formatDifficulty, getVariantLabel, getVariantKey } from '@/lib/translations';
 
 export default function TourCard({ tour, onReservar }) {
   const imagenes = tour.imagenes || [];
@@ -15,13 +15,13 @@ export default function TourCard({ tour, onReservar }) {
   const { formatPrice } = useCurrency();
 
   const hasVariants = tour.variantes && tour.variantes.length > 0;
-  const [selectedDuration, setSelectedDuration] = useState(() => {
-    if (hasVariants) return tour.variantes[0].duracion_dias;
-    return tour.duracion_dias;
+  const [selectedVariantKey, setSelectedVariantKey] = useState(() => {
+    if (hasVariants) return getVariantKey(tour.variantes[0]);
+    return 'default';
   });
 
   const activeVariant = hasVariants
-    ? tour.variantes.find(v => v.duracion_dias === selectedDuration) || tour.variantes[0]
+    ? tour.variantes.find(v => getVariantKey(v) === selectedVariantKey) || tour.variantes[0]
     : null;
 
   const displayDuration = activeVariant ? activeVariant.duracion_dias : tour.duracion_dias;
@@ -82,14 +82,16 @@ export default function TourCard({ tour, onReservar }) {
               <div className="flex flex-wrap gap-1.5 items-center">
                 <Calendar className="w-3.5 h-3.5 text-[var(--foreground)]" />
                 {tour.variantes.map((v) => {
-                  const isSelected = selectedDuration === v.duracion_dias;
+                  const vKey = getVariantKey(v);
+                  const isSelected = selectedVariantKey === vKey;
+                  const label = getVariantLabel(v, language);
                   return (
                     <button
-                      key={v.duracion_dias}
+                      key={vKey}
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
-                        setSelectedDuration(v.duracion_dias);
+                        setSelectedVariantKey(vKey);
                       }}
                       className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold transition-all border ${
                         isSelected
@@ -97,7 +99,7 @@ export default function TourCard({ tour, onReservar }) {
                           : 'bg-[var(--card)] hover:bg-[var(--sidebar)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border-[var(--border)]'
                       }`}
                     >
-                      {v.duracion_dias} {v.duracion_dias === 1 ? t('tour_card.dia') : t('tour_card.dias')}
+                      {label}
                     </button>
                   );
                 })}
@@ -144,7 +146,7 @@ export default function TourCard({ tour, onReservar }) {
 
           <div className="flex items-center gap-1.5">
             <button
-              onClick={() => onReservar(tour, displayDuration)}
+              onClick={() => onReservar(tour, displayDuration, activeVariant)}
               className="flex items-center gap-1.5 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow-lg shadow-[var(--accent)]/10 hover:shadow-[var(--accent)]/20 transition-all duration-300 group/btn whitespace-nowrap"
             >
               {t('tour_card.reservar')}

@@ -199,7 +199,9 @@ export default function TourForm({ initialData }) {
           } catch (e) {}
         }
         return {
+          id: v.id,
           duracion_dias: v.duracion_dias || 1,
+          tipo_duracion: v.tipo_duracion || 'dias',
           precio_adulto: v.precio_adulto || 0,
           precio_nino: v.precio_nino || 0,
           cupos_disponibles: v.cupos_disponibles !== undefined ? v.cupos_disponibles : 10,
@@ -226,6 +228,7 @@ export default function TourForm({ initialData }) {
       ...prev,
       {
         duracion_dias: nextDuration,
+        tipo_duracion: 'dias',
         precio_adulto: 0,
         precio_nino: 0,
         cupos_disponibles: 10,
@@ -496,15 +499,23 @@ export default function TourForm({ initialData }) {
       return;
     }
 
-    // Validar que no existan duraciones duplicadas
-    const duraciones = variantes.map(v => parseInt(v.duracion_dias));
-    const duplicados = duraciones.filter((item, index) => duraciones.indexOf(item) !== index);
+    // Validar que no existan variantes duplicadas (misma duración y modalidad)
+    const clavesVariantes = variantes.map(v => {
+      const tipo = v.tipo_duracion || 'dias';
+      if (tipo === 'medio_dia_manana') return 'medio_dia_manana';
+      if (tipo === 'medio_dia_tarde') return 'medio_dia_tarde';
+      return `dias_${parseInt(v.duracion_dias, 10) || 1}`;
+    });
+
+    const duplicados = clavesVariantes.filter((item, index) => clavesVariantes.indexOf(item) !== index);
     if (duplicados.length > 0) {
-      if (duplicados.includes(1)) {
-        setError('Tienes variantes duplicadas con 1 Día de duración. Para tours de 1 día con turnos de mañana y tarde, no dupliques la variante: activa la opción "Horarios de Salida (Turno Mañana / Tarde)" dentro de una única variante de 1 día para prevenir errores.');
-      } else {
-        setError(`Tienes variantes duplicadas con la misma duración (${[...new Set(duplicados)].join(', ')} días). Cada variante debe tener una cantidad de días distinta.`);
-      }
+      const nombresDuplicados = [...new Set(duplicados)].map(clave => {
+        if (clave === 'medio_dia_manana') return 'Medio Día (Turno Mañana)';
+        if (clave === 'medio_dia_tarde') return 'Medio Día (Turno Tarde)';
+        const d = clave.replace('dias_', '');
+        return `${d} Día${d > 1 ? 's' : ''}`;
+      });
+      setError(`Tienes variantes duplicadas con la misma modalidad/duración: ${nombresDuplicados.join(', ')}. Cada variante debe tener una duración o turno diferente.`);
       return;
     }
 
@@ -549,6 +560,7 @@ export default function TourForm({ initialData }) {
 
           return {
             duracion_dias: parseInt(v.duracion_dias),
+            tipo_duracion: v.tipo_duracion || "dias",
             precio_adulto: parseFloat(v.precio_adulto),
             precio_nino: parseFloat(v.precio_nino),
             cupos_disponibles: parseInt(v.cupos_disponibles),
@@ -869,7 +881,14 @@ export default function TourForm({ initialData }) {
             {variantes.map((v, vIdx) => (
               <div key={vIdx} className="bg-[#ffffff]/40 border-2 border-[#b0c4b1] p-6 rounded-2xl space-y-6 relative border-t-[#4a5759]">
                 <div className="flex justify-between items-center border-b border-[#b0c4b1] pb-2">
-                  <span className="text-xs font-black uppercase text-[#4a5759] tracking-widest">Configuración Completa: Variante {v.duracion_dias} Día(s)</span>
+                  <span className="text-xs font-black uppercase text-[#4a5759] tracking-widest flex items-center gap-2">
+                    <span>Configuración Variante:</span>
+                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-[#4a5759] text-white">
+                      {v.tipo_duracion === 'medio_dia_manana' ? 'Medio Día (Turno Mañana)' :
+                       v.tipo_duracion === 'medio_dia_tarde' ? 'Medio Día (Turno Tarde)' :
+                       `${v.duracion_dias || 1} Día${(v.duracion_dias || 1) > 1 ? 's' : ''}`}
+                    </span>
+                  </span>
                   <button type="button" onClick={() => handleRemoveVariant(vIdx)} className="text-[#6c7a7c]/80 hover:text-red-400 p-1"><Trash2 className="w-4.5 h-4.5" /></button>
                 </div>
 
@@ -878,8 +897,61 @@ export default function TourForm({ initialData }) {
                   <h4 className="text-xs font-bold text-[#4a5759] flex items-center gap-1.5"><DollarSign className="w-4 h-4 text-[#4a5759]" /> Precios y Logística de la Variante</h4>
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
-                      <label className="block text-[11px] font-medium text-[#6c7a7c] mb-1">Duración (Días) *</label>
-                      <input type="number" min="1" value={v.duracion_dias} onChange={(e) => handleUpdateVariantField(vIdx, 'duracion_dias', parseInt(e.target.value) || 1)} className="w-full bg-[#dbeafe] border border-[#b0c4b1] rounded-xl px-3 py-2 text-[#4a5759] text-xs focus:border-[#4a5759] outline-none" required />
+                      <label className="block text-[11px] font-medium text-[#6c7a7c] mb-1">Duración / Modalidad *</label>
+                      <select
+                        value={
+                          v.tipo_duracion === 'medio_dia_manana' ? 'medio_dia_manana' :
+                          v.tipo_duracion === 'medio_dia_tarde' ? 'medio_dia_tarde' :
+                          [1, 2, 3, 4, 5, 6, 7].includes(parseInt(v.duracion_dias)) ? String(v.duracion_dias) :
+                          'custom'
+                        }
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (val === 'medio_dia_manana') {
+                            handleUpdateVariantField(vIdx, 'tipo_duracion', 'medio_dia_manana');
+                            handleUpdateVariantField(vIdx, 'duracion_dias', 1);
+                          } else if (val === 'medio_dia_tarde') {
+                            handleUpdateVariantField(vIdx, 'tipo_duracion', 'medio_dia_tarde');
+                            handleUpdateVariantField(vIdx, 'duracion_dias', 1);
+                          } else if (val === 'custom') {
+                            handleUpdateVariantField(vIdx, 'tipo_duracion', 'dias');
+                            handleUpdateVariantField(vIdx, 'duracion_dias', Math.max(parseInt(v.duracion_dias) || 8, 8));
+                          } else {
+                            handleUpdateVariantField(vIdx, 'tipo_duracion', 'dias');
+                            handleUpdateVariantField(vIdx, 'duracion_dias', parseInt(val, 10));
+                          }
+                        }}
+                        className="w-full bg-[#dbeafe] border border-[#b0c4b1] rounded-xl px-3 py-2 text-[#4a5759] text-xs font-bold focus:border-[#4a5759] outline-none"
+                      >
+                        <optgroup label="Medio Día (Excursiones Cortas)">
+                          <option value="medio_dia_manana">Medio Día (Turno Mañana)</option>
+                          <option value="medio_dia_tarde">Medio Día (Turno Tarde)</option>
+                        </optgroup>
+                        <optgroup label="Días Completos">
+                          <option value="1">1 Día Completo</option>
+                          <option value="2">2 Días</option>
+                          <option value="3">3 Días</option>
+                          <option value="4">4 Días</option>
+                          <option value="5">5 Días</option>
+                          <option value="6">6 Días</option>
+                          <option value="7">7 Días</option>
+                          <option value="custom">Personalizado (Más días...)</option>
+                        </optgroup>
+                      </select>
+
+                      {v.tipo_duracion === 'dias' && (![1, 2, 3, 4, 5, 6, 7].includes(parseInt(v.duracion_dias)) || parseInt(v.duracion_dias) > 7) && (
+                        <div className="mt-2 flex items-center gap-1.5">
+                          <label className="text-[10px] text-[#6c7a7c] font-bold">Nº Días:</label>
+                          <input
+                            type="number"
+                            min="1"
+                            value={v.duracion_dias}
+                            onChange={(e) => handleUpdateVariantField(vIdx, 'duracion_dias', parseInt(e.target.value) || 1)}
+                            className="w-20 bg-white border border-[#b0c4b1] rounded-lg px-2 py-1 text-xs text-[#4a5759] font-bold outline-none"
+                            placeholder="Días"
+                          />
+                        </div>
+                      )}
                     </div>
                     <div>
                       <label className="block text-[11px] font-medium text-[#6c7a7c] mb-1">Precio Adulto (USD) *</label>
@@ -1144,7 +1216,9 @@ export default function TourForm({ initialData }) {
                     <div className="flex items-center gap-2">
                       <Clock className="w-4 h-4 text-[#4a5759]" />
                       <label className="text-xs font-bold text-[#4a5759]">
-                        Itinerario Detallado ({v.duracion_dias} Día{v.duracion_dias > 1 ? 's' : ''})
+                        Itinerario ({v.tipo_duracion === 'medio_dia_manana' ? 'Medio Día - Turno Mañana' :
+                                    v.tipo_duracion === 'medio_dia_tarde' ? 'Medio Día - Turno Tarde' :
+                                    `${v.duracion_dias} Día${v.duracion_dias > 1 ? 's' : ''}`})
                       </label>
                     </div>
 
@@ -1189,17 +1263,42 @@ export default function TourForm({ initialData }) {
                     </div>
                   </div>
 
+                  {/* Instrucciones de formato estructurado */}
+                  <div className="bg-white/80 p-2.5 rounded-lg border border-amber-500/30 text-[11px] text-[#4a5759] space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="font-extrabold text-amber-800 flex items-center gap-1">
+                        ℹ️ Formato Estructurado de Itinerario:
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const plantilla = `08:00 AM\nRecojo de hoteles céntricos en Cusco\nPasamos a buscarte por tu hotel en el centro histórico para iniciar la excursión.\n\n10:30 AM\nRecorrido guiado principal\nVisita guiada con tiempo libre para fotografías y explicaciones del guía profesional.`;
+                          handleUpdateVariantField(vIdx, 'itinerario', plantilla);
+                        }}
+                        className="text-[10px] text-amber-800 underline hover:text-amber-900 font-bold"
+                      >
+                        + Insertar plantilla de ejemplo
+                      </button>
+                    </div>
+                    <p className="text-[10px] text-[#6c7a7c]">
+                      • <strong>1ra línea:</strong> Hora (ej. 08:00 AM) &nbsp;|&nbsp;
+                      • <strong>2da línea:</strong> Título &nbsp;|&nbsp;
+                      • <strong>3ra línea:</strong> Descripción detallada &nbsp;|&nbsp;
+                      • <strong>Doble salto (Enter x2):</strong> Para el siguiente horario.
+                    </p>
+                  </div>
+
                   {langTab === 'es' ? (
                     <div>
                       <span className="text-[10px] text-[#6c7a7c] font-semibold block mb-1">
                         🇪🇸 Itinerario en Español (Requerido)
                       </span>
                       <textarea
-                        rows="4"
+                        rows="6"
                         value={v.itinerario || ''}
                         onChange={(e) => handleUpdateVariantField(vIdx, 'itinerario', e.target.value)}
-                        placeholder="Día 1: Salida desde Cusco hacia el campamento base...&#10;Día 2: Ascenso por la mañana y retorno a la ciudad..."
-                        className="w-full bg-[#ffffff] border border-[#b0c4b1] rounded-xl px-3 py-2 text-[#4a5759] text-xs focus:border-[#4a5759] outline-none"
+                        placeholder={`08:00 AM\nRecojo de Hoteles en Cusco\nPasamos a buscarte por tu hotel para iniciar la excursión.\n\n11:00 AM\nLlegada al Destino\nVisita guiada con explicaciones completas y tiempo libre para fotos.`}
+                        className="w-full bg-[#ffffff] border border-[#b0c4b1] rounded-xl px-3 py-2 text-[#4a5759] text-xs font-mono focus:border-[#4a5759] outline-none"
                         required
                       />
                     </div>
@@ -1211,11 +1310,11 @@ export default function TourForm({ initialData }) {
                         </span>
                       </div>
                       <textarea
-                        rows="4"
+                        rows="6"
                         value={v.itinerario_en || ''}
                         onChange={(e) => handleUpdateVariantField(vIdx, 'itinerario_en', e.target.value)}
-                        placeholder="Day 1: Departure from Cusco to basecamp...&#10;Day 2: Morning summit trek and return to the city..."
-                        className="w-full bg-[#ffffff] border border-emerald-500/40 rounded-xl px-3 py-2 text-[#4a5759] text-xs focus:border-emerald-600 outline-none"
+                        placeholder={`08:00 AM\nHotel Pick-up in Cusco\nWe pick you up from your hotel to start the tour.\n\n11:00 AM\nArrival at Destination\nGuided tour with detailed explanations and photo opportunities.`}
+                        className="w-full bg-[#ffffff] border border-emerald-500/40 rounded-xl px-3 py-2 text-[#4a5759] text-xs font-mono focus:border-emerald-600 outline-none"
                       />
                     </div>
                   )}

@@ -75,6 +75,15 @@ const generarPlantillaHTML = (reserva, urlInvoice) => {
   });
   const precioFormateado = `S/ ${Number(reserva.precioTotal).toFixed(2)}`;
 
+  let duracionTexto = `${reserva.duracion_dias ?? reserva.tour?.duracion_dias ?? 1} día(s)`;
+  if (reserva.tipo_duracion === "medio_dia_manana") {
+    duracionTexto = "Medio Día (Turno Mañana)";
+  } else if (reserva.tipo_duracion === "medio_dia_tarde") {
+    duracionTexto = "Medio Día (Turno Tarde)";
+  } else if (reserva.turno) {
+    duracionTexto += ` (${reserva.turno})`;
+  }
+
   const filasPasajeros = reserva.pasajeros
     ?.map(
       (p, i) => `
@@ -154,7 +163,7 @@ const generarPlantillaHTML = (reserva, urlInvoice) => {
                     ${filaDetalle("Nº de Reserva",   `<strong>#${numeroReserva}</strong>`)}
                     ${filaDetalle("Tour",             `<strong>${reserva.tour?.nombre ?? "—"}</strong>`)}
                     ${filaDetalle("Fecha del Viaje",  fechaViaje)}
-                    ${filaDetalle("Duración",         `${reserva.tour?.duracion_dias ?? "—"} día(s)`)}
+                    ${filaDetalle("Duración / Modalidad", duracionTexto)}
                     ${filaDetalle("Pasajeros",        `${reserva.cantAdultos} adulto(s) · ${reserva.cantNinos} niño(s)`)}
                     ${filaDetalle("Fecha de Pago",    fechaEmision)}
                     ${filaDetalle("Ref. de Pago",     reserva.referenciaPago ?? "—")}
@@ -262,6 +271,15 @@ const generarTextoPlano = (reserva, urlInvoice) => {
   const numeroReserva = String(reserva.id).padStart(6, "0");
   const fechaViaje = new Date(reserva.fechaViaje).toLocaleDateString("es-PE");
 
+  let duracionTexto = `${reserva.duracion_dias ?? reserva.tour?.duracion_dias ?? 1} día(s)`;
+  if (reserva.tipo_duracion === "medio_dia_manana") {
+    duracionTexto = "Medio Día (Turno Mañana)";
+  } else if (reserva.tipo_duracion === "medio_dia_tarde") {
+    duracionTexto = "Medio Día (Turno Tarde)";
+  } else if (reserva.turno) {
+    duracionTexto += ` (${reserva.turno})`;
+  }
+
   return `
 ¡Hola ${reserva.titularNombre}!
 
@@ -270,7 +288,7 @@ Tu reserva #${numeroReserva} ha sido confirmada y pagada.
 DETALLES:
 - Tour: ${reserva.tour?.nombre}
 - Fecha del viaje: ${fechaViaje}
-- Duración: ${reserva.tour?.duracion_dias} día(s)
+- Duración / Modalidad: ${duracionTexto}
 - Adultos: ${reserva.cantAdultos} | Niños: ${reserva.cantNinos}
 - Total pagado: S/ ${Number(reserva.precioTotal).toFixed(2)}
 - Referencia de pago: ${reserva.referenciaPago ?? "—"}

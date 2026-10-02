@@ -13,6 +13,11 @@ const varianteSchema = z.object({
     .int("La duración debe ser un número entero.")
     .min(1, "La duración mínima es 1 día."),
 
+  tipo_duracion: z
+    .string()
+    .optional()
+    .default("dias"),
+
   precio_adulto: z
     .number({ required_error: "El precio adulto es obligatorio." })
     .min(0, "El precio adulto no puede ser negativo."),

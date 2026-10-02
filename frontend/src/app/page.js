@@ -22,6 +22,7 @@ export default function Home() {
   const [selectedTour, setSelectedTour] = useState(null);
   const [checkoutTour, setCheckoutTour] = useState(null);
   const [selectedDuration, setSelectedDuration] = useState(null);
+  const [selectedVariant, setSelectedVariant] = useState(null);
   const [visibleCount, setVisibleCount] = useState(6);
   const [busqueda, setBusqueda] = useState('');
   const [showReclamaciones, setShowReclamaciones] = useState(false);
@@ -34,6 +35,7 @@ export default function Home() {
         setSelectedTour(null);
         setCheckoutTour(null);
         setSelectedDuration(null);
+        setSelectedVariant(null);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -214,7 +216,11 @@ export default function Home() {
                   <TourCard
                     key={tour.id}
                     tour={tour}
-                    onReservar={(t, dur) => { setSelectedTour(t); setSelectedDuration(dur); }}
+                    onReservar={(t, dur, v) => {
+                      setSelectedTour(t);
+                      setSelectedDuration(dur);
+                      setSelectedVariant(v || null);
+                    }}
                   />
                 ))}
                 {visibleCount < filteredTours.length && (
@@ -351,7 +357,11 @@ export default function Home() {
                     <TourCard
                       key={tour.id}
                       tour={tour}
-                      onReservar={(t, dur) => { setSelectedTour(t); setSelectedDuration(dur); }}
+                      onReservar={(t, dur, v) => {
+                        setSelectedTour(t);
+                        setSelectedDuration(dur);
+                        setSelectedVariant(v || null);
+                      }}
                     />
                   ))}
                   {visibleCount < filteredTours.length && (
@@ -477,12 +487,15 @@ export default function Home() {
         <TourDetailsOverlay
           tour={selectedTour}
           initialDuration={selectedDuration}
+          initialVariant={selectedVariant}
           onClose={() => {
             setSelectedTour(null);
             setSelectedDuration(null);
+            setSelectedVariant(null);
           }}
-          onProceed={(dur) => {
+          onProceed={(dur, variant) => {
             setSelectedDuration(dur);
+            setSelectedVariant(variant || null);
             setCheckoutTour(selectedTour);
           }}
           isShifted={!!checkoutTour}
@@ -494,10 +507,12 @@ export default function Home() {
         <CheckoutOverlay
           tour={checkoutTour}
           selectedDuration={selectedDuration}
+          initialVariant={selectedVariant}
           onClose={() => {
             setCheckoutTour(null);
             setSelectedTour(null);
             setSelectedDuration(null);
+            setSelectedVariant(null);
           }}
           onBack={() => {
             setCheckoutTour(null);

@@ -69,6 +69,10 @@ export const translations = {
     tour_card: {
       dias: "días",
       dia: "día",
+      medio_dia_manana: "½D (Mañana)",
+      medio_dia_tarde: "½D (Tarde)",
+      medio_dia_manana_full: "Medio Día (Turno Mañana)",
+      medio_dia_tarde_full: "Medio Día (Turno Tarde)",
       cupos: "cupos disponibles",
       cupos_none: "Agotado",
       desde: "Desde",
@@ -329,6 +333,10 @@ export const translations = {
     tour_card: {
       dias: "days",
       dia: "day",
+      medio_dia_manana: "½D (Morning)",
+      medio_dia_tarde: "½D (Afternoon)",
+      medio_dia_manana_full: "Half Day (Morning Shift)",
+      medio_dia_tarde_full: "Half Day (Afternoon Shift)",
       cupos: "spaces left",
       cupos_none: "Sold out",
       desde: "From",
@@ -541,5 +549,43 @@ export function formatDifficulty(diff, lang = 'es') {
     if (clean.includes('expert') || clean.includes('experto')) return 'Experto';
     return diff;
   }
+}
+
+export function getVariantLabel(variant, lang = 'es') {
+  if (!variant) return '';
+  const tipo = variant.tipo_duracion || 'dias';
+  if (tipo === 'medio_dia_manana') {
+    return lang === 'en' ? '½D (Morning)' : '½D (Mañana)';
+  }
+  if (tipo === 'medio_dia_tarde') {
+    return lang === 'en' ? '½D (Afternoon)' : '½D (Tarde)';
+  }
+  const dias = variant.duracion_dias || 1;
+  const unit = dias === 1
+    ? (lang === 'en' ? 'day' : 'día')
+    : (lang === 'en' ? 'days' : 'días');
+  return `${dias} ${unit}`;
+}
+
+export function getVariantFullName(variant, lang = 'es') {
+  if (!variant) return '';
+  const tipo = variant.tipo_duracion || 'dias';
+  if (tipo === 'medio_dia_manana') {
+    return lang === 'en' ? 'Half Day (Morning Shift)' : 'Medio Día (Turno Mañana)';
+  }
+  if (tipo === 'medio_dia_tarde') {
+    return lang === 'en' ? 'Half Day (Afternoon Shift)' : 'Medio Día (Turno Tarde)';
+  }
+  const dias = variant.duracion_dias || 1;
+  const unit = dias === 1
+    ? (lang === 'en' ? 'Day' : 'Día')
+    : (lang === 'en' ? 'Days' : 'Días');
+  return `${dias} ${unit}`;
+}
+
+export function getVariantKey(v) {
+  if (!v) return 'default';
+  if (v.id) return String(v.id);
+  return `${v.tipo_duracion || 'dias'}_${v.duracion_dias || 1}`;
 }
 

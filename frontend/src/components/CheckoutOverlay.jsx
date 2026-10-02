@@ -5,9 +5,10 @@ import { X, Users, DollarSign, Calendar, ShieldCheck, Mail, Phone, User, CheckCi
 import { mutateApi, API_BASE_URL } from '@/lib/api';
 import { useLanguage } from '@/context/LanguageContext';
 import { useCurrency } from '@/context/CurrencyContext';
+import { getVariantFullName, getVariantLabel } from '@/lib/translations';
 import AdaptiveHealthForm from './AdaptiveHealthForm';
 
-export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBack }) {
+export default function CheckoutOverlay({ tour, selectedDuration, initialVariant, onClose, onBack }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [successData, setSuccessData] = useState(null);
@@ -16,9 +17,9 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
 
   const hasVariants = tour.variantes && tour.variantes.length > 0;
   const tourNombre = tour.traducciones?.[language]?.nombre || tour.nombre;
-  const activeVariant = hasVariants && selectedDuration
+  const activeVariant = initialVariant || (hasVariants && selectedDuration
     ? tour.variantes.find(v => v.duracion_dias === selectedDuration) || tour.variantes[0]
-    : null;
+    : null);
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
@@ -159,16 +160,29 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
         })),
       ];
 
+      let turnoFinal = undefined;
+      if (activeVariant?.tipo_duracion === 'medio_dia_manana') {
+        turnoFinal = 'Turno Mañana';
+      } else if (activeVariant?.tipo_duracion === 'medio_dia_tarde') {
+        turnoFinal = 'Turno Tarde';
+      } else if (hasHorarios) {
+        turnoFinal = turnoSeleccionado === 'manana'
+          ? `Mañana (${activeVariant?.horarios?.horario_manana || ''})`
+          : `Tarde (${activeVariant?.horarios?.horario_tarde || ''})`;
+      }
+
       // 1. Enviar Reserva
       const resReserva = await mutateApi('/reservas/checkout', {
         method: 'POST',
         body: {
           tourId: tour.id,
+          varianteId: activeVariant?.id || undefined,
+          tipo_duracion: activeVariant?.tipo_duracion || 'dias',
           fechaViaje,
           cantAdultos: parseInt(cantAdultos, 10),
           cantNinos: parseInt(cantNinos, 10),
           duracion_dias: selectedDuration || tour.duracion_dias || 1,
-          turno: hasHorarios ? (turnoSeleccionado === 'manana' ? `Mañana (${activeVariant?.horarios?.horario_manana || ''})` : `Tarde (${activeVariant?.horarios?.horario_tarde || ''})`) : undefined,
+          turno: turnoFinal,
           titularNombre: `${titularNombre.trim()} ${titularApellido.trim()}`,
           titularEmail: titularEmail.trim(),
           titularTelefono: titularTelefono ? titularTelefono.trim() : null,
@@ -334,7 +348,7 @@ export default function CheckoutOverlay({ tour, selectedDuration, onClose, onBac
               <div className="text-right">
                 <span className="text-[10px] text-[var(--muted-foreground)] block uppercase font-bold tracking-wider">{t('tour_details.duracion')}</span>
                 <span className="text-[10px] bg-[var(--accent)]/10 text-[var(--foreground)] border border-[var(--accent)]/20 px-2.5 py-0.5 rounded-full font-bold">
-                  {displayDuration} {displayDuration === 1 ? t('tour_card.dia') : t('tour_card.dias')}
+                  {getVariantFullName(activeVariant, language) || `${displayDuration} ${displayDuration === 1 ? t('tour_card.dia') : t('tour_card.dias')}`}
                 </span>
               </div>
             </div>

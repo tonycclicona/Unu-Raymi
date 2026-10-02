@@ -108,6 +108,7 @@ export async function ensureTablesExist() {
     await addColumnSafe('tour_variantes', 'fechas_disponibles', 'LONGTEXT NULL');
     await addColumnSafe('tour_variantes', 'traducciones', 'LONGTEXT NULL');
     await addColumnSafe('tour_variantes', 'horarios', 'LONGTEXT NULL');
+    await addColumnSafe('tour_variantes', 'tipo_duracion', 'VARCHAR(50) NULL DEFAULT "dias"');
 
     // 4. Tabla: guias
     await prisma.$executeRawUnsafe(`
@@ -168,6 +169,7 @@ export async function ensureTablesExist() {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     `);
     await addColumnSafe('reservas', 'turno', 'VARCHAR(100) NULL');
+    await addColumnSafe('reservas', 'tipo_duracion', 'VARCHAR(50) NULL');
 
     // 7. Tabla: pasajeros
     await prisma.$executeRawUnsafe(`
