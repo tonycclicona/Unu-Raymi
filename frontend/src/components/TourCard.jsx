@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import Image from 'next/image';
 import { Calendar, Users, DollarSign, ArrowRight } from 'lucide-react';
 import { API_ASSETS_URL, getImageUrl, handleImageFallback } from '../lib/api';
@@ -8,9 +8,10 @@ import { useLanguage } from '@/context/LanguageContext';
 import { useCurrency } from '@/context/CurrencyContext';
 import { formatDifficulty, getVariantLabel, getVariantKey } from '@/lib/translations';
 
-export default function TourCard({ tour, onReservar }) {
+function TourCard({ tour, onReservar }) {
   const imagenes = tour.imagenes || [];
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
   const { t, language } = useLanguage();
   const { formatPrice } = useCurrency();
 
@@ -28,15 +29,17 @@ export default function TourCard({ tour, onReservar }) {
   const displayPrecio = activeVariant ? activeVariant.precio_adulto : tour.precio_adulto;
   const displayCupos = activeVariant ? activeVariant.cupos_disponibles : tour.cupos_disponibles;
 
+  // Solo ciclar imágenes cuando el usuario pasa el mouse sobre la tarjeta específica
+  // Esto elimina re-renders continuos en segundo plano y previene los tirones de scroll
   useEffect(() => {
-    if (imagenes.length <= 1) return;
+    if (!isHovered || imagenes.length <= 1) return;
 
     const interval = setInterval(() => {
       setCurrentImageIndex((prev) => (prev + 1) % imagenes.length);
-    }, 3000);
+    }, 2600);
 
     return () => clearInterval(interval);
-  }, [imagenes.length]);
+  }, [isHovered, imagenes.length]);
 
   const currentImage = imagenes[currentImageIndex]?.url || (typeof imagenes[currentImageIndex] === 'string' ? imagenes[currentImageIndex] : null);
   const localized = tour.traducciones?.[language] || {};
@@ -44,7 +47,15 @@ export default function TourCard({ tour, onReservar }) {
   const displayDesc = localized.descripcion || tour.descripcion;
 
   return (
-    <div className="bg-[var(--card)]/40 border border-[var(--border)]/50 rounded-2xl overflow-hidden flex flex-col sm:flex-row group hover:border-[var(--accent)]/30 transition-all duration-300 shadow-md">
+    <div
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className="bg-[var(--card)]/40 border border-[var(--border)]/50 rounded-2xl overflow-hidden flex flex-col sm:flex-row group hover:border-[var(--accent)]/30 transition-colors duration-200 shadow-md"
+      style={{
+        contain: 'content',
+        transform: 'translateZ(0)',
+      }}
+    >
       {/* Imagen */}
       <div className="w-full sm:w-2/5 h-52 sm:h-auto relative overflow-hidden bg-[var(--card)] flex-shrink-0">
         {currentImage ? (
@@ -54,6 +65,7 @@ export default function TourCard({ tour, onReservar }) {
             fill
             sizes="(max-width: 640px) 100vw, 40vw"
             loading="lazy"
+            decoding="async"
             className="object-cover group-hover:scale-105 transition-transform duration-500"
             onError={(e) => handleImageFallback(e, currentImage)}
           />
@@ -62,12 +74,35 @@ export default function TourCard({ tour, onReservar }) {
             {t('tour_card.sin_imagen')}
           </div>
         )}
-        <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
-          <span className="bg-[var(--background)]/80  border border-black/10 px-2.5 py-1 rounded-full text-[10px] font-extrabold text-[var(--foreground)] uppercase tracking-wider">
+
+        {/* Indicadores de imágenes disponibles */}
+        {imagenes.length > 1 && (
+          <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-10 px-2 py-0.5 rounded-full bg-black/40 backdrop-blur-sm">
+            {imagenes.map((_, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setCurrentImageIndex(idx);
+                }}
+                className={`rounded-full transition-all duration-300 ${
+                  idx === currentImageIndex
+                    ? 'w-3 h-1.5 bg-white'
+                    : 'w-1.5 h-1.5 bg-white/50 hover:bg-white/90'
+                }`}
+                aria-label={`Ver foto ${idx + 1}`}
+              />
+            ))}
+          </div>
+        )}
+
+        <div className="absolute top-3 left-3 flex flex-wrap gap-1.5 z-10">
+          <span className="bg-[var(--background)]/80 border border-black/10 px-2.5 py-1 rounded-full text-[10px] font-extrabold text-[var(--foreground)] uppercase tracking-wider">
             {tour.pais}
           </span>
           {tour.ciudad && (
-            <span className="bg-[var(--card)]  border border-[var(--border)]/50 px-2.5 py-1 rounded-full text-[10px] font-bold text-[var(--foreground)] uppercase tracking-wider">
+            <span className="bg-[var(--card)] border border-[var(--border)]/50 px-2.5 py-1 rounded-full text-[10px] font-bold text-[var(--foreground)] uppercase tracking-wider">
               {tour.ciudad}
             </span>
           )}
@@ -158,4 +193,6 @@ export default function TourCard({ tour, onReservar }) {
     </div>
   );
 }
+
+export default memo(TourCard);
 

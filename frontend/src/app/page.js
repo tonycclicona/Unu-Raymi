@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import useSWR from 'swr';
 import { fetcher } from '@/lib/api';
 import Navbar from '@/components/Navbar';
@@ -11,7 +11,7 @@ import CheckoutOverlay from '@/components/CheckoutOverlay';
 import TourDetailsOverlay from '@/components/TourDetailsOverlay';
 import Confianza from '@/components/Confianza';
 import Guias from '@/components/Guias';
-import { Compass, HelpCircle, Phone, Mail, MapPin, Search, X, ShieldCheck, ChevronRight } from 'lucide-react';
+import { Compass, HelpCircle, Phone, Mail, MapPin, Search, X, ShieldCheck, ChevronRight, ChevronUp, ChevronDown } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import LibroReclamaciones from '@/components/LibroReclamaciones';
 import { Book3D } from '@/components/illustrations/Neomorphic3DIcons';
@@ -44,6 +44,50 @@ export default function Home() {
 
 
 
+  // Referencia y control de scroll asistido para la lista de tours
+  const tourListRef = useRef(null);
+  const scrollRafRef = useRef(null);
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const [canScrollUp, setCanScrollUp] = useState(false);
+  const [canScrollDown, setCanScrollDown] = useState(false);
+
+  const updateScrollState = useCallback(() => {
+    const el = tourListRef.current;
+    if (!el) return;
+    const { scrollTop, scrollHeight, clientHeight } = el;
+    const maxScroll = scrollHeight - clientHeight;
+    if (maxScroll <= 15) {
+      setCanScrollUp(false);
+      setCanScrollDown(false);
+      setScrollProgress(0);
+      return;
+    }
+    setCanScrollUp(scrollTop > 20);
+    setCanScrollDown(scrollTop < maxScroll - 20);
+    const progress = Math.min(100, Math.max(0, (scrollTop / maxScroll) * 100));
+    setScrollProgress(progress);
+  }, []);
+
+  const handleListScroll = useCallback(() => {
+    if (scrollRafRef.current) return;
+    scrollRafRef.current = requestAnimationFrame(() => {
+      updateScrollState();
+      scrollRafRef.current = null;
+    });
+  }, [updateScrollState]);
+
+  const scrollOneTourUp = () => {
+    if (tourListRef.current) {
+      tourListRef.current.scrollBy({ top: -320, behavior: 'smooth' });
+    }
+  };
+
+  const scrollOneTourDown = () => {
+    if (tourListRef.current) {
+      tourListRef.current.scrollBy({ top: 320, behavior: 'smooth' });
+    }
+  };
+
   // Cargar tours de la API en tiempo real
   const { data: response, error } = useSWR('/tours?activo=true', fetcher);
   const toursList = response?.data || [];
@@ -57,6 +101,10 @@ export default function Home() {
   // Filtrado reactivo en base al mapa interactivo, chips y búsqueda
   const filteredTours = filteredToursList();
   const visibleTours = filteredTours.slice(0, visibleCount);
+
+  useEffect(() => {
+    updateScrollState();
+  }, [visibleCount, filtroPais, filtroCategoria, busqueda, updateScrollState]);
 
   function filteredToursList() {
     let list = activeTours;
@@ -341,41 +389,109 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Lista scrollable */}
-            <div className="flex-1 overflow-y-auto p-4 lg:p-5 space-y-3 lg:space-y-4 no-scrollbar">
-              {filteredTours.length === 0 ? (
-                <div className="h-full flex flex-col items-center justify-center text-center space-y-3">
-                  <HelpCircle className="w-12 h-12 text-gray-600" />
-                  <h4 className="text-[var(--foreground)] font-bold text-sm">{t('catalog.no_tours_title')}</h4>
-                  <p className="text-xs text-[var(--muted-foreground)]/80 max-w-xs leading-relaxed">
-                    {t('catalog.no_tours_desc').replace('{country}', filtroPais)}
-                  </p>
-                </div>
-              ) : (
-                <>
-                  {visibleTours.map((tour) => (
-                    <TourCard
-                      key={tour.id}
-                      tour={tour}
-                      onReservar={(t, dur, v) => {
-                        setSelectedTour(t);
-                        setSelectedDuration(dur);
-                        setSelectedVariant(v || null);
-                      }}
+            {/* Contenedor relativo de lista y control de navegación de scroll */}
+            <div className="flex-1 relative min-h-0 overflow-hidden">
+              {/* Lista scrollable con padding derecho para mantener margen libre */}
+              <div
+                ref={tourListRef}
+                onScroll={handleListScroll}
+                className="h-full overflow-y-auto p-4 lg:p-5 lg:pr-14 space-y-3 lg:space-y-4 custom-tour-scrollbar scroll-smooth overscroll-contain"
+              >
+                {filteredTours.length === 0 ? (
+                  <div className="h-full flex flex-col items-center justify-center text-center space-y-3">
+                    <HelpCircle className="w-12 h-12 text-gray-600" />
+                    <h4 className="text-[var(--foreground)] font-bold text-sm">{t('catalog.no_tours_title')}</h4>
+                    <p className="text-xs text-[var(--muted-foreground)]/80 max-w-xs leading-relaxed">
+                      {t('catalog.no_tours_desc').replace('{country}', filtroPais)}
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    {visibleTours.map((tour) => (
+                      <TourCard
+                        key={tour.id}
+                        tour={tour}
+                        onReservar={(t, dur, v) => {
+                          setSelectedTour(t);
+                          setSelectedDuration(dur);
+                          setSelectedVariant(v || null);
+                        }}
+                      />
+                    ))}
+                    {visibleCount < filteredTours.length && (
+                      <div className="flex justify-center pt-2 pb-6">
+                        <button
+                          onClick={() => setVisibleCount((prev) => prev + 6)}
+                          className="group flex items-center gap-2 bg-[var(--card)]/60 border border-[var(--accent)]/40 hover:border-[var(--accent)] hover:bg-[var(--accent)] text-white px-6 py-3 rounded-xl text-xs font-bold transition-all hover:scale-[1.02] active:scale-[0.98]"
+                        >
+                          {t('catalog.load_more')}
+                          <Compass className="w-4 h-4 text-[var(--foreground)] group-hover:text-[var(--foreground)] group-hover:rotate-180 transition-all duration-500" />
+                        </button>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+
+              {/* Botones y Barra de Asistencia de Scroll (Desktop Flotante y No Intrusivo) */}
+              {filteredTours.length > 1 && (
+                <div
+                  className={`absolute right-3.5 top-1/2 -translate-y-1/2 z-20 hidden lg:flex flex-col items-center gap-2 p-1.5 rounded-full bg-[var(--card)]/90 backdrop-blur-md border border-[var(--border)]/80 shadow-xl transition-all duration-300 ${
+                    canScrollUp || canScrollDown ? 'opacity-85 hover:opacity-100 hover:shadow-2xl' : 'opacity-0 pointer-events-none'
+                  }`}
+                  aria-label="Navegador de tours"
+                >
+                  {/* Botón Scroll Arriba */}
+                  <button
+                    type="button"
+                    onClick={scrollOneTourUp}
+                    disabled={!canScrollUp}
+                    title={t('catalog.scroll_up')}
+                    aria-label={t('catalog.scroll_up')}
+                    className={`p-2 rounded-full transition-all duration-200 ${
+                      canScrollUp
+                        ? 'text-[var(--foreground)] hover:bg-[var(--accent)] hover:text-white active:scale-95 cursor-pointer shadow-sm'
+                        : 'text-[var(--muted-foreground)]/30 cursor-not-allowed'
+                    }`}
+                  >
+                    <ChevronUp className="w-4 h-4" />
+                  </button>
+
+                  {/* Barra interactiva indicadora de posición/progreso */}
+                  <div
+                    onClick={(e) => {
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      const clickRatio = (e.clientY - rect.top) / rect.height;
+                      if (tourListRef.current) {
+                        const maxScroll = tourListRef.current.scrollHeight - tourListRef.current.clientHeight;
+                        tourListRef.current.scrollTo({ top: maxScroll * clickRatio, behavior: 'smooth' });
+                      }
+                    }}
+                    className="w-1.5 h-16 bg-[var(--border)]/50 hover:bg-[var(--border)] rounded-full relative cursor-pointer overflow-hidden transition-colors"
+                    title="Navegar por la lista de tours"
+                  >
+                    <div
+                      className="w-full bg-[var(--accent)] rounded-full transition-all duration-150 absolute top-0"
+                      style={{ height: `${Math.max(16, scrollProgress)}%` }}
                     />
-                  ))}
-                  {visibleCount < filteredTours.length && (
-                    <div className="flex justify-center pt-2 pb-6">
-                      <button
-                        onClick={() => setVisibleCount((prev) => prev + 6)}
-                        className="group flex items-center gap-2 bg-[var(--card)]/60 border border-[var(--accent)]/40 hover:border-[var(--accent)] hover:bg-[var(--accent)] text-white px-6 py-3 rounded-xl text-xs font-bold transition-all hover:scale-[1.02] active:scale-[0.98]"
-                      >
-                        {t('catalog.load_more')}
-                        <Compass className="w-4 h-4 text-[var(--foreground)] group-hover:text-[var(--foreground)] group-hover:rotate-180 transition-all duration-500" />
-                      </button>
-                    </div>
-                  )}
-                </>
+                  </div>
+
+                  {/* Botón Scroll Abajo */}
+                  <button
+                    type="button"
+                    onClick={scrollOneTourDown}
+                    disabled={!canScrollDown}
+                    title={t('catalog.scroll_down')}
+                    aria-label={t('catalog.scroll_down')}
+                    className={`p-2 rounded-full transition-all duration-200 ${
+                      canScrollDown
+                        ? 'text-[var(--foreground)] hover:bg-[var(--accent)] hover:text-white active:scale-95 cursor-pointer shadow-sm animate-pulse hover:animate-none'
+                        : 'text-[var(--muted-foreground)]/30 cursor-not-allowed'
+                    }`}
+                  >
+                    <ChevronDown className="w-4 h-4" />
+                  </button>
+                </div>
               )}
             </div>
           </div>

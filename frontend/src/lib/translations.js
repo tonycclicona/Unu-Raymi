@@ -28,6 +28,8 @@ export const translations = {
       no_tours_desc: "Pronto agregaremos nuevas expediciones para {country}. Selecciona otro país en el mapa.",
       load_more: "Cargar más aventuras",
       category_all: "Todos",
+      scroll_up: "Subir al tour anterior",
+      scroll_down: "Bajar al siguiente tour",
     },
     reviews: {
       badge: "Opiniones Reales",
@@ -292,6 +294,8 @@ export const translations = {
       no_tours_desc: "We will soon add new expeditions for {country}. Select another country on the map.",
       load_more: "Load more adventures",
       category_all: "All",
+      scroll_up: "Scroll to previous tour",
+      scroll_down: "Scroll to next tour",
     },
     reviews: {
       badge: "Real Reviews",

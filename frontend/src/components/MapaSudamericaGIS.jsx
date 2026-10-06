@@ -89,8 +89,8 @@ function createPhotoBubbleIcon(imageUrl, category, orden) {
   });
 }
 
-const SOUTH_AMERICA_CENTER = [-14.235, -51.925];
-const DEFAULT_ZOOM = 4;
+const PERU_CENTER = [-9.5, -75.0];
+const DEFAULT_ZOOM = 5;
 
 export default function MapaSudamericaGIS({ attractions = [], selectedTourId, onSelectAttraction }) {
   const [map, setMap] = useState(null);
@@ -106,7 +106,7 @@ export default function MapaSudamericaGIS({ attractions = [], selectedTourId, on
 
   const resetView = () => {
     if (map) {
-      map.flyTo(SOUTH_AMERICA_CENTER, DEFAULT_ZOOM, { duration: 1.5 });
+      map.flyTo(PERU_CENTER, DEFAULT_ZOOM, { duration: 1.5 });
     }
   };
   // Agrupar atracciones por tour para trazar las rutas polilínea
@@ -150,8 +150,9 @@ export default function MapaSudamericaGIS({ attractions = [], selectedTourId, on
   return (
     <div className="w-full h-full min-h-[460px] rounded-3xl overflow-hidden border border-[var(--border)]/40 relative z-0 shadow-lg">
       <MapContainer
-        center={SOUTH_AMERICA_CENTER}
+        center={PERU_CENTER}
         zoom={DEFAULT_ZOOM}
+        minZoom={3}
         scrollWheelZoom={true}
         ref={setMap}
         style={{ height: '100%', width: '100%', minHeight: '460px' }}

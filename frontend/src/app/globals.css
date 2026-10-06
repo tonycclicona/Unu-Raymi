@@ -92,6 +92,34 @@ body {
   scrollbar-width: none;
 }
 
+/* Custom subtle scrollbar for tour catalog */
+.custom-tour-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(237, 175, 184, 0.45) transparent;
+  scroll-behavior: smooth;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.custom-tour-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-tour-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 6px 0;
+}
+
+.custom-tour-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 9999px;
+  transition: background-color 0.2s ease;
+}
+
+.custom-tour-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+}
+
 /* GIS Photo Bubble Marker */
 .gis-bubble-marker {
   background: transparent !important;
