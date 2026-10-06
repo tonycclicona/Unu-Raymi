@@ -327,11 +327,11 @@ export default function TourDetailsOverlay({ tour, initialDuration, initialVaria
   const categorias = getCategorias();
 
   const serviciosIncluidosList = [
-    { id: 'guia', label: t('tour_details.categorias.guia'), Icon3D: Compass3D, list: categorias.guia, color: 'border-amber-500/30 bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent shadow-[4px_6px_16px_rgba(255,167,81,0.15)]' },
-    { id: 'seguridad', label: t('tour_details.categorias.seguridad'), Icon3D: Shield3D, list: categorias.seguridad, color: 'border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent shadow-[4px_6px_16px_rgba(16,185,129,0.15)]' },
-    { id: 'alimentacion', label: t('tour_details.categorias.alimentacion'), Icon3D: GourmetPlate3D, list: categorias.alimentacion, color: 'border-rose-500/30 bg-gradient-to-br from-rose-500/10 via-rose-500/5 to-transparent shadow-[4px_6px_16px_rgba(225,29,72,0.15)]' },
-    { id: 'transporte', label: t('tour_details.categorias.transporte'), Icon3D: Sprinter3D, list: categorias.transporte, color: 'border-blue-500/30 bg-gradient-to-br from-blue-500/10 via-blue-500/5 to-transparent shadow-[4px_6px_16px_rgba(47,128,237,0.15)]' },
-    { id: 'actividades', label: t('tour_details.categorias.actividades'), Icon3D: Camera3D, list: categorias.actividades, color: 'border-purple-500/30 bg-gradient-to-br from-purple-500/10 via-purple-500/5 to-transparent shadow-[4px_6px_16px_rgba(139,92,246,0.15)]' },
+    { id: 'guia', label: t('tour_details.categorias.guia'), Icon3D: Compass3D, list: categorias.guia, color: 'border-amber-500/40 bg-amber-500/10 dark:bg-gradient-to-br dark:from-amber-500/10 dark:via-amber-500/5 dark:to-transparent shadow-[4px_6px_16px_rgba(255,167,81,0.15)]' },
+    { id: 'seguridad', label: t('tour_details.categorias.seguridad'), Icon3D: Shield3D, list: categorias.seguridad, color: 'border-emerald-500/40 bg-emerald-500/10 dark:bg-gradient-to-br dark:from-emerald-500/10 dark:via-emerald-500/5 dark:to-transparent shadow-[4px_6px_16px_rgba(16,185,129,0.15)]' },
+    { id: 'alimentacion', label: t('tour_details.categorias.alimentacion'), Icon3D: GourmetPlate3D, list: categorias.alimentacion, color: 'border-rose-500/40 bg-rose-500/10 dark:bg-gradient-to-br dark:from-rose-500/10 dark:via-rose-500/5 dark:to-transparent shadow-[4px_6px_16px_rgba(225,29,72,0.15)]' },
+    { id: 'transporte', label: t('tour_details.categorias.transporte'), Icon3D: Sprinter3D, list: categorias.transporte, color: 'border-blue-500/40 bg-blue-500/10 dark:bg-gradient-to-br dark:from-blue-500/10 dark:via-blue-500/5 dark:to-transparent shadow-[4px_6px_16px_rgba(47,128,237,0.15)]' },
+    { id: 'actividades', label: t('tour_details.categorias.actividades'), Icon3D: Camera3D, list: categorias.actividades, color: 'border-purple-500/40 bg-purple-500/10 dark:bg-gradient-to-br dark:from-purple-500/10 dark:via-purple-500/5 dark:to-transparent shadow-[4px_6px_16px_rgba(139,92,246,0.15)]' },
   ];
 
   const recomendacionesList = categorias.equipamiento || [];
@@ -347,18 +347,18 @@ export default function TourDetailsOverlay({ tour, initialDuration, initialVaria
           onClose();
         }
       }}
-      className={`fixed inset-0 z-50 bg-[var(--background)]/50  flex items-center transition-all duration-500 ease-in-out p-2 sm:p-4 ${isShifted
+      className={`fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center transition-all duration-500 ease-in-out p-2 sm:p-4 ${isShifted
         ? 'justify-start md:pl-12 md:pr-[600px]'
         : 'justify-center md:p-4'
         }`}
     >
       {/* Contenedor Principal */}
-      <div className="glass max-w-7.1xl w-full rounded-2xl md:rounded-3xl overflow-y-auto md:overflow-hidden flex flex-col md:flex-row h-[95vh] max-h-[96vh] md:h-[94vh] md:max-h-[95vh] shadow-2xl relative border border-black/5">
+      <div className="bg-[var(--card)] text-[var(--foreground)] max-w-7.1xl w-full rounded-2xl md:rounded-3xl overflow-y-auto md:overflow-hidden flex flex-col md:flex-row h-[95vh] max-h-[96vh] md:h-[94vh] md:max-h-[95vh] shadow-2xl relative border border-[var(--border)]">
 
         {/* Botón cerrar */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-20 text-[var(--muted-foreground)] hover:text-[var(--foreground)] p-2.5 bg-[var(--sidebar)] rounded-xl border border-black/5 transition-all"
+          className="absolute top-4 right-4 z-20 text-slate-500 hover:text-slate-900 dark:text-[var(--muted-foreground)] dark:hover:text-[var(--foreground)] p-2.5 bg-[var(--card)] hover:bg-[var(--sidebar)] rounded-xl border border-[var(--border)] shadow-sm transition-all"
         >
           <X className="w-5 h-5" />
         </button>
@@ -401,39 +401,39 @@ export default function TourDetailsOverlay({ tour, initialDuration, initialVaria
         </div>
 
         {/* 2. Columna Central */}
-        <div className="w-full md:w-[45%] lg:w-[48%] p-5 md:p-8 flex flex-col justify-between border-b md:border-b-0 md:border-r border-[var(--border)]/50 md:h-full md:overflow-y-auto no-scrollbar">
+        <div className="w-full md:w-[45%] lg:w-[48%] p-5 md:p-8 flex flex-col justify-between border-b md:border-b-0 md:border-r border-[var(--border)] bg-[var(--card)] md:h-full md:overflow-y-auto no-scrollbar">
           <div className="space-y-5">
             {/* Header del Tour */}
             <div className="space-y-3 pr-8">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="bg-[var(--accent)]/10 text-[var(--foreground)] border border-[var(--accent)]/20 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
+                <span className="bg-teal-50 text-teal-800 border border-teal-200 dark:bg-[var(--accent)]/10 dark:text-[var(--foreground)] dark:border-[var(--accent)]/20 px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider">
                   {tour.pais}
                 </span>
                 {tour.categoria && (
-                  <span className="bg-[var(--card)] text-[var(--foreground)] border border-[var(--border)] px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
+                  <span className="bg-[var(--sidebar)] text-slate-700 dark:text-[var(--foreground)] border border-[var(--border)] px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
                     {tour.categoria}
                   </span>
                 )}
                 {tour.nivel_dificultad && (
-                  <span className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/25 px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider flex items-center gap-1">
+                  <span className="bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border border-emerald-500/25 px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider flex items-center gap-1">
                     <span>🏔️</span> {formatDifficulty(tour.nivel_dificultad, language)}
                   </span>
                 )}
-                <span className="text-xs text-[var(--muted-foreground)] flex items-center gap-1">
-                  <Calendar className="w-3.5 h-3.5 text-[var(--foreground)]" />
+                <span className="text-xs text-slate-600 dark:text-[var(--muted-foreground)] flex items-center gap-1 font-semibold">
+                  <Calendar className="w-3.5 h-3.5 text-slate-700 dark:text-[var(--foreground)]" />
                   {displayDuration} {displayDuration === 1 ? t('tour_card.dia') : t('tour_card.dias')}
                 </span>
               </div>
-              <h2 className="text-xl md:text-3xl font-black text-[var(--foreground)] leading-tight">{tourNombre}</h2>
-              <p className="text-slate-800 dark:text-slate-100/95 text-sm md:text-[14.5px] leading-relaxed font-normal antialiased tracking-wide">
+              <h2 className="text-xl md:text-3xl font-black text-slate-900 dark:text-white leading-tight">{tourNombre}</h2>
+              <p className="text-slate-700 dark:text-slate-200 text-sm md:text-[14.5px] leading-relaxed font-normal antialiased tracking-wide">
                 {tourDescripcion}
               </p>
             </div>
 
             {/* Multi-duration Toggle Tabs */}
             {hasVariants && (
-              <div className="bg-[var(--card)] border border-[var(--border)]/40 p-4 rounded-2xl space-y-2.5">
-                <span className="text-[10px] text-[var(--muted-foreground)] block uppercase font-bold tracking-wider">{t('tour_details.seleccionar_duracion')}</span>
+              <div className="bg-[var(--sidebar)]/40 dark:bg-[var(--card)] border border-[var(--border)] p-4 rounded-2xl space-y-2.5">
+                <span className="text-[10px] text-slate-500 dark:text-[var(--muted-foreground)] block uppercase font-bold tracking-wider">{t('tour_details.seleccionar_duracion')}</span>
                 <div className="flex flex-wrap gap-2">
                   {tour.variantes.map((v) => {
                     const vKey = getVariantKey(v);
@@ -444,8 +444,8 @@ export default function TourDetailsOverlay({ tour, initialDuration, initialVaria
                         key={vKey}
                         onClick={() => setSelectedVariantKey(vKey)}
                         className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${isSelected
-                          ? 'bg-[var(--accent)] text-white shadow-md shadow-[var(--accent)]/20'
-                          : 'bg-[var(--card)] hover:bg-[var(--border)]/50 text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)]'
+                          ? 'bg-[#ff686b] dark:bg-[var(--accent)] text-white shadow-md shadow-[#ff686b]/20 dark:shadow-[var(--accent)]/20'
+                          : 'bg-[var(--card)] hover:bg-[var(--border)]/50 text-slate-700 dark:text-[var(--muted-foreground)] hover:text-slate-900 dark:hover:text-[var(--foreground)] border border-[var(--border)]'
                           }`}
                       >
                         {label}
@@ -459,59 +459,59 @@ export default function TourDetailsOverlay({ tour, initialDuration, initialVaria
             {/* Itinerario del Tour — Línea de Tiempo Profesional */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold text-[var(--foreground)] uppercase tracking-wider flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-[var(--accent)]" />
+                <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-amber-500 dark:text-[var(--accent)]" />
                   {t('tour_details.itinerario')}
                 </h3>
                 {parsedItinerario.length > 1 && (
-                  <span className="text-[10px] font-bold text-[var(--muted-foreground)] bg-[var(--card)] px-2.5 py-0.5 rounded-full border border-[var(--border)]/40 flex items-center gap-1">
-                    <Milestone className="w-3 h-3 text-[var(--accent)]" />
+                  <span className="text-[10px] font-bold text-slate-600 dark:text-[var(--muted-foreground)] bg-[var(--sidebar)] px-2.5 py-0.5 rounded-full border border-[var(--border)] flex items-center gap-1">
+                    <Milestone className="w-3 h-3 text-amber-600 dark:text-[var(--accent)]" />
                     {parsedItinerario.length} {parsedItinerario.length === 1 ? 'hito' : 'hitos'}
                   </span>
                 )}
               </div>
 
               {parsedItinerario.length > 0 ? (
-                <div className="bg-[var(--card)]/60 border border-[var(--border)]/50 rounded-2xl p-3.5 sm:p-4 md:p-5 relative">
+                <div className="bg-[var(--sidebar)]/40 dark:bg-[var(--card)]/60 border border-[var(--border)] rounded-2xl p-3.5 sm:p-4 md:p-5 relative">
                   {/* Contenedor con scroll vertical fluido y estilizado */}
                   <div className="relative max-h-[290px] md:max-h-[350px] overflow-y-auto p-2 pl-3.5 pr-2 space-y-3.5 scroll-smooth [scrollbar-width:thin] [scrollbar-color:var(--accent)_transparent]">
                     {/* Línea vertical continua de la línea de tiempo */}
                     <div
-                      className="absolute left-[26px] top-4 bottom-5 w-[2px] bg-gradient-to-b from-[var(--accent)] via-[var(--accent)]/40 to-transparent pointer-events-none"
+                      className="absolute left-[26px] top-4 bottom-5 w-[2px] bg-gradient-to-b from-teal-600 via-teal-500/40 to-transparent dark:from-[var(--accent)] dark:via-[var(--accent)]/40 dark:to-transparent pointer-events-none"
                       aria-hidden="true"
                     />
 
                     {parsedItinerario.map((item) => (
                       <div key={item.id} className="relative flex items-start gap-3 group">
                         {/* Nodo / Hito compacto refinado que no se recorta al hacer scroll */}
-                        <div className="relative z-10 flex-shrink-0 w-6.5 h-6.5 rounded-full bg-[var(--card)] border-[1.5px] border-[var(--accent)] flex items-center justify-center mt-1 shadow-sm group-hover:border-[var(--accent)] group-hover:bg-[var(--accent)]/20 transition-colors duration-200">
+                        <div className="relative z-10 flex-shrink-0 w-6.5 h-6.5 rounded-full bg-[var(--card)] border-[1.5px] border-teal-600 dark:border-[var(--accent)] flex items-center justify-center mt-1 shadow-sm group-hover:border-teal-700 dark:group-hover:border-[var(--accent)] group-hover:bg-teal-50 dark:group-hover:bg-[var(--accent)]/20 transition-colors duration-200">
                           {item.tagType === 'time' ? (
-                            <Clock className="w-3 h-3 text-[var(--accent)]" />
+                            <Clock className="w-3 h-3 text-teal-700 dark:text-[var(--accent)]" />
                           ) : item.tagType === 'day' ? (
-                            <Calendar className="w-3 h-3 text-[var(--accent)]" />
+                            <Calendar className="w-3 h-3 text-teal-700 dark:text-[var(--accent)]" />
                           ) : (
-                            <div className="w-1.5 h-1.5 rounded-full bg-[var(--accent)]" />
+                            <div className="w-1.5 h-1.5 rounded-full bg-teal-600 dark:bg-[var(--accent)]" />
                           )}
                         </div>
 
                         {/* Tarjeta del hito del itinerario */}
-                        <div className="flex-1 bg-[var(--card)]/90 hover:bg-[var(--card)] border border-[var(--border)]/40 hover:border-[var(--accent)]/40 p-3 sm:p-3.5 rounded-xl shadow-xs transition-all duration-200 group-hover:translate-x-0.5">
+                        <div className="flex-1 bg-[var(--card)] hover:bg-[var(--card)] border border-[var(--border)] hover:border-teal-500/40 dark:hover:border-[var(--accent)]/40 p-3 sm:p-3.5 rounded-xl shadow-xs transition-all duration-200 group-hover:translate-x-0.5">
                           {item.tag && (
                             <div className="mb-1 flex items-center gap-1.5">
-                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[10px] font-mono font-extrabold uppercase tracking-wider bg-[var(--accent)]/15 text-[var(--accent)] border border-[var(--accent)]/25">
-                                {item.tagType === 'time' && <Clock className="w-2.5 h-2.5" />}
-                                {item.tagType === 'day' && <Calendar className="w-2.5 h-2.5" />}
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[10px] font-mono font-extrabold uppercase tracking-wider bg-teal-50 text-teal-900 border border-teal-200/80 dark:bg-[var(--accent)]/15 dark:text-[var(--accent)] dark:border-[var(--accent)]/25">
+                                {item.tagType === 'time' && <Clock className="w-2.5 h-2.5 text-teal-700 dark:text-[var(--accent)]" />}
+                                {item.tagType === 'day' && <Calendar className="w-2.5 h-2.5 text-teal-700 dark:text-[var(--accent)]" />}
                                 {item.tag}
                               </span>
                             </div>
                           )}
 
-                          <h4 className="text-xs md:text-sm font-extrabold text-[var(--foreground)] leading-snug group-hover:text-[var(--accent)] transition-colors">
+                          <h4 className="text-xs md:text-sm font-extrabold text-slate-900 dark:text-white leading-snug group-hover:text-teal-700 dark:group-hover:text-[var(--accent)] transition-colors">
                             {item.title}
                           </h4>
 
                           {item.description && (
-                            <p className="mt-1 text-xs text-slate-700 dark:text-slate-200/90 leading-relaxed font-normal whitespace-pre-line border-t border-[var(--border)]/30 pt-1">
+                            <p className="mt-1 text-xs text-slate-700 dark:text-slate-200 leading-relaxed font-normal whitespace-pre-line border-t border-[var(--border)] pt-1">
                               {item.description}
                             </p>
                           )}
@@ -521,7 +521,7 @@ export default function TourDetailsOverlay({ tour, initialDuration, initialVaria
                   </div>
                 </div>
               ) : (
-                <div className="bg-[var(--card)] border border-[var(--border)]/40 p-5 rounded-2xl text-center text-xs text-[var(--muted-foreground)]/80 italic">
+                <div className="bg-[var(--card)] border border-[var(--border)] p-5 rounded-2xl text-center text-xs text-slate-500 dark:text-[var(--muted-foreground)] italic">
                   {t('tour_details.sin_itinerario')}
                 </div>
               )}
@@ -530,15 +530,15 @@ export default function TourDetailsOverlay({ tour, initialDuration, initialVaria
             {/* Exclusiones */}
             {displayExclusiones && displayExclusiones.length > 0 && (
               <div className="space-y-3">
-                <h3 className="text-sm font-bold text-[var(--foreground)] uppercase tracking-wider flex items-center gap-2">
-                  <X className="w-4 h-4 text-[var(--foreground)]" />
+                <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                  <X className="w-4 h-4 text-rose-500" />
                   {t('tour_details.servicios_excluidos')}
                 </h3>
-                <ul className="bg-[var(--card)] border border-[var(--border)]/40 p-4 rounded-2xl space-y-2 text-xs text-[var(--muted-foreground)]">
+                <ul className="bg-[var(--sidebar)]/40 dark:bg-[var(--card)] border border-[var(--border)] p-4 rounded-2xl space-y-2 text-xs">
                   {displayExclusiones.map((item, idx) => (
-                    <li key={idx} className="flex items-start gap-2">
-                      <span className="text-[var(--foreground)] font-black">•</span>
-                      <span>{item}</span>
+                    <li key={idx} className="flex items-start gap-2 text-slate-700 dark:text-slate-300">
+                      <span className="text-rose-500 font-black">•</span>
+                      <span className="font-medium">{item}</span>
                     </li>
                   ))}
                 </ul>
@@ -550,7 +550,7 @@ export default function TourDetailsOverlay({ tour, initialDuration, initialVaria
           <div className="pt-6 hidden md:block">
             <button
               onClick={onClose}
-              className="text-xs text-[var(--muted-foreground)] hover:text-[var(--foreground)] font-semibold transition-colors"
+              className="text-xs text-slate-500 hover:text-slate-900 dark:text-[var(--muted-foreground)] dark:hover:text-[var(--foreground)] font-semibold transition-colors"
             >
               {t('tour_details.volver_catalogo')}
             </button>
@@ -558,15 +558,15 @@ export default function TourDetailsOverlay({ tour, initialDuration, initialVaria
         </div>
 
         {/* 3. Columna Derecha */}
-        <div className="w-full md:w-[30%] p-5 md:p-8 flex flex-col justify-between bg-[var(--card)] md:h-full md:overflow-y-auto no-scrollbar">
+        <div className="w-full md:w-[30%] p-5 md:p-8 flex flex-col justify-between bg-[var(--sidebar)]/40 dark:bg-[var(--card)] md:h-full md:overflow-y-auto no-scrollbar">
           <div className="space-y-5">
             <div className="space-y-1">
-              <span className="text-[10px] text-[var(--foreground)] font-extrabold uppercase tracking-widest">{t('tour_details.inclusiones')}</span>
-              <h3 className="font-extrabold text-[var(--foreground)] text-base md:text-lg">{t('tour_details.servicios_incluidos')}</h3>
-              <p className="text-xs text-[var(--muted-foreground)] leading-relaxed hidden md:block">
+              <span className="text-[10px] text-teal-800 dark:text-[var(--foreground)] font-extrabold uppercase tracking-widest">{t('tour_details.inclusiones')}</span>
+              <h3 className="font-black text-slate-900 dark:text-white text-base md:text-lg">{t('tour_details.servicios_incluidos')}</h3>
+              <p className="text-xs text-slate-600 dark:text-[var(--muted-foreground)] leading-relaxed hidden md:block">
                 {t('tour_details.hover_detalles')}
               </p>
-              <p className="text-xs text-[var(--muted-foreground)] leading-relaxed md:hidden">
+              <p className="text-xs text-slate-600 dark:text-[var(--muted-foreground)] leading-relaxed md:hidden">
                 {t('tour_details.tap_detalles')}
               </p>
             </div>
@@ -588,20 +588,20 @@ export default function TourDetailsOverlay({ tour, initialDuration, initialVaria
                     className={`relative p-3 rounded-2xl border backdrop-blur-md flex ${
                       isLastFull ? 'col-span-2 flex-row items-center justify-center gap-3 py-2.5' : 'flex-col items-center justify-center text-center py-3.5'
                     } cursor-pointer transition-all duration-300 ${
-                      isActive ? 'border-[var(--accent)] scale-[1.02] z-20 shadow-lg' : 'hover:scale-[1.01]'
+                      isActive ? 'border-teal-600 dark:border-[var(--accent)] scale-[1.02] z-20 shadow-lg' : 'hover:scale-[1.01]'
                     } ${
                       hasItems
                         ? cat.color
-                        : 'border-[var(--border)]/40 bg-[var(--sidebar)]/40 opacity-60 hover:opacity-100'
+                        : 'border-[var(--border)] bg-[var(--card)]/60 opacity-60 hover:opacity-100'
                     } group`}
                   >
                     <div className={`${isLastFull ? '' : 'mb-1.5'} transition-transform duration-300 group-hover:scale-105`}>
                       <Icon3DComponent className={`w-8 h-8 md:w-9 md:h-9 ${hasItems ? '' : 'grayscale opacity-70'}`} />
                     </div>
-                    <span className="text-[10px] md:text-xs font-extrabold text-[var(--foreground)] leading-tight flex items-center gap-1">
+                    <span className="text-[10px] md:text-xs font-black text-slate-900 dark:text-white leading-tight flex items-center gap-1">
                       {cat.label}
                       {hasItems && (
-                        <span className="inline-flex items-center justify-center w-4 h-4 text-[9px] font-bold rounded-full bg-[var(--accent)] text-white">
+                        <span className="inline-flex items-center justify-center w-4 h-4 text-[9px] font-black rounded-full bg-slate-900 text-white dark:bg-[var(--accent)] dark:text-white">
                           {cat.list.length}
                         </span>
                       )}
@@ -610,23 +610,23 @@ export default function TourDetailsOverlay({ tour, initialDuration, initialVaria
                     {/* Tooltip */}
                     {isActive && (
                       <div className="absolute z-30 left-1/2 -translate-x-1/2 bottom-[110%] w-56 md:w-64 bg-[var(--card)] border border-[var(--border)] p-3 md:p-4 rounded-2xl shadow-2xl animate-fade-in text-left">
-                        <div className="flex items-center justify-between text-[10px] text-[var(--foreground)] font-bold uppercase tracking-wider mb-2 border-b border-[var(--border)]/50 pb-1.5">
+                        <div className="flex items-center justify-between text-[10px] text-slate-900 dark:text-white font-black uppercase tracking-wider mb-2 border-b border-[var(--border)] pb-1.5">
                           <span>{cat.label}</span>
-                          <span className={hasItems ? 'text-emerald-500 font-extrabold' : 'text-[var(--muted-foreground)]'}>
+                          <span className={hasItems ? 'text-emerald-700 dark:text-emerald-400 font-black' : 'text-slate-500 dark:text-[var(--muted-foreground)]'}>
                             {hasItems ? `${cat.list.length} ${t('tour_details.servicios_count')}` : t('tour_details.no_incluido')}
                           </span>
                         </div>
                         {hasItems ? (
                           <ul className="space-y-1.5 max-h-48 overflow-y-auto no-scrollbar">
                             {cat.list.map((item, index) => (
-                              <li key={index} className="text-xs text-[var(--foreground)] flex items-start gap-1.5 leading-snug">
-                                <span className="text-[var(--accent)] font-bold mt-0.5">•</span>
+                              <li key={index} className="text-xs text-slate-800 dark:text-slate-100 flex items-start gap-1.5 leading-snug font-medium">
+                                <span className="text-emerald-600 dark:text-[var(--accent)] font-bold mt-0.5">•</span>
                                 <span>{item}</span>
                               </li>
                             ))}
                           </ul>
                         ) : (
-                          <p className="text-xs text-[var(--muted-foreground)] italic">
+                          <p className="text-xs text-slate-500 dark:text-[var(--muted-foreground)] italic">
                             {t('tour_details.sin_inclusiones')}
                           </p>
                         )}
@@ -638,23 +638,23 @@ export default function TourDetailsOverlay({ tour, initialDuration, initialVaria
             </div>
 
             {/* Apartado Recomendaciones con Resalte Distinto */}
-            <div className="rounded-2xl border border-amber-500/40 bg-gradient-to-br from-amber-500/15 via-orange-500/5 to-transparent p-3.5 space-y-2.5 shadow-md shadow-amber-500/5 transition-all duration-300">
+            <div className="rounded-2xl border border-amber-500/40 bg-amber-500/10 dark:bg-gradient-to-br dark:from-amber-500/15 dark:via-orange-500/5 dark:to-transparent p-3.5 space-y-2.5 shadow-md shadow-amber-500/5 transition-all duration-300">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center flex-shrink-0 shadow-inner">
                   <Backpack3D className="w-5 h-5" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-1">
-                    <span className="text-xs font-black uppercase tracking-wider text-amber-500 dark:text-amber-400">
+                    <span className="text-xs font-black uppercase tracking-wider text-amber-900 dark:text-amber-300">
                       {t('tour_details.recomendaciones')}
                     </span>
                     {recomendacionesList.length > 0 && (
-                      <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-amber-500 text-slate-950">
+                      <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-amber-600 text-white dark:bg-amber-500 dark:text-slate-950">
                         {recomendacionesList.length}
                       </span>
                     )}
                   </div>
-                  <span className="text-[10px] text-[var(--muted-foreground)] block truncate">
+                  <span className="text-[10px] text-amber-900/80 dark:text-[var(--muted-foreground)] block truncate font-medium">
                     {t('tour_details.recomendaciones_sub')}
                   </span>
                 </div>
@@ -663,14 +663,14 @@ export default function TourDetailsOverlay({ tour, initialDuration, initialVaria
               {recomendacionesList.length > 0 ? (
                 <ul className="space-y-1 pt-1.5 border-t border-amber-500/20 max-h-28 overflow-y-auto no-scrollbar">
                   {recomendacionesList.map((item, index) => (
-                    <li key={index} className="text-xs text-[var(--foreground)] flex items-start gap-1.5 leading-snug">
-                      <span className="text-amber-500 font-bold mt-0.5">•</span>
-                      <span className="text-slate-800 dark:text-slate-200">{item}</span>
+                    <li key={index} className="text-xs text-slate-800 dark:text-slate-100 flex items-start gap-1.5 leading-snug font-medium">
+                      <span className="text-amber-700 dark:text-amber-400 font-black mt-0.5">•</span>
+                      <span>{item}</span>
                     </li>
                   ))}
                 </ul>
               ) : (
-                <p className="text-[11px] text-[var(--muted-foreground)] italic pt-1 border-t border-amber-500/20">
+                <p className="text-[11px] text-amber-900/70 dark:text-[var(--muted-foreground)] italic pt-1 border-t border-amber-500/20 font-medium">
                   {t('tour_details.sin_recomendaciones')}
                 </p>
               )}
@@ -679,14 +679,14 @@ export default function TourDetailsOverlay({ tour, initialDuration, initialVaria
 
           {/* Precios y Registro */}
           <div className="pt-5 space-y-3 md:space-y-4">
-            <div className="bg-[var(--card)] border border-[var(--border)]/50 p-4 rounded-2xl flex justify-between items-center">
+            <div className="bg-[var(--card)] border border-[var(--border)] p-4 rounded-2xl flex justify-between items-center shadow-xs">
               <div>
-                <span className="text-[10px] text-[var(--muted-foreground)] block uppercase font-bold tracking-wider">{t('tour_details.precio_adulto')}</span>
-                <span className="text-base font-extrabold text-[var(--foreground)]">${displayPrecioAdulto} USD</span>
+                <span className="text-[10px] text-slate-500 dark:text-[var(--muted-foreground)] block uppercase font-bold tracking-wider">{t('tour_details.precio_adulto')}</span>
+                <span className="text-base font-black text-slate-900 dark:text-white">${displayPrecioAdulto} USD</span>
               </div>
               <div className="text-right">
-                <span className="text-[10px] text-[var(--muted-foreground)] block uppercase font-bold tracking-wider">{t('tour_details.cupos')}</span>
-                <span className="text-xs bg-[var(--accent)]/10 text-[var(--foreground)] px-2.5 py-0.5 rounded-full font-bold">
+                <span className="text-[10px] text-slate-500 dark:text-[var(--muted-foreground)] block uppercase font-bold tracking-wider">{t('tour_details.cupos')}</span>
+                <span className="text-xs bg-emerald-50 text-emerald-800 border border-emerald-200 dark:bg-[var(--accent)]/10 dark:text-[var(--foreground)] dark:border-transparent px-2.5 py-0.5 rounded-full font-black">
                   {displayCupos} {t('tour_details.cupos_libres')}
                 </span>
               </div>
@@ -694,7 +694,7 @@ export default function TourDetailsOverlay({ tour, initialDuration, initialVaria
 
             <button
               onClick={() => onProceed(displayDuration, activeVariant)}
-              className="w-full flex items-center justify-center gap-2 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white py-4 rounded-xl font-bold shadow-lg shadow-[var(--accent)]/20 hover:shadow-[var(--accent)]/30 transition-all duration-300 text-sm"
+              className="w-full flex items-center justify-center gap-2 bg-[#ff686b] hover:bg-[#d60004] dark:bg-[var(--accent)] dark:hover:bg-[var(--accent-hover)] text-white py-4 rounded-xl font-black shadow-lg shadow-[#ff686b]/25 dark:shadow-[var(--accent)]/20 hover:shadow-xl transition-all duration-300 text-sm active:scale-[0.99] cursor-pointer"
             >
               {t('tour_details.proceder_registro')}
               <ArrowRight className="w-4 h-4" />
@@ -703,7 +703,7 @@ export default function TourDetailsOverlay({ tour, initialDuration, initialVaria
             {/* Mobile back button */}
             <button
               onClick={onClose}
-              className="w-full text-center text-xs text-[var(--muted-foreground)]/80 hover:text-[var(--foreground)] font-semibold transition-colors py-2 md:hidden"
+              className="w-full text-center text-xs text-slate-500 hover:text-slate-900 dark:text-[var(--muted-foreground)]/80 dark:hover:text-[var(--foreground)] font-semibold transition-colors py-2 md:hidden"
             >
               {t('tour_details.volver_catalogo')}
             </button>
