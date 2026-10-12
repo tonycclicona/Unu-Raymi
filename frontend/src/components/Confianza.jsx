@@ -27,6 +27,63 @@ const COLOR_MAP = {
 
 const TRIPADVISOR_URL = 'https://www.tripadvisor.com/Attraction_Review-g294314-d34586345-Reviews-Unu_Raymi_Expeditions-Cusco_Cusco_Region.html';
 
+// Componente de aislamiento seguro para el widget oficial de TripAdvisor
+// Evita que los scripts legados de TripAdvisor que usan document.write() o mutan el DOM destruyan el árbol de React o el navbar
+function TripAdvisorEmbed({ language }) {
+  const lang = language === 'es' ? 'es' : 'en_US';
+  const srcDoc = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base target="_blank">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 0;
+      background: transparent;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #TA_cdswritereviewlg596 {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div id="TA_cdswritereviewlg596" class="TA_cdswritereviewlg">
+    <ul id="OeOeCAZawa" class="TA_links Uy5KK44v" style="list-style:none;margin:0;padding:0;">
+      <li id="vAndio5BVL9" class="IbFTHOtIAh7" style="list-style:none;margin:0;padding:0;">
+        <a target="_blank" rel="noopener noreferrer" href="${TRIPADVISOR_URL}">
+          <img src="https://static.tacdn.com/img2/brand_refresh/Tripadvisor_lockup_horizontal_secondary_registered.svg" alt="TripAdvisor" style="height:26px;width:auto;" />
+        </a>
+      </li>
+    </ul>
+  </div>
+  <script async src="https://www.jscache.com/wejs?wtype=cdswritereviewlg&uniq=596&locationId=34586345&lang=${lang}&display_version=2" data-loadtrk onload="this.loadtrk=true"></script>
+</body>
+</html>`;
+
+  return (
+    <div className="w-full md:w-auto flex items-center justify-center shrink-0">
+      <iframe
+        key={lang}
+        srcDoc={srcDoc}
+        title="TripAdvisor Official Widget"
+        className="w-[245px] h-[215px] border-0 bg-transparent overflow-hidden rounded-xl"
+        sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+        loading="lazy"
+      />
+    </div>
+  );
+}
+
 export default function Confianza() {
   const [hoveredGarantiaId, setHoveredGarantiaId] = useState(null);
   const [selectedGarantiaImg, setSelectedGarantiaImg] = useState(null);
@@ -37,25 +94,6 @@ export default function Confianza() {
   const dbGarantias = response?.data || [];
 
   const opiniones = t('reviews.opiniones') || [];
-
-  // Inyección y actualización dinámica del widget oficial de TripAdvisor
-  useEffect(() => {
-    const scriptId = 'tripadvisor-widget-script';
-    const oldScript = document.getElementById(scriptId);
-    if (oldScript) oldScript.remove();
-
-    const script = document.createElement('script');
-    script.id = scriptId;
-    script.async = true;
-    script.src = `https://www.jscache.com/wejs?wtype=cdswritereviewlg&uniq=596&locationId=34586345&lang=${language === 'es' ? 'es' : 'en_US'}&display_version=2`;
-    script.setAttribute('data-loadtrk', 'true');
-    document.body.appendChild(script);
-
-    return () => {
-      const s = document.getElementById(scriptId);
-      if (s) s.remove();
-    };
-  }, [language]);
 
   // Filtro de opiniones
   const filteredOpiniones = opiniones.filter((op) => {
@@ -110,51 +148,44 @@ export default function Confianza() {
           </div>
 
           {/* Tarjeta de Reputación y Widget Oficial de TripAdvisor */}
-          <div className="glass-card p-4 sm:p-5 rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.02] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="space-y-1.5">
-              <div className="flex items-center gap-2">
-                <span className="inline-flex items-center gap-1 text-[11px] font-extrabold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
-                  <CheckCircle2 className="w-3 h-3" />
+          <div className="glass-card p-5 rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.02] flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-sm">
+            <div className="space-y-3 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1 text-[11px] font-extrabold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
                   {t('reviews.perfil_verificado')}
                 </span>
-                <span className="text-[11px] font-semibold text-[var(--muted-foreground)]">
+                <span className="text-xs font-semibold text-[var(--muted-foreground)]">
                   {t('reviews.calificacion_promedio')}
                 </span>
               </div>
               <TripAdvisorRating rating={5} />
-            </div>
 
-            {/* Contenedor oficial para el Widget de TripAdvisor */}
-            <div className="flex items-center gap-3">
-              <div id="TA_cdswritereviewlg596" className="TA_cdswritereviewlg">
-                <ul id="OeOeCAZawa" className="TA_links Uy5KK44v list-none m-0 p-0">
-                  <li id="vAndio5BVL9" className="IbFTHOtIAh7 list-none m-0 p-0">
-                    <a
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      href={TRIPADVISOR_URL}
-                      className="inline-block hover:opacity-90 transition-opacity"
-                    >
-                      <img
-                        src="https://static.tacdn.com/img2/brand_refresh/Tripadvisor_lockup_horizontal_secondary_registered.svg"
-                        alt="TripAdvisor"
-                        className="h-7 w-auto object-contain"
-                      />
-                    </a>
-                  </li>
-                </ul>
+              <div className="pt-1 flex flex-wrap items-center gap-2.5">
+                <a
+                  href={TRIPADVISOR_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-all shadow-md shadow-emerald-600/20 hover:scale-[1.02] active:scale-[0.98] whitespace-nowrap"
+                >
+                  <span>{t('reviews.escribir_opinion')}</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+
+                <a
+                  href={TRIPADVISOR_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-[var(--foreground)] bg-[var(--card)] hover:bg-[var(--sidebar)] border border-[var(--border)]/70 rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98] whitespace-nowrap"
+                >
+                  <span>{t('reviews.ver_en_tripadvisor')}</span>
+                  <ExternalLink className="w-3.5 h-3.5 opacity-60" />
+                </a>
               </div>
-
-              <a
-                href={TRIPADVISOR_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-all shadow-sm shadow-emerald-600/20 whitespace-nowrap"
-              >
-                <span>{t('reviews.escribir_opinion')}</span>
-                <ExternalLink className="w-3.5 h-3.5" />
-              </a>
             </div>
+
+            {/* Widget Oficial de TripAdvisor aislado en sandbox seguro */}
+            <TripAdvisorEmbed language={language} />
           </div>
 
           {/* Filtros Interactivos por Puntaje */}
