@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import useSWR from 'swr';
 import { fetcher, API_ASSETS_URL } from '@/lib/api';
-import { ShieldCheck, Award, Lock, Star, Heart, Shield, X } from 'lucide-react';
+import { ShieldCheck, Award, Lock, Star, Heart, Shield, X, ExternalLink, CheckCircle2 } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { Award3D, Lock3D, Star3D, ShieldCheck3D, Shield3D } from './illustrations/Neomorphic3DIcons';
 
@@ -25,9 +25,12 @@ const COLOR_MAP = {
   teal: 'bg-teal-500/5 border-teal-500/10 text-teal-400',
 };
 
+const TRIPADVISOR_URL = 'https://www.tripadvisor.com/Attraction_Review-g294314-d34586345-Reviews-Unu_Raymi_Expeditions-Cusco_Cusco_Region.html';
+
 export default function Confianza() {
   const [hoveredGarantiaId, setHoveredGarantiaId] = useState(null);
   const [selectedGarantiaImg, setSelectedGarantiaImg] = useState(null);
+  const [ratingFilter, setRatingFilter] = useState('all');
   const { t, language } = useLanguage();
 
   const { data: response } = useSWR('/garantias?activo=true', fetcher);
@@ -35,18 +38,50 @@ export default function Confianza() {
 
   const opiniones = t('reviews.opiniones') || [];
 
+  // Inyección y actualización dinámica del widget oficial de TripAdvisor
+  useEffect(() => {
+    const scriptId = 'tripadvisor-widget-script';
+    const oldScript = document.getElementById(scriptId);
+    if (oldScript) oldScript.remove();
+
+    const script = document.createElement('script');
+    script.id = scriptId;
+    script.async = true;
+    script.src = `https://www.jscache.com/wejs?wtype=cdswritereviewlg&uniq=596&locationId=34586345&lang=${language === 'es' ? 'es' : 'en_US'}&display_version=2`;
+    script.setAttribute('data-loadtrk', 'true');
+    document.body.appendChild(script);
+
+    return () => {
+      const s = document.getElementById(scriptId);
+      if (s) s.remove();
+    };
+  }, [language]);
+
+  // Filtro de opiniones
+  const filteredOpiniones = opiniones.filter((op) => {
+    if (ratingFilter === 'all') return true;
+    return (op.rating || 5) === Number(ratingFilter);
+  });
+
+  const countAll = opiniones.length;
+  const count5 = opiniones.filter((op) => (op.rating || 5) === 5).length;
+  const count4 = opiniones.filter((op) => (op.rating || 5) === 4).length;
+
   // Renderizador de las clásicas burbujas verdes de TripAdvisor
-  const TripAdvisorRating = ({ rating }) => {
+  const TripAdvisorRating = ({ rating = 5 }) => {
     return (
-      <div className="flex gap-1">
+      <div className="flex items-center gap-1" title={`${rating}/5 en TripAdvisor`}>
         {[...Array(5)].map((_, i) => (
           <span
             key={i}
-            className={`w-3.5 h-3.5 rounded-full border border-emerald-500 flex items-center justify-center ${
+            className={`w-3.5 h-3.5 rounded-full border border-emerald-500 flex items-center justify-center transition-all ${
               i < rating ? 'bg-emerald-500' : 'bg-transparent'
             }`}
           />
         ))}
+        <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 ml-1">
+          {rating}.0
+        </span>
       </div>
     );
   };
@@ -56,51 +91,183 @@ export default function Confianza() {
       {/* Luz ambiental */}
       <div className="absolute top-1/2 right-1/4 w-[350px] h-[350px] bg-[var(--accent)]/5 rounded-full filter blur-[100px] pointer-events-none -z-10"></div>
 
-      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
         
-        {/* LADO IZQUIERDO: Opiniones estilo TripAdvisor (7 columnas en desktop) */}
+        {/* LADO IZQUIERDO: Opiniones y Widget TripAdvisor (7 columnas en desktop) */}
         <div className="lg:col-span-7 space-y-6">
           <div className="space-y-2">
             <span className="text-[10px] text-[var(--foreground)] font-extrabold uppercase tracking-widest block">
               {t('reviews.badge')}
             </span>
-            <h2 className="text-3xl font-black text-[var(--foreground)] tracking-tight">
-              {t('reviews.title')}
-            </h2>
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <h2 className="text-3xl font-black text-[var(--foreground)] tracking-tight">
+                {t('reviews.title')}
+              </h2>
+            </div>
             <p className="text-sm text-[var(--muted-foreground)] max-w-xl">
               {t('reviews.desc')}
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
-            {opiniones.map((op) => (
+          {/* Tarjeta de Reputación y Widget Oficial de TripAdvisor */}
+          <div className="glass-card p-4 sm:p-5 rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.02] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center gap-1 text-[11px] font-extrabold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                  <CheckCircle2 className="w-3 h-3" />
+                  {t('reviews.perfil_verificado')}
+                </span>
+                <span className="text-[11px] font-semibold text-[var(--muted-foreground)]">
+                  {t('reviews.calificacion_promedio')}
+                </span>
+              </div>
+              <TripAdvisorRating rating={5} />
+            </div>
+
+            {/* Contenedor oficial para el Widget de TripAdvisor */}
+            <div className="flex items-center gap-3">
+              <div id="TA_cdswritereviewlg596" className="TA_cdswritereviewlg">
+                <ul id="OeOeCAZawa" className="TA_links Uy5KK44v list-none m-0 p-0">
+                  <li id="vAndio5BVL9" className="IbFTHOtIAh7 list-none m-0 p-0">
+                    <a
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      href={TRIPADVISOR_URL}
+                      className="inline-block hover:opacity-90 transition-opacity"
+                    >
+                      <img
+                        src="https://static.tacdn.com/img2/brand_refresh/Tripadvisor_lockup_horizontal_secondary_registered.svg"
+                        alt="TripAdvisor"
+                        className="h-7 w-auto object-contain"
+                      />
+                    </a>
+                  </li>
+                </ul>
+              </div>
+
+              <a
+                href={TRIPADVISOR_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-all shadow-sm shadow-emerald-600/20 whitespace-nowrap"
+              >
+                <span>{t('reviews.escribir_opinion')}</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+            </div>
+          </div>
+
+          {/* Filtros Interactivos por Puntaje */}
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setRatingFilter('all')}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+                  ratingFilter === 'all'
+                    ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/25'
+                    : 'bg-[var(--card)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)]/50'
+                }`}
+              >
+                {t('reviews.filtro_todos')} ({countAll})
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setRatingFilter('5')}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all duration-200 cursor-pointer ${
+                  ratingFilter === '5'
+                    ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/25'
+                    : 'bg-[var(--card)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)]/50'
+                }`}
+              >
+                <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                5 {t('reviews.filtro_burbujas')} ({count5})
+              </button>
+
+              {count4 > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setRatingFilter('4')}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all duration-200 cursor-pointer ${
+                    ratingFilter === '4'
+                      ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/25'
+                      : 'bg-[var(--card)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)]/50'
+                  }`}
+                >
+                  <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                  4 {t('reviews.filtro_burbujas')} ({count4})
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Cuadrícula de Opiniones Filtradas */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2">
+            {filteredOpiniones.map((op) => (
               <div
                 key={op.id}
-                className="glass-card p-6 rounded-2xl border border-black/5 space-y-4 hover:border-emerald-500/20 transition-all duration-300"
+                className="glass-card p-5 rounded-2xl border border-[var(--border)]/60 hover:border-emerald-500/30 flex flex-col justify-between space-y-3 transition-all duration-300 shadow-sm hover:shadow-md"
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    {/* TripAdvisor Logo Improvised */}
-                    <div className="w-7 h-7 rounded-lg bg-emerald-500/10 flex items-center justify-center font-bold text-emerald-400 text-xs">
-                      TA
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center font-black text-emerald-600 dark:text-emerald-400 text-xs">
+                        {op.nombre ? op.nombre.charAt(0) : 'T'}
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-bold text-[var(--foreground)] leading-tight">{op.nombre}</h4>
+                        <span className="text-[10px] text-[var(--muted-foreground)]/80 block">{op.origen}</span>
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="text-xs font-bold text-[var(--foreground)] leading-tight">{op.nombre}</h4>
-                      <span className="text-[10px] text-[var(--muted-foreground)]/80">{op.origen}</span>
-                    </div>
+                    <span className="text-[10px] text-[var(--muted-foreground)]/80">{op.fecha}</span>
                   </div>
-                  <span className="text-[10px] text-[var(--muted-foreground)]/80">{op.fecha}</span>
+
+                  {op.tour && (
+                    <div className="inline-block bg-[var(--background)] border border-[var(--border)]/50 px-2 py-0.5 rounded-md text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
+                      {op.tour}
+                    </div>
+                  )}
+
+                  <div className="space-y-1">
+                    <TripAdvisorRating rating={op.rating || 5} />
+                    <h5 className="font-bold text-sm text-[var(--foreground)] pt-1">{op.titulo}</h5>
+                    <p className="text-xs text-[var(--muted-foreground)] leading-relaxed italic">
+                      "{op.comentario}"
+                    </p>
+                  </div>
                 </div>
 
-                <div className="space-y-1">
-                  <TripAdvisorRating rating={5} />
-                  <h5 className="font-bold text-sm text-[var(--foreground)] pt-1">{op.titulo}</h5>
-                  <p className="text-xs text-[var(--muted-foreground)] leading-relaxed italic">
-                    "{op.comentario}"
-                  </p>
+                <div className="pt-2 border-t border-[var(--border)]/30 flex items-center justify-between text-[10px] text-[var(--muted-foreground)]/80">
+                  <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
+                    <CheckCircle2 className="w-3 h-3" />
+                    TripAdvisor
+                  </span>
+                  <a
+                    href={TRIPADVISOR_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:underline flex items-center gap-0.5"
+                  >
+                    {t('reviews.ver_en_tripadvisor')}
+                    <ExternalLink className="w-2.5 h-2.5 ml-0.5" />
+                  </a>
                 </div>
               </div>
             ))}
+
+            {filteredOpiniones.length === 0 && (
+              <div className="col-span-full py-8 text-center glass-card rounded-2xl border border-[var(--border)]/50 p-6 space-y-3">
+                <p className="text-xs text-[var(--muted-foreground)]">{t('reviews.sin_opiniones')}</p>
+                <button
+                  type="button"
+                  onClick={() => setRatingFilter('all')}
+                  className="text-xs font-bold text-emerald-500 hover:underline cursor-pointer"
+                >
+                  {t('reviews.ver_todas_filtro')}
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
