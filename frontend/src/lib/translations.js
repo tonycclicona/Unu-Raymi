@@ -93,6 +93,16 @@ export const translations = {
           tour: "Lares Trek a Machu Picchu 4D/3N",
           titulo: "Inmersión cultural inigualable",
           comentario: "Compartir con las comunidades andinas y terminar en Machu Picchu superó nuestras expectativas. Organización impecable.",
+        },
+        {
+          id: 6,
+          nombre: "Jessica & Tom",
+          origen: "Vancouver, Canadá",
+          fecha: "Hace 3 meses",
+          rating: 5,
+          tour: "Valle Sagrado & Machu Picchu",
+          titulo: "Atención excepcional y guías apasionados",
+          comentario: "Excelente servicio de inicio a fin. Los traslados fueron sumamente puntuales, la comida deliciosa y las explicaciones arqueológicas de primer nivel.",
         }
       ],
       garantias_titulo: "Garantías y Seguridad",
@@ -401,6 +411,16 @@ export const translations = {
           tour: "Lares Trek to Machu Picchu 4D/3N",
           titulo: "Unmatched cultural immersion",
           comentario: "Sharing with Andean communities and ending at Machu Picchu exceeded our expectations. Flawless organization.",
+        },
+        {
+          id: 6,
+          nombre: "Jessica & Tom",
+          origen: "Vancouver, Canada",
+          fecha: "3 months ago",
+          rating: 5,
+          tour: "Sacred Valley & Machu Picchu",
+          titulo: "Exceptional attention and passionate guides",
+          comentario: "Outstanding service from start to finish. Transfers were punctual, food was delicious, and archaeological explanations were top-notch.",
         }
       ],
       garantias_titulo: "Guarantees & Safety",

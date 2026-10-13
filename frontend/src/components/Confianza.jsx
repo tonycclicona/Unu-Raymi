@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import useSWR from 'swr';
 import { fetcher, API_ASSETS_URL } from '@/lib/api';
-import { ShieldCheck, Award, Lock, Star, Heart, Shield, X, ExternalLink, CheckCircle2 } from 'lucide-react';
+import { ShieldCheck, Award, Lock, Star, Heart, Shield, X, ExternalLink, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { Award3D, Lock3D, Star3D, ShieldCheck3D, Shield3D } from './illustrations/Neomorphic3DIcons';
 
@@ -88,12 +88,26 @@ export default function Confianza() {
   const [hoveredGarantiaId, setHoveredGarantiaId] = useState(null);
   const [selectedGarantiaImg, setSelectedGarantiaImg] = useState(null);
   const [ratingFilter, setRatingFilter] = useState('all');
+  const [currentPage, setCurrentPage] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
+  const touchStartX = useRef(0);
+  const touchEndX = useRef(0);
   const { t, language } = useLanguage();
 
   const { data: response } = useSWR('/garantias?activo=true', fetcher);
   const dbGarantias = response?.data || [];
 
   const opiniones = t('reviews.opiniones') || [];
+
+  // Detectar mobile para calcular cuántas cards mostrar por vista (1 en móvil, 2 en desktop)
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Filtro de opiniones
   const filteredOpiniones = opiniones.filter((op) => {
@@ -104,6 +118,48 @@ export default function Confianza() {
   const countAll = opiniones.length;
   const count5 = opiniones.filter((op) => (op.rating || 5) === 5).length;
   const count4 = opiniones.filter((op) => (op.rating || 5) === 4).length;
+
+  const itemsPerPage = isMobile ? 1 : 2;
+  const totalPages = Math.ceil(filteredOpiniones.length / itemsPerPage);
+
+  // Reiniciar a la primera página si cambia el filtro
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [ratingFilter]);
+
+  // Si la página actual queda fuera de rango tras filtrar
+  useEffect(() => {
+    if (currentPage >= totalPages && totalPages > 0) {
+      setCurrentPage(totalPages - 1);
+    }
+  }, [totalPages, currentPage]);
+
+  // Soporte touch / swipe en móviles
+  const handleTouchStart = (e) => {
+    touchStartX.current = e.targetTouches[0].clientX;
+  };
+
+  const handleTouchMove = (e) => {
+    touchEndX.current = e.targetTouches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStartX.current || !touchEndX.current) return;
+    const diff = touchStartX.current - touchEndX.current;
+    if (diff > 45 && currentPage < totalPages - 1) {
+      setCurrentPage((prev) => prev + 1);
+    } else if (diff < -45 && currentPage > 0) {
+      setCurrentPage((prev) => prev - 1);
+    }
+    touchStartX.current = 0;
+    touchEndX.current = 0;
+  };
+
+  // Dividir las opiniones en páginas según itemsPerPage
+  const pages = [];
+  for (let i = 0; i < filteredOpiniones.length; i += itemsPerPage) {
+    pages.push(filteredOpiniones.slice(i, i + itemsPerPage));
+  }
 
   // Renderizador de las clásicas burbujas verdes de TripAdvisor
   const TripAdvisorRating = ({ rating = 5 }) => {
@@ -188,8 +244,8 @@ export default function Confianza() {
             <TripAdvisorEmbed language={language} />
           </div>
 
-          {/* Filtros Interactivos por Puntaje */}
-          <div className="space-y-2">
+          {/* Filtros Interactivos por Puntaje y Controles del Carrusel */}
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
             <div className="flex flex-wrap items-center gap-2">
               <button
                 type="button"
@@ -231,64 +287,118 @@ export default function Confianza() {
                 </button>
               )}
             </div>
-          </div>
 
-          {/* Cuadrícula de Opiniones Filtradas */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2">
-            {filteredOpiniones.map((op) => (
-              <div
-                key={op.id}
-                className="glass-card p-5 rounded-2xl border border-[var(--border)]/60 hover:border-emerald-500/30 flex flex-col justify-between space-y-3 transition-all duration-300 shadow-sm hover:shadow-md"
-              >
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center font-black text-emerald-600 dark:text-emerald-400 text-xs">
-                        {op.nombre ? op.nombre.charAt(0) : 'T'}
-                      </div>
-                      <div>
-                        <h4 className="text-xs font-bold text-[var(--foreground)] leading-tight">{op.nombre}</h4>
-                        <span className="text-[10px] text-[var(--muted-foreground)]/80 block">{op.origen}</span>
-                      </div>
-                    </div>
-                    <span className="text-[10px] text-[var(--muted-foreground)]/80">{op.fecha}</span>
-                  </div>
-
-                  {op.tour && (
-                    <div className="inline-block bg-[var(--background)] border border-[var(--border)]/50 px-2 py-0.5 rounded-md text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
-                      {op.tour}
-                    </div>
-                  )}
-
-                  <div className="space-y-1">
-                    <TripAdvisorRating rating={op.rating || 5} />
-                    <h5 className="font-bold text-sm text-[var(--foreground)] pt-1">{op.titulo}</h5>
-                    <p className="text-xs text-[var(--muted-foreground)] leading-relaxed italic">
-                      "{op.comentario}"
-                    </p>
-                  </div>
-                </div>
-
-                <div className="pt-2 border-t border-[var(--border)]/30 flex items-center justify-between text-[10px] text-[var(--muted-foreground)]/80">
-                  <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
-                    <CheckCircle2 className="w-3 h-3" />
-                    TripAdvisor
-                  </span>
-                  <a
-                    href={TRIPADVISOR_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="hover:underline flex items-center gap-0.5"
+            {/* Controles de Navegación del Carrusel (Flechas y Contador) */}
+            {totalPages > 1 && (
+              <div className="flex items-center gap-2 ml-auto">
+                <span className="text-[11px] font-bold text-[var(--muted-foreground)] tabular-nums px-1">
+                  {currentPage + 1} / {totalPages}
+                </span>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage((prev) => Math.max(0, prev - 1))}
+                    disabled={currentPage === 0}
+                    className={`p-1.5 rounded-xl border border-[var(--border)]/60 transition-all ${
+                      currentPage === 0
+                        ? 'opacity-30 cursor-not-allowed bg-[var(--card)] text-[var(--muted-foreground)]'
+                        : 'bg-[var(--card)] hover:bg-emerald-500 hover:text-white hover:border-emerald-500 cursor-pointer shadow-sm active:scale-95 text-[var(--foreground)]'
+                    }`}
+                    aria-label="Página anterior"
                   >
-                    {t('reviews.ver_en_tripadvisor')}
-                    <ExternalLink className="w-2.5 h-2.5 ml-0.5" />
-                  </a>
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage((prev) => Math.min(totalPages - 1, prev + 1))}
+                    disabled={currentPage === totalPages - 1}
+                    className={`p-1.5 rounded-xl border border-[var(--border)]/60 transition-all ${
+                      currentPage === totalPages - 1
+                        ? 'opacity-30 cursor-not-allowed bg-[var(--card)] text-[var(--muted-foreground)]'
+                        : 'bg-[var(--card)] hover:bg-emerald-500 hover:text-white hover:border-emerald-500 cursor-pointer shadow-sm active:scale-95 text-[var(--foreground)]'
+                    }`}
+                    aria-label="Página siguiente"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
-            ))}
+            )}
+          </div>
 
-            {filteredOpiniones.length === 0 && (
-              <div className="col-span-full py-8 text-center glass-card rounded-2xl border border-[var(--border)]/50 p-6 space-y-3">
+          {/* Carrusel Deslizante de Opiniones (1 sola fila, no estira la página) */}
+          <div
+            className="relative overflow-hidden w-full pt-1"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+            {filteredOpiniones.length > 0 ? (
+              <div
+                className="flex transition-transform duration-500 ease-out"
+                style={{ transform: `translateX(-${currentPage * 100}%)` }}
+              >
+                {pages.map((chunk, pageIdx) => (
+                  <div
+                    key={pageIdx}
+                    className={`w-full shrink-0 grid ${chunk.length === 1 ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-2'} gap-5`}
+                  >
+                    {chunk.map((op) => (
+                      <div
+                        key={op.id}
+                        className="glass-card p-5 rounded-2xl border border-[var(--border)]/60 hover:border-emerald-500/30 flex flex-col justify-between space-y-3 transition-all duration-300 shadow-sm hover:shadow-md h-full min-h-[220px]"
+                      >
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2.5">
+                              <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center font-black text-emerald-600 dark:text-emerald-400 text-xs">
+                                {op.nombre ? op.nombre.charAt(0) : 'T'}
+                              </div>
+                              <div>
+                                <h4 className="text-xs font-bold text-[var(--foreground)] leading-tight">{op.nombre}</h4>
+                                <span className="text-[10px] text-[var(--muted-foreground)]/80 block">{op.origen}</span>
+                              </div>
+                            </div>
+                            <span className="text-[10px] text-[var(--muted-foreground)]/80">{op.fecha}</span>
+                          </div>
+
+                          {op.tour && (
+                            <div className="inline-block bg-[var(--background)] border border-[var(--border)]/50 px-2 py-0.5 rounded-md text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
+                              {op.tour}
+                            </div>
+                          )}
+
+                          <div className="space-y-1">
+                            <TripAdvisorRating rating={op.rating || 5} />
+                            <h5 className="font-bold text-sm text-[var(--foreground)] pt-1">{op.titulo}</h5>
+                            <p className="text-xs text-[var(--muted-foreground)] leading-relaxed italic line-clamp-4">
+                              "{op.comentario}"
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="pt-2 border-t border-[var(--border)]/30 flex items-center justify-between text-[10px] text-[var(--muted-foreground)]/80">
+                          <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
+                            <CheckCircle2 className="w-3 h-3" />
+                            TripAdvisor
+                          </span>
+                          <a
+                            href={TRIPADVISOR_URL}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:underline flex items-center gap-0.5"
+                          >
+                            {t('reviews.ver_en_tripadvisor')}
+                            <ExternalLink className="w-2.5 h-2.5 ml-0.5" />
+                          </a>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="w-full py-8 text-center glass-card rounded-2xl border border-[var(--border)]/50 p-6 space-y-3">
                 <p className="text-xs text-[var(--muted-foreground)]">{t('reviews.sin_opiniones')}</p>
                 <button
                   type="button"
@@ -300,6 +410,25 @@ export default function Confianza() {
               </div>
             )}
           </div>
+
+          {/* Indicadores de Página (Dots) */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-1.5 pt-1">
+              {Array.from({ length: totalPages }).map((_, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => setCurrentPage(idx)}
+                  className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
+                    currentPage === idx
+                      ? 'w-6 bg-emerald-500 shadow-sm shadow-emerald-500/30'
+                      : 'w-2 bg-[var(--border)] hover:bg-emerald-500/50'
+                  }`}
+                  aria-label={`Ir a página ${idx + 1}`}
+                />
+              ))}
+            </div>
+          )}
         </div>
 
         {/* LADO DERECHO: Licencias y Sellos SSL (5 columnas en desktop) */}
