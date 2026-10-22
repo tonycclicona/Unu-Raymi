@@ -1,0 +1,36 @@
+1:"$Sreact.fragment"
+2:"/_next/static/chunks/0xx-unhe7c7zv.js"
+3:"LanguageProvider"
+4:I[51820,["$2"],"$3"]
+5:"CurrencyProvider"
+6:I[25421,["$2"],"$5"]
+7:I[39756,["$2"],"default"]
+8:"/_next/static/chunks/127yy_4exxwot.js"
+9:I[31749,["$2","$8"],"default"]
+a:I[37457,["$2"],"default"]
+11:I[97367,["$2"],"OutletBoundary"]
+12:"$Sreact.suspense"
+15:"ViewportBoundary"
+16:I[97367,["$2"],"$15"]
+17:"MetadataBoundary"
+18:I[97367,["$2"],"$17"]
+:HL["/_next/static/chunks/3x0gt6t6r2guk.css","style"]
+:HL["/_next/static/chunks/3sac0wmmobt91.css","style"]
+c:X
+f:X
+f:C
+10:[["children",{"s":"__PAGE__","h":160,"d":{"r":["$","$1","c",{"children":[[["$","title",null,{"children":"404: This page could not be found."}],["$","div",null,{"style":"$0:t:t:d:r:props:children:1:props:children:1:props:children:props:children:props:children:props:notFound:0:1:props:style","children":["$","div",null,{"children":[["$","style",null,{"dangerouslySetInnerHTML":{"__html":"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}"}}],["$","h1",null,{"className":"next-error-h1","style":"$0:t:t:d:r:props:children:1:props:children:1:props:children:props:children:props:children:props:notFound:0:1:props:children:props:children:1:props:style","children":404}],["$","div",null,{"style":"$0:t:t:d:r:props:children:1:props:children:1:props:children:props:children:props:children:props:notFound:0:1:props:children:props:children:2:props:style","children":["$","h2",null,{"style":"$0:t:t:d:r:props:children:1:props:children:1:props:children:props:children:props:children:props:notFound:0:1:props:children:props:children:2:props:children:props:style","children":"This page could not be found."}]}]]}]}]],null,["$","$L11",null,{"children":["$","$12",null,{"name":"Next.MetadataOutlet","children":"$@13"}]}]]}],"p":"$@14","v":null,"s":"$c"}}]]
+d:[["children",{"s":"/_not-found","h":96,"d":{"r":["$","$1","c",{"children":[null,["$","$L7",null,{"parallelRouterKey":"children","template":["$","$La",null,{}]}]]}],"p":"$@e","v":"$f","s":"$c"},"c":"$Q10"}]]
+0:{"t":{"t":{"s":"","h":80,"d":{"r":["$","$1","c",{"children":[[["$","link","0",{"rel":"stylesheet","href":"/_next/static/chunks/3x0gt6t6r2guk.css","precedence":"next"}],["$","link","1",{"rel":"stylesheet","href":"/_next/static/chunks/3sac0wmmobt91.css","precedence":"next"}],["$","script","script-0",{"src":"/_next/static/chunks/0xx-unhe7c7zv.js","async":true}]],["$","html",null,{"lang":"en","className":"h69qWW_variable w_p2Lq_variable h-full antialiased","children":[["$","head",null,{"children":["$","script",null,{"dangerouslySetInnerHTML":{"__html":"\n              (function() {\n                try {\n                  const savedTheme = localStorage.getItem('theme');\n                  if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {\n                    document.documentElement.classList.add('dark');\n                  } else {\n                    document.documentElement.classList.remove('dark');\n                  }\n                } catch (e) {}\n              })();\n            "}}]}],["$","body",null,{"className":"min-h-full flex flex-col","children":["$","$L4",null,{"children":["$","$L6",null,{"children":["$","$L7",null,{"parallelRouterKey":"children","error":"$9","errorStyles":[],"errorScripts":[["$","script","script-0",{"src":"/_next/static/chunks/127yy_4exxwot.js","async":true}]],"template":["$","$La",null,{}],"notFound":[[["$","title",null,{"children":"404: This page could not be found."}],["$","div",null,{"style":{"fontFamily":"system-ui,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\"","height":"100vh","textAlign":"center","display":"flex","flexDirection":"column","alignItems":"center","justifyContent":"center"},"children":["$","div",null,{"children":[["$","style",null,{"dangerouslySetInnerHTML":{"__html":"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}"}}],["$","h1",null,{"className":"next-error-h1","style":{"display":"inline-block","margin":"0 20px 0 0","padding":"0 23px 0 0","fontSize":24,"fontWeight":500,"verticalAlign":"top","lineHeight":"49px"},"children":404}],["$","div",null,{"style":{"display":"inline-block"},"children":["$","h2",null,{"style":{"fontSize":14,"fontWeight":400,"lineHeight":"49px","margin":0},"children":"This page could not be found."}]}]]}]}]],[]]}]}]}]}]]}]]}],"p":"$@b","v":null,"s":"$c"},"c":"$Qd"},"h":{"r":["$","$1","h",{"children":[["$","meta",null,{"name":"robots","content":"noindex"}],["$","$L16",null,{"children":[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1"}]]}],["$","$L18",null,{"children":[["$","div",null,{"hidden":true,"children":["$","$12",null,{"name":"Next.Metadata","children":[["$","title","0",{"children":"Unu-Raymi — Adventure Tours in Peru | Cusco, Machu Picchu & More"}],["$","meta","1",{"name":"description","content":"Discover authentic adventure tours in Peru with Unu-Raymi. Trekking, culture and nature in Cusco, Machu Picchu, Sacred Valley and unforgettable destinations."}],["$","meta","2",{"name":"keywords","content":"Peru tours, Cusco trekking, Machu Picchu tours, Peru adventure, Unu-Raymi"}],["$","meta","3",{"property":"og:title","content":"Unu-Raymi — Adventure Tours in Peru"}],["$","meta","4",{"property":"og:description","content":"Discover authentic adventure tours in Cusco, Machu Picchu and more destinations across South America."}],["$","meta","5",{"property":"og:site_name","content":"Unu-Raymi"}],["$","meta","6",{"property":"og:locale","content":"en_US"}],["$","meta","7",{"property":"og:type","content":"website"}],["$","meta","8",{"name":"twitter:card","content":"summary"}],["$","meta","9",{"name":"twitter:title","content":"Unu-Raymi — Adventure Tours in Peru"}],["$","meta","10",{"name":"twitter:description","content":"Discover authentic adventure tours in Cusco, Machu Picchu and more destinations across South America."}],["$","link","11",{"rel":"shortcut icon","href":"/uploads/logo.webp"}],["$","link","12",{"rel":"icon","href":"/uploads/logo.webp"}],["$","link","13",{"rel":"apple-touch-icon","href":"/uploads/logo.webp"}],"$L19"]}]}],null]}],"$L1a"]}],"p":"$@1b","v":null,"s":"$c"}},"a":"$@1c","u":"$@1d","b":"0gItpfaovuhxsknQE2uYT"}
+1e:I[27201,["$2"],"IconMark"]
+13:null
+19:["$","$L1e","14",{}]
+1a:["$","meta",null,{"name":"next-size-adjust","content":""}]
+c:300
+1d:true
+c:C
+1c:0
+e:"$undefined"
+b:"$undefined"
+1b:"$undefined"
+14:"$undefined"
