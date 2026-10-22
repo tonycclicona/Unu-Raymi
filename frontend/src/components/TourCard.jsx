@@ -130,7 +130,7 @@ function TourCard({ tour, onReservar }) {
                       }}
                       className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold transition-all border ${
                         isSelected
-                          ? 'bg-[var(--accent)] text-white border-transparent shadow-sm'
+                          ? 'bg-[var(--accent)] text-[var(--accent-foreground)] border-transparent shadow-sm'
                           : 'bg-[var(--card)] hover:bg-[var(--sidebar)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border-[var(--border)]'
                       }`}
                     >
@@ -182,7 +182,7 @@ function TourCard({ tour, onReservar }) {
           <div className="flex items-center gap-1.5">
             <button
               onClick={() => onReservar(tour, displayDuration, activeVariant)}
-              className="flex items-center gap-1.5 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow-lg shadow-[var(--accent)]/10 hover:shadow-[var(--accent)]/20 transition-all duration-300 group/btn whitespace-nowrap"
+              className="flex items-center gap-1.5 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--accent-foreground)] px-3.5 py-2 rounded-xl text-xs font-bold shadow-lg shadow-[var(--accent)]/10 hover:shadow-[var(--accent)]/20 transition-all duration-300 group/btn whitespace-nowrap"
             >
               {t('tour_card.reservar')}
               <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-1 transition-transform" />

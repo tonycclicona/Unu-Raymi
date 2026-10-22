@@ -191,7 +191,7 @@ export default function Navbar() {
           <a
             href="#tours"
             onClick={(e) => handleNavClick(e, '#tours')}
-            className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white px-5 py-2.5 rounded-xl font-semibold shadow-lg shadow-[var(--accent)]/20 hover:shadow-[var(--accent)]/30 transition-all duration-300 text-sm cursor-pointer"
+            className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--accent-foreground)] px-5 py-2.5 rounded-xl font-bold shadow-lg shadow-[var(--accent)]/20 hover:shadow-[var(--accent)]/30 transition-all duration-300 text-sm cursor-pointer"
           >
             {t('nav.explorar')}
           </a>

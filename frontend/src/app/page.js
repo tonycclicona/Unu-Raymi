@@ -217,7 +217,7 @@ export default function Home() {
                     key={cat}
                     onClick={() => { setFiltroCategoria(cat); setVisibleCount(6); }}
                     className={`flex-shrink-0 px-3 py-1.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider transition-all ${isSelected
-                      ? 'bg-[var(--accent)] text-white shadow-md shadow-[var(--accent)]/20'
+                      ? 'bg-[var(--accent)] text-[var(--accent-foreground)] shadow-md shadow-[var(--accent)]/20'
                       : 'bg-[var(--sidebar)] text-[var(--muted-foreground)] border border-[var(--border)]'
                       }`}
                   >
@@ -275,10 +275,10 @@ export default function Home() {
                   <div className="flex justify-center pt-2 pb-4">
                     <button
                       onClick={() => setVisibleCount((prev) => prev + 6)}
-                      className="group flex items-center gap-2 bg-[var(--card)]/60 border border-[var(--accent)]/40 hover:border-[var(--accent)] hover:bg-[var(--accent)] text-white px-6 py-3 rounded-xl text-xs font-bold transition-all"
+                      className="group flex items-center gap-2 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--accent-foreground)] px-6 py-3 rounded-xl text-xs font-bold transition-all shadow-md shadow-[var(--accent)]/20"
                     >
                       {t('catalog.load_more')}
-                      <Compass className="w-4 h-4 text-[var(--foreground)] group-hover:text-[var(--foreground)] group-hover:rotate-180 transition-all duration-500" />
+                      <Compass className="w-4 h-4 text-[var(--accent-foreground)] group-hover:rotate-180 transition-all duration-500" />
                     </button>
                   </div>
                 )}
@@ -358,7 +358,7 @@ export default function Home() {
                         key={cat}
                         onClick={() => { setFiltroCategoria(cat); setVisibleCount(6); }}
                         className={`px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider transition-all duration-300 ${isSelected
-                          ? 'bg-[var(--accent)] text-white shadow-md shadow-[var(--accent)]/20 scale-105'
+                          ? 'bg-[var(--accent)] text-[var(--accent-foreground)] shadow-md shadow-[var(--accent)]/20 scale-105'
                           : 'bg-[var(--sidebar)] hover:bg-[var(--sidebar)]/80 text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)] hover:border-[var(--accent)]/40'
                           }`}
                       >
@@ -422,10 +422,10 @@ export default function Home() {
                       <div className="flex justify-center pt-2 pb-6">
                         <button
                           onClick={() => setVisibleCount((prev) => prev + 6)}
-                          className="group flex items-center gap-2 bg-[var(--card)]/60 border border-[var(--accent)]/40 hover:border-[var(--accent)] hover:bg-[var(--accent)] text-white px-6 py-3 rounded-xl text-xs font-bold transition-all hover:scale-[1.02] active:scale-[0.98]"
+                          className="group flex items-center gap-2 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--accent-foreground)] px-6 py-3 rounded-xl text-xs font-bold transition-all shadow-md shadow-[var(--accent)]/20 hover:scale-[1.02] active:scale-[0.98]"
                         >
                           {t('catalog.load_more')}
-                          <Compass className="w-4 h-4 text-[var(--foreground)] group-hover:text-[var(--foreground)] group-hover:rotate-180 transition-all duration-500" />
+                          <Compass className="w-4 h-4 text-[var(--accent-foreground)] group-hover:rotate-180 transition-all duration-500" />
                         </button>
                       </div>
                     )}
