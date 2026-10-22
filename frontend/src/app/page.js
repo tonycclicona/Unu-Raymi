@@ -520,13 +520,32 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Destinos (Columna 2: 2 columnas en desktop) */}
+          {/* Tours Destacados / Relevantes (Columna 2: 2 columnas en desktop) */}
           <div className="lg:col-span-2 space-y-4">
-            <h4 className="font-extrabold text-[var(--foreground)] uppercase text-xs tracking-widest">{t('footer.destinos')}</h4>
+            <h4 className="font-extrabold text-[var(--foreground)] uppercase text-xs tracking-widest">{t('footer.tours_destacados')}</h4>
             <ul className="space-y-2.5 text-sm text-[var(--muted-foreground)]">
-              <li><button onClick={() => setFiltroPais('Perú')} className="hover:text-[var(--foreground)] transition-colors">{t('footer.peru_machu')}</button></li>
-              <li><button onClick={() => setFiltroPais('Colombia')} className="hover:text-[var(--foreground)] transition-colors">{t('footer.colombia_cafetera')}</button></li>
-              <li><button onClick={() => setFiltroPais('Chile')} className="hover:text-[var(--foreground)] transition-colors">{t('footer.chile_lagos')}</button></li>
+              {(
+                activeTours.filter(t => t.destacado).length > 0
+                  ? activeTours.filter(t => t.destacado)
+                  : activeTours
+              ).slice(0, 4).map((tour) => {
+                const tourName = tour.traducciones?.[language]?.nombre || tour.nombre;
+                return (
+                  <li key={tour.id}>
+                    <button
+                      onClick={() => {
+                        setSelectedTour(tour);
+                        setSelectedDuration(tour.duracion_dias);
+                        setSelectedVariant(tour.variantes?.[0] || null);
+                      }}
+                      className="hover:text-[var(--foreground)] transition-colors text-left line-clamp-1 block w-full"
+                      title={tourName}
+                    >
+                      {tourName}
+                    </button>
+                  </li>
+                );
+              })}
             </ul>
           </div>
 
